@@ -11,7 +11,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SERIALIZATION_GROUPS, User } from './entity/user.entity';
 import { PasswordService } from "./passwords.service";
-import { CalendarsService } from "../calendar/calendars.service";
 import { plainToClass, plainToInstance } from "class-transformer";
 
 @Injectable()
@@ -19,7 +18,6 @@ export class UsersService {
     constructor(
         private readonly usersRepository: UsersRepository,
         private readonly passwordService: PasswordService,
-        private readonly calendarsService: CalendarsService,
     ) {
     }
 
@@ -50,7 +48,6 @@ export class UsersService {
         return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
     }
 
-
     async createUser(dto: CreateUserDto): Promise<User> {
         const existing = await this.usersRepository.findByEmail(dto.email);
         if (existing) {
@@ -58,8 +55,6 @@ export class UsersService {
         }
         dto.password = await this.passwordService.hash(dto.password);
         const result = await this.usersRepository.createUser(dto);
-
-        await this.calendarsService.createDefaultCalendars(result.id);
 
         return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
     }

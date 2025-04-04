@@ -20,13 +20,6 @@ import { createFileUploadInterceptor } from "../common/interceptor/file-upload.i
 import { AvatarConfig } from '../config/avatar.config';
 import { OwnAccountGuard } from './guards/own-account.guard';
 import { RequestWithUser } from "../common/types/request.types";
-import { CalendarMembersService } from "../calendar-member/calendar-members.service";
-import { CalendarMember } from "../calendar-member/entity/calendar-member.entity";
-import { EventsService } from "../event/events.service";
-import { GetUserEventsOffsetQueryDto } from "./dto/user.events.offset.query.dto";
-import { GetUserEventsCursorQueryDto } from "./dto/user.events.cursor.query.dto";
-import { EventCursor } from "../common/types/cursor.pagination.types";
-import { AfterCursorQueryParseInterceptor } from './interceptors/after-cursor.interceptor';
 
 @Controller('users')
 @SerializeOptions({
@@ -38,9 +31,7 @@ export class UsersController extends BaseCrudController<
     UpdateUserDto
 > {
     constructor(
-        private readonly usersService: UsersService,
-        private readonly usersCalendarsService: CalendarMembersService,
-        private readonly eventsService: EventsService) {
+        private readonly usersService: UsersService) {
         super();
     }
 
@@ -108,39 +99,4 @@ export class UsersController extends BaseCrudController<
         }
         return { server_filename: file.filename };
     }
-
-    @Get(':id/calendars')
-    @UseGuards(OwnAccountGuard)
-    async getUserCalendars(@Param('id') id: number): Promise<CalendarMember[]> {
-        return this.usersCalendarsService.getUserCalendars(id);
-    }
-
-    @Get(':id/events/offset')
-    @UseGuards(OwnAccountGuard)
-    async getUserEventsOffset(
-        @Param('id') id: number,
-        @Query() query: GetUserEventsOffsetQueryDto
-    ): Promise<{ events: any; total: number; page: number; limit: number; totalPages: number }> {
-        return this.eventsService.getUserEventsOffset(id, query.name, query.page, query.limit);
-    }
-
-    @Get(':id/events')
-    @UseGuards(OwnAccountGuard)
-    @UseInterceptors(AfterCursorQueryParseInterceptor)
-    async getUserEventsCursor(
-        @Param('id') id: number,
-        @Query() query: GetUserEventsCursorQueryDto
-    ): Promise<{
-        events: any;
-        nextCursor: EventCursor | null;
-        hasMore: boolean,
-        total: number,
-        after: EventCursor | null,
-        limit: number,
-        remaining: number
-    }> {
-        const afterCursor = query.after === undefined ? null : (query.after as EventCursor);
-        return this.eventsService.getUserEventsCursor(id, query.name, afterCursor, query.limit);
-    }
-
 }

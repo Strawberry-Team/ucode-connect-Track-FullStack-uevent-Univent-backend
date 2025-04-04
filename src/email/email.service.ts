@@ -1,12 +1,12 @@
 // src/email/email.service.ts
-import {Injectable} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import {ConfigService} from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import {
     getConfirmationEmailTemplate,
     getResetPasswordEmailTemplate,
 } from './email.templates';
-import {GoogleOAuthService} from '../google/google-oauth.service';
+import { GoogleOAuthService } from '../google/google-oauth.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -42,20 +42,35 @@ export class EmailService {
     };
 
     private async createTransport() {
-        const accessToken = await this.googleOAuthService.getAccessToken();
-        const oauthDetails = this.googleOAuthService.getOAuthCredentials();
-        return nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                type: 'OAuth2',
-                user: this.gmailUser,
-                clientId: oauthDetails.clientId,
-                clientSecret: oauthDetails.clientSecret,
-                refreshToken: oauthDetails.refreshToken,
-                redirectUri: oauthDetails.redirectUri,
-                accessToken,
-            },
-        });
+        const nodeEnv = this.configService.get<string>('app.nodeEnv');
+        console.log(`Using transport: ${nodeEnv === 'production' ? 'Gmail' : 'Ethereal'}`);
+        if (nodeEnv === 'production') {
+            const accessToken = await this.googleOAuthService.getAccessToken();
+            const oauthDetails = this.googleOAuthService.getOAuthCredentials();
+
+            return nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    type: 'OAuth2',
+                    user: this.gmailUser,
+                    clientId: oauthDetails.clientId,
+                    clientSecret: oauthDetails.clientSecret,
+                    refreshToken: oauthDetails.refreshToken,
+                    redirectUri: oauthDetails.redirectUri,
+                    accessToken,
+                },
+            });
+        } else {
+            // Ethereal для тестов
+            return nodemailer.createTransport({
+                host: this.configService.get<string>('ETHEREAL_HOST'),
+                port: this.configService.get<number>('ETHEREAL_PORT'),
+                auth: {
+                    user: this.configService.get<string>('ETHEREAL_USER'),
+                    pass: this.configService.get<string>('ETHEREAL_PASS'),
+                },
+            });
+        }
     }
 
     async sendEmail(to: string, subject: string, html: string): Promise<void> {

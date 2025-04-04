@@ -2,6 +2,7 @@
 import * as dotenv from 'dotenv';
 import {validateEnv} from '../common/utils/env.utils';
 import appConfig from './app.config';
+import passport from 'passport';
 
 dotenv.config();
 
@@ -25,6 +26,12 @@ export default () => {
                     path: String(validateEnv('GOOGLE_CALENDAR_API_HOLIDAY_CALENDARS_DATA_FILE_PATH'))
                 }
             }
+        },
+        ethereal: {
+            host: String(validateEnv('ETHEREAL_HOST')),
+            port: String(validateEnv('ETHEREAL_PORT')),
+            user: String(validateEnv('ETHEREAL_USER')),
+            password: String(validateEnv('ETHEREAL_PASS'))
         }
     };
 };  

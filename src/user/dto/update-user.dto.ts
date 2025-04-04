@@ -4,8 +4,6 @@ import {
     IsUserName, IsUserPassword, IsUserProfilePicture, ValidatePasswordUpdate,
 } from '../users.validator';
 
-import { IsValidCountryCode } from "../../country/country.validator"
-
 export class UpdateUserDto {
     @IsUserName(true)
     firstName?: string;
@@ -22,8 +20,8 @@ export class UpdateUserDto {
     @IsUserPassword(true)
     newPassword?: string;
 
-    @IsValidCountryCode({ message: 'Invalid country code, must be cca2' }, true)
-    countryCode?: string;
+    // @IsValidCountryCode({ message: 'Invalid country code, must be cca2' }, true)
+    // countryCode?: string; TODO: deldel
 
     @IsUserProfilePicture(true)
     profilePictureName?: string;

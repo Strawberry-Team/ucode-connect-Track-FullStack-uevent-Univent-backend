@@ -9,7 +9,6 @@ import jwtConfig from './config/jwt.config';
 import appConfig from "./config/app.config";
 import { RefreshTokenNonceModule } from './refresh-token-nonce/refresh-token-nonce.module';
 import { JwtConfigModule } from './jwt/jwt.module';
-import apiConfig from "./config/country.api.config";
 import { SchedulerTasksModule } from './scheduler-tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -18,7 +17,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         ScheduleModule.forRoot(),
         ConfigModule.forRoot({
             isGlobal: true,
-            load: [databaseConfig, appConfig, jwtConfig, apiConfig, calendarConfig],
+            load: [databaseConfig, appConfig, jwtConfig],
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],

@@ -10,10 +10,7 @@ import {
 
 import { RefreshTokenNonce } from 'src/refresh-token-nonce/entity/refresh-token-nonce.entity';
 import { Expose } from 'class-transformer';
-import { Calendar } from 'src/calendar/entity/calendar.entity';
-import { CalendarMember } from 'src/calendar-member/entity/calendar-member.entity';
 import { BooleanTransformer } from 'src/common/transformers/boolean.transformer';
-import { Event } from 'src/event/entity/event.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
@@ -60,10 +57,6 @@ export class User {
     @Expose({ groups: ['confidential'] })
     emailVerified?: boolean;
 
-    @Column({ name: 'country_code', type: 'char', length: 2 })
-    @Expose({ groups: ['basic'] })
-    countryCode: string;
-
     @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
     @Expose({ groups: ['basic'] })
     createdAt: Date;
@@ -77,24 +70,4 @@ export class User {
     })
     @Expose({ groups: ['confidential'] })
     refreshTokenNonces: Promise<RefreshTokenNonce[]>;
-
-    @OneToMany(() => Calendar, (calendar) => calendar.creator, {
-        cascade: true,
-        onDelete: 'CASCADE',
-    })
-    @Expose({ groups: ['confidential'] })
-    calendars: Promise<Calendar[]>;
-
-    @OneToMany(() => CalendarMember, (calendarMember) => calendarMember.user, {
-        cascade: true,
-    })
-    @Expose({ groups: ['confidential'] })
-    userCalendars: Promise<CalendarMember[]>;
-
-    @OneToMany(() => Event, (event) => event.creator, {
-        cascade: true,
-        onDelete: 'CASCADE',
-    })
-    events: Event[];
-
 }
