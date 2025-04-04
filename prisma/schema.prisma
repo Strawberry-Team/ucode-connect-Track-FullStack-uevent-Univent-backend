@@ -1,20 +1,351 @@
 // prisma/schema.prisma
+datasource db {
+  provider          = "mysql"
+  url               = env("DB_APP_URL")
+  shadowDatabaseUrl = env("SHADOW_DB_APP_URL")
+}
+
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "mysql"
-  url      = env("DB_APP_URL")
-}
-
 generator dbml {
   provider = "prisma-dbml-generator"
-  output   = "../docs/db/generated/dbml"
+  output   = "../docs/db/generated"
 }
 
+// Users model
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id                 Int      @id @default(autoincrement())
+  password           String   @db.VarChar(255)
+  firstName          String   @map("first_name") @db.VarChar(100)
+  lastName           String?  @map("last_name") @db.VarChar(100)
+  email              String   @unique(map: "users_email_uq") @db.VarChar(255)
+  profilePictureName String   @default("default-avatar.png") @map("profile_picture_name") @db.VarChar(255)
+  isEmailVerified    Boolean  @default(false) @map("is_email_verified")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  refreshTokenNonces RefreshTokenNonce[] // Add this line
+  // eventAttendees EventAttendee[]
+  // ownedCompanies Company[]
+  // orders         Order[]
+  // subscriptions  Subscription[]
+  // notifications  Notification[]
+  // news           News[]
+
+  @@map("users")
 }
+
+// Refresh Token Nonces model
+model RefreshTokenNonce {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  nonce     String   @db.Char(32)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "refresh_token_nonces_user_id_fk")
+
+  @@index([userId], map: "idx_refresh_token_nonces_user_id")
+  @@index([userId, nonce], map: "idx_refresh_token_nonces_user_id_nonce")
+  @@map("refresh_token_nonces")
+}
+
+// Companies model
+// model Company {
+//   id          Int      @id @default(autoincrement())
+//   ownerId     Int      @map("owner_id")
+//   title       String   @db.VarChar(100)
+//   email       String   @unique @db.VarChar(255)
+//   description String   @db.Text
+//   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   owner         User           @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
+//   events        Event[]
+//   subscriptions Subscription[]
+//   news          News[]
+//
+//   @@index([ownerId], map: "companies_owner_id_fk")
+//   @@map("companies")
+// }
+//
+// // Event Formats model
+// model EventFormat {
+//   id        Int      @id @default(autoincrement())
+//   title     String   @unique @db.VarChar(100)
+//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   events Event[]
+//
+//   @@map("event_formats")
+// }
+//
+// // Event Themes model
+// model EventTheme {
+//   id        Int      @id @default(autoincrement())
+//   title     String   @unique @db.VarChar(100)
+//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   eventsRelation EventThemeRelation[]
+//
+//   @@map("event_themes")
+// }
+//
+// // Events model
+// model Event {
+//   id                   Int                @id @default(autoincrement())
+//   companyId            Int                @map("company_id")
+//   title                String             @db.VarChar(100)
+//   description          String             @db.Text
+//   venue                String             @db.VarChar(255)
+//   locationCoordinates  String             @map("location_coordinates") // Using String for POINT type
+//   startedAt            DateTime           @map("started_at")
+//   endedAt              DateTime           @map("ended_at")
+//   posterName           String             @default("default-poster.png") @map("poster_name") @db.VarChar(255)
+//   formatId             Int                @map("format_id")
+//   attendeeVisibility   AttendeeVisibility @default(EVERYONE) @map("attendee_visibility")
+//   publishedAt          DateTime           @map("published_at")
+//   ticketsAvailableFrom DateTime           @map("tickets_available_from")
+//   status               EventStatus?
+//   createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   company        Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
+//   format         EventFormat          @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
+//   attendees      EventAttendee[]
+//   tickets        Ticket[]
+//   promoCodes     PromoCode[]
+//   themesRelation EventThemeRelation[]
+//   subscriptions  Subscription[]
+//   news           News[]
+//
+//   @@index([companyId], map: "events_company_id_fk")
+//   @@index([formatId], map: "events_format_id_fk")
+//   @@map("events")
+// }
+//
+// // Event Attendees model
+// model EventAttendee {
+//   id        Int      @id @default(autoincrement())
+//   eventId   Int      @map("event_id")
+//   userId    Int      @map("user_id")
+//   isVisible Boolean? @default(false) @map("is_visible")
+//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_attendees_event_id_fk")
+//   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "event_attendees_user_id_fk")
+//
+//   @@unique([eventId, userId], map: "event_attendees_event_id_user_id_uq")
+//   @@index([eventId], map: "event_attendees_event_id_fk")
+//   @@index([userId], map: "event_attendees_user_id_fk")
+//   @@map("event_attendees")
+// }
+//
+// // Tickets model
+// model Ticket {
+//   id        Int          @id @default(autoincrement())
+//   eventId   Int          @map("event_id")
+//   title     String       @db.VarChar(100)
+//   number    String       @unique @db.VarChar(255)
+//   price     Decimal      @default(0.00) @db.Decimal(10, 2)
+//   status    TicketStatus @default(AVAILABLE)
+//   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
+//   orderItems OrderItem[]
+//
+//   @@index([eventId], map: "tickets_event_id_fk")
+//   @@map("tickets")
+// }
+//
+// // Orders model
+// model Order {
+//   id            Int           @id @default(autoincrement())
+//   userId        Int           @map("user_id")
+//   promoCodeId   Int?          @map("promo_code_id")
+//   paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+//   paymentMethod PaymentMethod @map("payment_method")
+//   totalAmount   Decimal       @map("total_amount") @db.Decimal(10, 2)
+//   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   user       User        @relation(fields: [userId], references: [id], onDelete: Restrict, map: "orders_user_id_fk")
+//   promoCode  PromoCode?  @relation(fields: [promoCodeId], references: [id], onDelete: SetNull, map: "orders_promo_code_id_fk")
+//   orderItems OrderItem[]
+//
+//   @@index([userId], map: "orders_user_id_fk")
+//   @@index([promoCodeId], map: "orders_promo_code_id_fk")
+//   @@map("orders")
+// }
+//
+// // Order Items model
+// model OrderItem {
+//   id           Int      @id @default(autoincrement())
+//   orderId      Int      @map("order_id")
+//   ticketId     Int      @map("ticket_id")
+//   initialPrice Decimal  @map("initial_price") @db.Decimal(10, 2)
+//   finalPrice   Decimal  @map("final_price") @db.Decimal(10, 2)
+//   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "order_items_order_id_fk")
+//   ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict, map: "order_items_ticket_id_fk")
+//
+//   @@unique([orderId, ticketId], map: "order_items_order_id_ticket_id_uq")
+//   @@index([orderId], map: "order_items_order_id_fk")
+//   @@index([ticketId], map: "order_items_ticket_id_fk")
+//   @@map("order_items")
+// }
+//
+// // Promo Codes model
+// model PromoCode {
+//   id              Int      @id @default(autoincrement())
+//   eventId         Int      @map("event_id")
+//   code            String   @db.VarChar(30)
+//   discountPercent Decimal  @map("discount_percent") @db.Decimal(5, 2)
+//   isActive        Boolean  @default(false) @map("is_active")
+//   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "promo_codes_event_id_fk")
+//   orders Order[]
+//
+//   @@unique([eventId, code], map: "promo_codes_event_id_code_uq")
+//   @@map("promo_codes")
+// }
+//
+// // Event Themes Relations model
+// model EventThemeRelation {
+//   id        Int      @id @default(autoincrement())
+//   eventId   Int      @map("event_id")
+//   themeId   Int      @map("theme_id")
+//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//
+//   // Relations
+//   event Event      @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_theme_relations_event_id_fk")
+//   theme EventTheme @relation(fields: [themeId], references: [id], onDelete: Cascade, map: "event_theme_relations_theme_id_fk")
+//
+//   @@unique([eventId, themeId], map: "event_theme_relations_event_id_theme_id_uq")
+//   @@index([eventId], map: "event_theme_relations_event_id_fk")
+//   @@index([themeId], map: "event_theme_relations_theme_id_fk")
+//   @@map("events_themes_relations")
+// }
+//
+// // Subscriptions model
+// model Subscription {
+//   id        Int      @id @default(autoincrement())
+//   userId    Int      @map("user_id")
+//   eventId   Int?     @map("event_id")
+//   companyId Int?     @map("company_id")
+//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//
+//   // Relations
+//   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "subscriptions_user_id_fk")
+//   event   Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull, map: "subscriptions_event_id_fk")
+//   company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull, map: "subscriptions_company_id_fk")
+//
+//   @@unique([eventId, userId], map: "subscriptions_event_id_user_id_uq")
+//   @@unique([companyId, userId], map: "subscriptions_company_id_user_id_uq")
+//   @@index([eventId], map: "subscriptions_event_id_fk")
+//   @@index([userId], map: "subscriptions_user_id_fk")
+//   @@index([companyId], map: "subscriptions_company_id_fk")
+//   @@map("subscriptions")
+// }
+//
+// // Notifications model
+// model Notification {
+//   id         Int        @id @default(autoincrement())
+//   userId     Int        @map("user_id")
+//   title      String     @db.VarChar(100)
+//   content    String     @db.VarChar(100)
+//   relatedId  Int        @map("related_id")
+//   sourceType SourceType @map("source_type")
+//   readAt     DateTime?  @map("read_at")
+//   hiddenAt   DateTime?  @map("hidden_at")
+//   createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "notifications_user_id_fk")
+//
+//   @@index([userId], map: "notifications_user_id_fk")
+//   @@map("notifications")
+// }
+//
+// // News model
+// model News {
+//   id          Int      @id @default(autoincrement())
+//   authorId    Int      @map("author_id")
+//   companyId   Int?     @map("company_id")
+//   eventId     Int?     @map("event_id")
+//   title       String   @db.VarChar(100)
+//   description String   @db.Text
+//   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+//   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+//
+//   // Relations
+//   author  User     @relation(fields: [authorId], references: [id], onDelete: Cascade, map: "news_user_id_fk")
+//   company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull, map: "news_company_id_fk")
+//   event   Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull, map: "news_event_id_fk")
+//
+//   @@unique([eventId, authorId], map: "news_event_id_author_id_uq")
+//   @@unique([companyId, authorId], map: "news_company_id_author_id_uq")
+//   @@index([companyId], map: "news_company_id_fk")
+//   @@index([eventId], map: "news_event_id_fk")
+//   @@index([authorId], map: "news_user_id_fk")
+//   @@map("news")
+// }
+//
+// // Enums
+// enum AttendeeVisibility {
+//   EVERYONE       @map("everyone")
+//   ATTENDEES_ONLY @map("attendees_only")
+//   NOBODY         @map("nobody")
+// }
+//
+// enum EventStatus {
+//   DRAFT         @map("draft")
+//   PUBLISHED     @map("published")
+//   SALES_STARTED @map("sales_started")
+//   ONGOING       @map("ongoing")
+//   FINISHED      @map("finished")
+//   CANCELLED     @map("cancelled")
+// }
+//
+// enum TicketStatus {
+//   SOLD      @map("sold")
+//   RESERVED  @map("reserved")
+//   AVAILABLE @map("available")
+// }
+//
+// enum PaymentStatus {
+//   PENDING  @map("pending")
+//   PAID     @map("paid")
+//   FAILED   @map("failed")
+//   REFUNDED @map("refunded")
+// }
+//
+// enum PaymentMethod {
+//   STRIPE @map("stripe")
+// }
+//
+// enum SourceType {
+//   EVENT   @map("event")
+//   COMPANY @map("company")
+// }

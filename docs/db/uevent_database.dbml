@@ -15,6 +15,17 @@ Table users {
   }
 }
 
+Table "refresh_token_nonces" {
+  "id" INT [pk, increment]
+  "user_id" INT [not null]
+  "nonce" CHAR(32) [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  Indexes {
+    user_id [name: "idx_refresh_token_nonces_user_id"]
+    (user_id, nonce) [name: "idx_refresh_token_nonces_user_id_nonce"]
+  }
+}
+
 // Events
 Table events {
   "id" INT [pk, increment]
@@ -220,6 +231,9 @@ Table news {
 }
 
 // Foreign key relationships with proper naming and cascade actions
+// Users relationships
+Ref: "users"."id" < "refresh_token_nonces"."user_id" [delete: cascade]
+
 // Events relationships
 Ref: "events"."company_id" > "companies"."id" [delete: restrict]
 Ref: "events"."format_id" > "event_formats"."id" [delete: restrict]

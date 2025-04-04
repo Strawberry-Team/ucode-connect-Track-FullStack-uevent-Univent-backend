@@ -1,53 +1,61 @@
 // src/refresh-token-nonce/refresh-token-nonce.repository.ts
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
 import { RefreshTokenNonce } from './entity/refresh-token-nonce.entity';
+import { DatabaseService } from '../db/database.service';
 
 @Injectable()
 export class RefreshTokenNonceRepository {
-    constructor(
-        @InjectRepository(RefreshTokenNonce)
-        private readonly nonceRepo: Repository<RefreshTokenNonce>,
-    ) {}
+    constructor(private readonly db: DatabaseService) {}
 
     async getAll(seconds?: number): Promise<RefreshTokenNonce[]> {
-        const whereCondition: any = {};
+        const where: any = {};
 
         if (seconds !== undefined) {
             const thresholdDate = new Date();
             thresholdDate.setSeconds(
                 thresholdDate.getSeconds() - Number(seconds),
             );
-            whereCondition.createdAt = LessThan(thresholdDate);
+            where.createdAt = {
+                lt: thresholdDate
+            };
         }
 
-        return this.nonceRepo.find({
-            where: whereCondition,
-            order: { createdAt: 'DESC' },
+        return this.db.refreshTokenNonce.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
         });
     }
 
     async saveRefreshTokenNonce(
         data: Partial<RefreshTokenNonce>,
     ): Promise<RefreshTokenNonce> {
-        return this.nonceRepo.save(data);
+        return this.db.refreshTokenNonce.create({
+            data: data as any
+        });
     }
 
     async findByRefreshTokenNonceAndUserId(
         userId: number,
         nonce: string,
     ): Promise<RefreshTokenNonce | null> {
-        return this.nonceRepo.findOne({
-            where: { nonce: nonce, user: { id: userId } },
+        return this.db.refreshTokenNonce.findFirst({
+            where: {
+                nonce,
+                userId
+            },
+            include: { user: true }
         });
     }
 
     async deleteRefreshTokenNoncesByUserId(userId: number): Promise<void> {
-        await this.nonceRepo.delete({ userId: userId });
+        await this.db.refreshTokenNonce.deleteMany({
+            where: { userId }
+        });
     }
 
     async deleteRefreshTokenNonceById(nonceId: number): Promise<void> {
-        await this.nonceRepo.delete({ id: nonceId });
+        await this.db.refreshTokenNonce.delete({
+            where: { id: nonceId }
+        });
     }
 }
