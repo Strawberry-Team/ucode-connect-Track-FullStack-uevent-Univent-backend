@@ -9,7 +9,6 @@ export interface DatabaseRootConfig {
     host: string;
     user: string;
     password: string;
-    connectionLimit: number;
     port: number;
 }
 
@@ -17,6 +16,5 @@ export const rootConfig: DatabaseRootConfig = {
     host: validateEnv('DB_ROOT_HOST'),
     user: validateEnv('DB_ROOT_USER'),
     password: validateEnv('DB_ROOT_PASSWORD'),
-    connectionLimit: Number(validateEnv('DB_ROOT_CONNECTION_LIMIT')),
     port: Number(validateEnv('DB_ROOT_PORT')),
 };

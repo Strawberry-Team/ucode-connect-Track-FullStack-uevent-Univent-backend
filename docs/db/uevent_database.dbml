@@ -1,0 +1,263 @@
+// Users
+Table users {
+  "id" INT [pk, increment]
+  "password" VARCHAR(255) [not null]
+  "first_name" VARCHAR(100) [not null]
+  "last_name" VARCHAR(100)
+  "email" VARCHAR(255) [not null]
+  "profile_picture_name" VARCHAR(255) [not null, default: 'default-avatar.png']
+  "is_email_verified" BOOL [not null, default: 0]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    email [unique, name: "users_email_uq"]
+  }
+}
+
+// Events
+Table events {
+  "id" INT [pk, increment]
+  "company_id" INT [not null]
+  "title" VARCHAR(100) [not null]
+  "description" TEXT [not null]
+  "venue" VARCHAR(255) [not null]
+  "location_coordinates" POINT [not null]
+  "started_at" DATETIME [not null]
+  "ended_at" DATETIME [not null]
+  "poster_name" VARCHAR(255) [not null, default: 'default-poster.png']
+  "format_id" INT [not null]
+  "attendee_visibility" ENUM('everyone', 'attendees_only', 'nobody') [default: 'everyone']
+  "published_at" DATETIME [not null]
+  "tickets_available_from" DATETIME [not null]
+  "status" ENUM('draft', 'published', 'sales_started', 'ongoing', 'finished', 'cancelled')
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    company_id [name: "events_company_id_fk"]
+    format_id [name: "events_format_id_fk"]
+  }
+}
+
+// Event Attendees
+Table event_attendees {
+  "id" INT [pk, increment]
+  "event_id" INT [not null]
+  "user_id" INT [not null]
+  "is_visible" BOOL [default: 0]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    event_id [name: "event_attendees_event_id_fk"]
+    user_id [name: "event_attendees_user_id_fk"]
+    (event_id, user_id) [unique, name: "event_attendees_event_id_user_id_uq"]
+  }
+}
+
+// Tickets
+Table tickets {
+  "id" INT [pk, increment]
+  "event_id" INT [not null]
+  "title" VARCHAR(100) [not null]
+  "number" VARCHAR(255) [unique, not null]
+  "price" DECIMAL(10, 2) [default: 0.00, not null]
+  "status" ENUM('sold', 'reserved', 'available') [default: 'available']
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    event_id [name: "tickets_event_id_fk"]
+  }
+}
+
+Table orders {
+  "id" INT [pk, increment]
+  "user_id" INT [not null]
+  "promo_code_id" INT
+  "payment_status" ENUM('pending', 'paid', 'failed', 'refunded') [not null, default: 'pending']
+  "payment_method" ENUM('stripe') [not null]
+  "total_amount" DECIMAL(10, 2) [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    user_id [name: "orders_user_id_fk"]
+    promo_code_id [name: "orders_promo_code_id_fk"]
+  }
+}
+
+Table order_items {
+  "id" INT [pk, increment]
+  "order_id" INT [not null]
+  "ticket_id" INT [not null]
+  "initial_price" DECIMAL(10, 2) [not null]
+  "final_price" DECIMAL(10, 2) [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    order_id [name: "order_items_order_id_fk"]
+    ticket_id [name: "order_items_ticket_id_fk"]
+    (order_id, ticket_id) [unique, name: "order_items_order_id_ticket_id_uq"]
+  }
+}
+
+// Promo Codes
+Table promo_codes {
+  "id" INT [pk, increment]
+  "event_id" INT [not null]
+  "code" VARCHAR(30) [not null]
+  "discount_percent" DECIMAL(5, 2) [not null]
+  "is_active" BOOL [default: 0, not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (event_id, code) [unique, name: "promo_codes_event_id_code_uq"]
+  }
+}
+
+// Companies
+Table companies {
+  "id" INT [pk, increment]
+  "owner_id" INT [not null]
+  "title" VARCHAR(100) [not null]
+  "email" VARCHAR(255) [unique, not null]
+  "description" TEXT [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    owner_id [name: "companies_owner_id_fk"]
+  }
+}
+
+// Event Formats
+Table event_formats {
+  "id" INT [pk, increment]
+  "title" VARCHAR(100) [not null, unique]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+// Event Themes
+Table event_themes {
+  "id" INT [pk, increment]
+  "title" VARCHAR(100) [not null, unique]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table events_themes_relations {
+  "id" INT [pk, increment]
+  "event_id" INT [not null]
+  "theme_id" INT [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    event_id [name: "event_theme_relations_event_id_fk"]
+    theme_id [name: "event_theme_relations_theme_id_fk"]
+    (event_id, theme_id) [unique, name: "event_theme_relations_event_id_theme_id_uq"]
+  }
+}
+
+// Subscriptions
+Table subscriptions {
+  "id" INT [pk, increment]
+  "user_id" INT [not null]
+  "event_id" INT
+  "company_id" INT
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    event_id [name: "subscriptions_event_id_fk"]
+    user_id [name: "subscriptions_user_id_fk"]
+    company_id [name: "subscriptions_company_id_fk"]
+    (event_id, user_id) [unique, name: "subscriptions_event_id_user_id_uq"]
+    (company_id, user_id) [unique, name: "subscriptions_company_id_user_id_uq"]
+
+  }
+}
+
+// Notifications
+Table notifications {
+  "id" INT [pk, increment]
+  "user_id" INT [not null]
+  "title" VARCHAR(100) [not null]
+  "content" VARCHAR(100) [not null]
+  "related_id" INT [not null]
+  "source_type" ENUM('event', 'company') [not null]
+  "read_at" DATETIME
+  "hidden_at" DATETIME
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    user_id [name: "notifications_user_id_fk"]
+  }
+}
+
+// News
+Table news {
+  "id" INT [pk, increment]
+  "author_id" INT [not null]
+  "company_id" INT
+  "event_id" INT
+  "title" VARCHAR(100) [not null]
+  "description" TEXT [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    company_id [name: "news_company_id_fk"]
+    event_id [name: "news_event_id_fk"]
+    author_id [name: "news_user_id_fk"]
+    (event_id, author_id) [unique, name: "news_event_id_author_id_uq"]
+    (company_id, author_id) [unique, name: "news_company_id_author_id_uq"]
+  }
+}
+
+// Foreign key relationships with proper naming and cascade actions
+// Events relationships
+Ref: "events"."company_id" > "companies"."id" [delete: restrict]
+Ref: "events"."format_id" > "event_formats"."id" [delete: restrict]
+
+// Event attendees relationships
+Ref: "event_attendees"."event_id" > "events"."id" [delete: cascade]
+Ref: "event_attendees"."user_id" > "users"."id" [delete: cascade]
+
+// Tickets relationships
+Ref: "tickets"."event_id" > "events"."id" [delete: cascade]
+
+// Orders relationships
+Ref: "orders"."user_id" > "users"."id" [delete: restrict]
+Ref: "orders"."promo_code_id" > "promo_codes"."id" [delete: set null]
+
+// Order items relationships
+Ref: "order_items"."order_id" > "orders"."id" [delete: cascade]
+Ref: "order_items"."ticket_id" > "tickets"."id" [delete: restrict]
+
+// Promo codes relationships
+Ref: "promo_codes"."event_id" > "events"."id" [delete: cascade]
+
+// Companies relationships
+Ref: "companies"."owner_id" > "users"."id" [delete: restrict]
+
+// Events themes relations relationships
+Ref: "events_themes_relations"."event_id" > "events"."id" [delete: cascade]
+Ref: "events_themes_relations"."theme_id" > "event_themes"."id" [delete: cascade]
+
+// Subscriptions relationships
+Ref: "subscriptions"."user_id" > "users"."id" [delete: cascade]
+Ref: "subscriptions"."event_id" > "events"."id" [delete: set null]
+Ref: "subscriptions"."company_id" > "companies"."id" [delete: set null]
+
+// Notifications relationships
+Ref: "notifications"."user_id" > "users"."id" [delete: cascade]
+
+// News relationships
+Ref: "news"."author_id" > "users"."id" [delete: cascade]
+Ref: "news"."company_id" > "companies"."id" [delete: set null]
+Ref: "news"."event_id" > "events"."id" [delete: set null]
