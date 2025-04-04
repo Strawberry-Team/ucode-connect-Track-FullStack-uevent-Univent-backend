@@ -1,13 +1,12 @@
 // src/common/types/request.types.ts
-import {Request} from 'express';
+import { Request } from 'express';
 
-export interface RequestWithUser extends Request {
-    user: {
-        userId: number;
-        expiresIn?: number;
-        createdAt?: number;
-        nonce?: string;
-        calendarId?: number;
-        eventParticipationId?: number;
-    };
+export interface UserPayloadType extends Request {
+    userId: number;
+}
+
+export interface RefreshTokenPayloadType extends Request {
+    expiresIn: number;
+    createdAt: number;
+    nonce: string;
 }

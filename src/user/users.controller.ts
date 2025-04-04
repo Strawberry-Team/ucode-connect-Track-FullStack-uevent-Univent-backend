@@ -19,7 +19,7 @@ import { Express } from 'express';
 import { createFileUploadInterceptor } from "../common/interceptor/file-upload.interceptor";
 import { AvatarConfig } from '../config/avatar.config';
 import { OwnAccountGuard } from './guards/own-account.guard';
-import { RequestWithUser } from "../common/types/request.types";
+import { UserId } from './decorators/user.decorator';
 
 @Controller('users')
 @SerializeOptions({
@@ -35,45 +35,45 @@ export class UsersController extends BaseCrudController<
         super();
     }
 
-    protected async findById(id: number, req: RequestWithUser): Promise<User> {
+    protected async findById(id: number, userId: number): Promise<User> {
         return await this.usersService.getUserByIdWithoutPassword(id);
     }
 
-    protected async createEntity(dto: CreateUserDto, req: RequestWithUser): Promise<User> {
+    protected async createEntity(dto: CreateUserDto, userId: number): Promise<User> {
         return await this.usersService.createUser(dto);
     }
 
     protected async updateEntity(
         id: number,
         dto: UpdateUserDto,
-        req: RequestWithUser
+        userId: number
     ): Promise<User> {
         return await this.usersService.updateUser(id, dto);
     }
 
-    protected async deleteEntity(id: number, req: RequestWithUser): Promise<void> {
+    protected async deleteEntity(id: number, userId: number): Promise<void> {
         return await this.usersService.deleteUser(id);
     }
 
     @Post()
-    async create(@Body() dto: CreateUserDto, @Req() req: RequestWithUser): Promise<User> {
+    async create(@Body() dto: CreateUserDto, @UserId() userId: number): Promise<User> {
         throw new NotImplementedException();
     }
 
     @Patch(':id')
     @UseGuards(OwnAccountGuard)
-    async update(@Param('id') id: number, @Body() dto: UpdateUserDto, @Req() req: RequestWithUser): Promise<User> {
-        return super.update(id, dto, req);
+    async update(@Param('id') id: number, @Body() dto: UpdateUserDto, @UserId() userId: number): Promise<User> {
+        return super.update(id, dto, userId);
     }
 
     @Delete(':id')
     @UseGuards(OwnAccountGuard)
-    async delete(@Param('id') id: number, @Req() req: RequestWithUser): Promise<void> {
-        return super.delete(id, req);
+    async delete(@Param('id') id: number, @UserId() userId: number): Promise<void> {
+        return super.delete(id, userId);
     }
 
     @Get()
-    async getAllUsers(@Query('email') email: string, @Req() req: RequestWithUser): Promise<User> {
+    async getAllUsers(@Query('email') email: string): Promise<User> {
         if (!email) {
             throw new BadRequestException('Email parameter is required');
         }

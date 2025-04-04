@@ -7,8 +7,8 @@ import {ResetPasswordDto} from './dto/reset-password.dto';
 import {newPasswordDto} from './dto/new-password.dto'
 import {JwtRefreshGuard, JwtResetPasswordGuard, JwtConfirmEmailGuard, JwtAuthGuard} from './guards/auth.jwt-guards';
 import {Request as ExpressRequest} from 'express';
-
-import {RequestWithUser} from '../common/types/request.types';
+import { UserId } from 'src/user/decorators/user.decorator';
+import { RefreshTokenPayload } from 'src/auth/decorators/refresh-token.decorator';
 
 @Controller('auth')
 @UsePipes(new ValidationPipe({whitelist: true}))
@@ -35,27 +35,27 @@ export class AuthController {
     @HttpCode(204)
     @UseGuards(JwtRefreshGuard)
     @Post('logout')
-    async logout(@Request() req: RequestWithUser) {
-        return this.authService.logout(req.user.userId, String(req.user.nonce));
+    async logout(@UserId() userId: number, @RefreshTokenPayload('nonce') nonce: string) {
+        return this.authService.logout(userId, nonce);
     }
 
     @UseGuards(JwtRefreshGuard)
     @Post('/access-token/refresh')
-    async refreshToken(@Request() req: RequestWithUser) {
-        return this.authService.refreshToken(req.user.userId, Number(req.user.createdAt), String(req.user.nonce));
+    async refreshToken(@RefreshTokenPayload('nonce') nonce: string, @RefreshTokenPayload('createdAt') createdAt: number, @UserId() userId: number) {
+        return this.authService.refreshToken(userId, createdAt, nonce);
     }
 
     @UseGuards(JwtResetPasswordGuard)
     @Post('reset-password/:confirm_token') //TODO: (not now) add guard for 1 time use(redis)
-    async resetPasswordWithConfirmToken(@Body() newPasswordDto: newPasswordDto, @Request() req: RequestWithUser) {
-        return this.authService.resetPasswordWithConfirmToken(newPasswordDto, req.user.userId);
+    async resetPasswordWithConfirmToken(@Body() newPasswordDto: newPasswordDto, @UserId() userId: number) {
+        return this.authService.resetPasswordWithConfirmToken(newPasswordDto, userId);
     }
 
     //TODO: (not now) add email verification guard for 1 time use(redis)
     @UseGuards(JwtConfirmEmailGuard)
     @Post('confirm-email/:confirm_token')
-    async verifyEmailWithConfirmToken(@Request() req: RequestWithUser) {
-        return this.authService.confirmEmail(req.user.userId);
+    async verifyEmailWithConfirmToken(@UserId() userId: number) {
+        return this.authService.confirmEmail(userId);
     }
 
     @Post('reset-password')

@@ -11,7 +11,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import {JwtAuthGuard} from "../../auth/guards/auth.jwt-guards";
-import {RequestWithUser} from "../types/request.types";
+import { UserId } from 'src/user/decorators/user.decorator';
 
 @UseGuards(JwtAuthGuard)
 export abstract class BaseCrudController<
@@ -19,21 +19,21 @@ export abstract class BaseCrudController<
     CreateDto,
     UpdateDto
 > {
-    protected abstract findById(id: number, req: RequestWithUser): Promise<T>;
+    protected abstract findById(id: number, userId: number): Promise<T>;
 
-    protected abstract createEntity(dto: CreateDto, req: RequestWithUser): Promise<T>;
+    protected abstract createEntity(dto: CreateDto, userId: number): Promise<T>;
 
     protected abstract updateEntity(
         id: number,
         dto: UpdateDto,
-        req: RequestWithUser
+        userId: number
     ): Promise<T>;
 
-    protected abstract deleteEntity(id: number, req: RequestWithUser): Promise<void>;
+    protected abstract deleteEntity(id: number, userId: number): Promise<void>;
 
     @Get(':id')
-    async getById(@Param('id') id: number, @Req() req: RequestWithUser): Promise<T> {
-        const existing = await this.findById(id, req);
+    async getById(@Param('id') id: number, @UserId() userId: number): Promise<T> {
+        const existing = await this.findById(id, userId);
         if (!existing) {
             throw new NotFoundException("Entity not found");
         }
@@ -41,29 +41,29 @@ export abstract class BaseCrudController<
     }
 
     @Post()
-    async create(@Body() dto: CreateDto, @Req() req: RequestWithUser): Promise<T> {
-        return await this.createEntity(dto, req);
+    async create(@Body() dto: CreateDto, @UserId() userId: number): Promise<T> {
+        return await this.createEntity(dto, userId);
     }
 
     @Patch(':id')
     async update(
         @Param('id') id: number,
         @Body() dto: UpdateDto,
-        @Req() req: RequestWithUser
+        @UserId() userId: number
     ): Promise<T> {
-        const existing = await this.findById(id, req);
+        const existing = await this.findById(id, userId);
         if (!existing) {
             throw new NotFoundException("Entity not found");
         }
-        return await this.updateEntity(id, dto, req);
+        return await this.updateEntity(id, dto, userId);
     }
 
     @Delete(':id')
-    async delete(@Param('id') id: number, @Req() req: RequestWithUser): Promise<void> {
-        const existing = await this.findById(id, req);
+    async delete(@Param('id') id: number, @UserId() userId: number): Promise<void> {
+        const existing = await this.findById(id, userId);
         if (!existing) {
             throw new NotFoundException("Entity not found");
         }
-        await this.deleteEntity(id, req);
+        await this.deleteEntity(id, userId);
     }
 }

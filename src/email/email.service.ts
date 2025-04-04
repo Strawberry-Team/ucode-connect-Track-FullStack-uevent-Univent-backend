@@ -44,7 +44,7 @@ export class EmailService {
     private async createTransport() {
         const nodeEnv = this.configService.get<string>('app.nodeEnv');
         console.log(`Using transport: ${nodeEnv === 'production' ? 'Gmail' : 'Ethereal'}`);
-        if (nodeEnv === 'production') {
+        if (nodeEnv === 'production' || nodeEnv === 'test') {
             const accessToken = await this.googleOAuthService.getAccessToken();
             const oauthDetails = this.googleOAuthService.getOAuthCredentials();
 
@@ -61,7 +61,6 @@ export class EmailService {
                 },
             });
         } else {
-            // Ethereal для тестов
             return nodemailer.createTransport({
                 host: this.configService.get<string>('ETHEREAL_HOST'),
                 port: this.configService.get<number>('ETHEREAL_PORT'),
