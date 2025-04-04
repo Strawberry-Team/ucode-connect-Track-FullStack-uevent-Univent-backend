@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-import {validateEnv} from '../common/utils/env.utils';
+import { validateEnv } from '../common/utils/env.utils';
 
 export interface DatabaseRootConfig {
     host: string;

@@ -1,5 +1,5 @@
 // src/user/dto/create-user.dto.ts
-import { IsUserEmail, IsUserName, IsUserPassword } from "../users.validator";
+import { IsUserEmail, IsUserName, IsUserPassword } from '../users.validator';
 
 export class CreateUserDto {
     @IsUserName(false)

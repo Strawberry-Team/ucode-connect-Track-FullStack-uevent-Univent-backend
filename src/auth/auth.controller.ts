@@ -1,20 +1,35 @@
 // src/auth/auth.controller.ts
-import {Body, Controller, Post, UseGuards, Request, UsePipes, ValidationPipe, HttpCode, Get, Req} from '@nestjs/common';
-import {AuthService} from './auth.service';
-import {CreateUserDto} from '../user/dto/create-user.dto';
-import {LoginDto} from './dto/login.dto';
-import {ResetPasswordDto} from './dto/reset-password.dto';
-import {newPasswordDto} from './dto/new-password.dto'
-import {JwtRefreshGuard, JwtResetPasswordGuard, JwtConfirmEmailGuard, JwtAuthGuard} from './guards/auth.jwt-guards';
-import {Request as ExpressRequest} from 'express';
+import {
+    Body,
+    Controller,
+    Post,
+    UseGuards,
+    Request,
+    UsePipes,
+    ValidationPipe,
+    HttpCode,
+    Get,
+    Req,
+} from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { newPasswordDto } from './dto/new-password.dto';
+import {
+    JwtRefreshGuard,
+    JwtResetPasswordGuard,
+    JwtConfirmEmailGuard,
+    JwtAuthGuard,
+} from './guards/auth.jwt-guards';
+import { Request as ExpressRequest } from 'express';
 import { UserId } from 'src/user/decorators/user.decorator';
 import { RefreshTokenPayload } from 'src/auth/decorators/refresh-token.decorator';
 
 @Controller('auth')
-@UsePipes(new ValidationPipe({whitelist: true}))
+@UsePipes(new ValidationPipe({ whitelist: true }))
 export class AuthController {
-    constructor(private readonly authService: AuthService) {
-    }
+    constructor(private readonly authService: AuthService) {}
 
     @Post('register')
     async register(@Body() createUserDto: CreateUserDto) {
@@ -29,26 +44,39 @@ export class AuthController {
     @Get('csrf-token')
     getCsrf(@Req() req: ExpressRequest): { csrfToken: string } {
         const token = req.csrfToken();
-        return {csrfToken: token};
+        return { csrfToken: token };
     }
 
     @HttpCode(204)
     @UseGuards(JwtRefreshGuard)
     @Post('logout')
-    async logout(@UserId() userId: number, @RefreshTokenPayload('nonce') nonce: string) {
+    async logout(
+        @UserId() userId: number,
+        @RefreshTokenPayload('nonce') nonce: string,
+    ) {
         return this.authService.logout(userId, nonce);
     }
 
     @UseGuards(JwtRefreshGuard)
     @Post('/access-token/refresh')
-    async refreshToken(@RefreshTokenPayload('nonce') nonce: string, @RefreshTokenPayload('createdAt') createdAt: number, @UserId() userId: number) {
+    async refreshToken(
+        @RefreshTokenPayload('nonce') nonce: string,
+        @RefreshTokenPayload('createdAt') createdAt: number,
+        @UserId() userId: number,
+    ) {
         return this.authService.refreshToken(userId, createdAt, nonce);
     }
 
     @UseGuards(JwtResetPasswordGuard)
     @Post('reset-password/:confirm_token') //TODO: (not now) add guard for 1 time use(redis)
-    async resetPasswordWithConfirmToken(@Body() newPasswordDto: newPasswordDto, @UserId() userId: number) {
-        return this.authService.resetPasswordWithConfirmToken(newPasswordDto, userId);
+    async resetPasswordWithConfirmToken(
+        @Body() newPasswordDto: newPasswordDto,
+        @UserId() userId: number,
+    ) {
+        return this.authService.resetPasswordWithConfirmToken(
+            newPasswordDto,
+            userId,
+        );
     }
 
     //TODO: (not now) add email verification guard for 1 time use(redis)

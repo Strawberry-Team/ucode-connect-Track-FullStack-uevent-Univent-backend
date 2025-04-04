@@ -5,11 +5,14 @@ import {
     ValidationArguments,
     IsISO8601,
     IsOptional,
-    ValidateIf
+    ValidateIf,
 } from 'class-validator';
-import {applyDecorators} from "@nestjs/common";
+import { applyDecorators } from '@nestjs/common';
 
-export function IsLaterThan(property: string, validationOptions?: ValidationOptions) {
+export function IsLaterThan(
+    property: string,
+    validationOptions?: ValidationOptions,
+) {
     return function (object: Object, propertyName: string) {
         registerDecorator({
             name: 'isLaterThan',
@@ -19,26 +22,26 @@ export function IsLaterThan(property: string, validationOptions?: ValidationOpti
             options: validationOptions,
             validator: {
                 validate(value: any, args: ValidationArguments) {
-                    const relatedValue = (args.object as any)["startedAt"];
+                    const relatedValue = (args.object as any)['startedAt'];
                     return new Date(value) >= new Date(relatedValue);
                 },
                 defaultMessage(args: ValidationArguments) {
                     const [relatedPropertyName] = args.constraints;
                     return `${args.property} must be later than ${relatedPropertyName}`;
-                }
-            }
+                },
+            },
         });
     };
 }
 
 export function IsISO8601Date(isOptional: boolean, allowNull: boolean = false) {
-    const decorators = [IsISO8601({strict: true})];
+    const decorators = [IsISO8601({ strict: true })];
 
     if (allowNull) {
         return applyDecorators(
-            ValidateIf(value => value !== null),
+            ValidateIf((value) => value !== null),
             ...decorators,
-            IsOptional()
+            IsOptional(),
         );
     } else if (isOptional) {
         return applyDecorators(IsOptional(), ...decorators);

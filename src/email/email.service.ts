@@ -18,18 +18,28 @@ export class EmailService {
 
     constructor(
         private readonly configService: ConfigService,
-        private readonly googleOAuthService: GoogleOAuthService
+        private readonly googleOAuthService: GoogleOAuthService,
     ) {
-        this.gmailUser = String(this.configService.get<string>('google.gmailApi.user'));
+        this.gmailUser = String(
+            this.configService.get<string>('google.gmailApi.user'),
+        );
         this.appName = String(this.configService.get<string>('app.name'));
-        this.googleOAuthService.setCredentials(String(this.configService.get<string>('google.gmailApi.refreshToken')));
+        this.googleOAuthService.setCredentials(
+            String(
+                this.configService.get<string>('google.gmailApi.refreshToken'),
+            ),
+        );
 
         this.init();
     }
 
     private async init() {
-        const logoPath = String(this.configService.get<string>('app.logo.path'));
-        const logoFilename = String(this.configService.get<string>('app.logo.filename'));
+        const logoPath = String(
+            this.configService.get<string>('app.logo.path'),
+        );
+        const logoFilename = String(
+            this.configService.get<string>('app.logo.filename'),
+        );
         this.logo = await this.readLogoFile(path.join(logoPath, logoFilename));
     }
 
@@ -39,11 +49,13 @@ export class EmailService {
 
     private async readHtmlFile(filePath: string): Promise<string> {
         return fs.readFileSync(path.resolve(filePath), 'utf-8');
-    };
+    }
 
     private async createTransport() {
         const nodeEnv = this.configService.get<string>('app.nodeEnv');
-        console.log(`Using transport: ${nodeEnv === 'production' ? 'Gmail' : 'Ethereal'}`);
+        console.log(
+            `Using transport: ${nodeEnv === 'production' ? 'Gmail' : 'Ethereal'}`,
+        );
         if (nodeEnv === 'production' || nodeEnv === 'test') {
             const accessToken = await this.googleOAuthService.getAccessToken();
             const oauthDetails = this.googleOAuthService.getOAuthCredentials();
@@ -90,7 +102,9 @@ export class EmailService {
                 html,
                 attachments: [
                     {
-                        filename: String(this.configService.get<string>('app.logo.path')),
+                        filename: String(
+                            this.configService.get<string>('app.logo.path'),
+                        ),
                         content: this.logo,
                         cid: 'logo@project',
                     },
@@ -103,9 +117,19 @@ export class EmailService {
         }
     }
 
-    async sendConfirmationEmail(to: string, confirmationLink: string): Promise<void> {
-        const html = getConfirmationEmailTemplate(confirmationLink, this.appName);
-        await this.sendEmail(to, `Email Confirmation for ${this.appName}`, html);
+    async sendConfirmationEmail(
+        to: string,
+        confirmationLink: string,
+    ): Promise<void> {
+        const html = getConfirmationEmailTemplate(
+            confirmationLink,
+            this.appName,
+        );
+        await this.sendEmail(
+            to,
+            `Email Confirmation for ${this.appName}`,
+            html,
+        );
     }
 
     async sendResetPasswordEmail(to: string, resetLink: string): Promise<void> {

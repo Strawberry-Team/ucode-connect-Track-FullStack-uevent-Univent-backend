@@ -1,6 +1,6 @@
 // src/jwt/jwt.types.ts
 export type TokenType =
-    'access'
+    | 'access'
     | 'refresh'
     | 'confirmEmail'
     | 'resetPassword'

@@ -1,6 +1,6 @@
 // src/common/validators/offset.pagination.validator.ts
-import {applyDecorators} from '@nestjs/common';
-import {IsInt, IsOptional, Max, IsPositive} from 'class-validator';
+import { applyDecorators } from '@nestjs/common';
+import { IsInt, IsOptional, Max, IsPositive } from 'class-validator';
 
 export function IsOffsetPaginationPage(isOptional: boolean) {
     const decorators = [IsInt(), IsPositive()];
@@ -10,8 +10,15 @@ export function IsOffsetPaginationPage(isOptional: boolean) {
     return applyDecorators(...decorators);
 }
 
-export function IsOffsetPaginationLimit(isOptional: boolean, maxLimit: number = 100) {
-    const decorators = [IsInt(), IsPositive(), Max(maxLimit, {message: `Limit must not exceed ${maxLimit}`}),];
+export function IsOffsetPaginationLimit(
+    isOptional: boolean,
+    maxLimit: number = 100,
+) {
+    const decorators = [
+        IsInt(),
+        IsPositive(),
+        Max(maxLimit, { message: `Limit must not exceed ${maxLimit}` }),
+    ];
     if (isOptional) {
         return applyDecorators(IsOptional(), ...decorators);
     }

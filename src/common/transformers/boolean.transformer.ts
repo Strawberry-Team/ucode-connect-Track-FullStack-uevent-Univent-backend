@@ -13,4 +13,3 @@ export const BooleanTransformer = (defaultValue: boolean) => ({
         return Boolean(databaseValue);
     },
 });
-

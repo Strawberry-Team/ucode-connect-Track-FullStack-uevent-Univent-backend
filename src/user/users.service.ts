@@ -10,42 +10,48 @@ import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SERIALIZATION_GROUPS, User } from './entity/user.entity';
-import { PasswordService } from "./passwords.service";
-import { plainToClass, plainToInstance } from "class-transformer";
+import { PasswordService } from './passwords.service';
+import { plainToClass, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
     constructor(
         private readonly usersRepository: UsersRepository,
         private readonly passwordService: PasswordService,
-    ) {
-    }
+    ) {}
 
     public async getUserById(id: number): Promise<User> {
         const user = await this.usersRepository.findById(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
-        return plainToInstance(User, user, { groups: SERIALIZATION_GROUPS.CONFIDENTIAL });
+        return plainToInstance(User, user, {
+            groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+        });
     }
 
     async getUserByIdWithoutPassword(id: number): Promise<User> {
         const result = await this.getUserById(id);
-        return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
-
 
     async getUserByEmail(email: string): Promise<User> {
         const result = await this.usersRepository.findByEmail(email);
         if (!result) {
             throw new NotFoundException('User with this email not found');
         }
-        return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.CONFIDENTIAL });
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+        });
     }
 
     async getUserByEmailWithoutPassword(email: string): Promise<User> {
         const result = await this.getUserByEmail(email);
-        return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async createUser(dto: CreateUserDto): Promise<User> {
@@ -56,22 +62,31 @@ export class UsersService {
         dto.password = await this.passwordService.hash(dto.password);
         const result = await this.usersRepository.createUser(dto);
 
-        return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async updateUser(id: number, dto: UpdateUserDto): Promise<User> {
         if (dto.email !== undefined) {
-            throw new BadRequestException('Email update is temporarily unavailable');
+            throw new BadRequestException(
+                'Email update is temporarily unavailable',
+            );
         }
 
         const user = await this.getUserById(id);
         let result;
         if (dto.oldPassword || dto.newPassword) {
-            const isMatch = await this.passwordService.compare(String(dto.oldPassword), String(user.password));
+            const isMatch = await this.passwordService.compare(
+                String(dto.oldPassword),
+                String(user.password),
+            );
             if (!isMatch) {
                 throw new UnauthorizedException('Old password does not match');
             }
-            const hashedNewPassword = await this.passwordService.hash(String(dto.newPassword));
+            const hashedNewPassword = await this.passwordService.hash(
+                String(dto.newPassword),
+            );
             delete dto.oldPassword;
             delete dto.newPassword;
             const updateData: Partial<User> = { ...dto };
@@ -83,7 +98,9 @@ export class UsersService {
         if (!result) {
             throw new NotFoundException('User not found');
         }
-        return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async updatePassword(id: number, newPassword: string): Promise<User> {
@@ -93,7 +110,9 @@ export class UsersService {
         if (!result) {
             throw new NotFoundException('User not found');
         }
-        return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async deleteUser(id: number): Promise<void> {
@@ -102,12 +121,21 @@ export class UsersService {
 
     async confirmEmail(userId: number) {
         const updateData: Partial<User> = { emailVerified: true };
-        const result = await this.usersRepository.updateUser(userId, updateData);
-        return plainToInstance(User, result, { groups: SERIALIZATION_GROUPS.BASIC });
+        const result = await this.usersRepository.updateUser(
+            userId,
+            updateData,
+        );
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async getAllUnactivatedUsers(time: number): Promise<User[]> {
         const users = await this.usersRepository.getAllUnactivatedUsers(time);
-        return users.map(user => plainToInstance(User, user, { groups: SERIALIZATION_GROUPS.CONFIDENTIAL }));
+        return users.map((user) =>
+            plainToInstance(User, user, {
+                groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+            }),
+        );
     }
 }

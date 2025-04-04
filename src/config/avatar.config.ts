@@ -1,7 +1,7 @@
 // src/config/avatar.config.ts
 import * as dotenv from 'dotenv';
-import {validateEnv} from '../common/utils/env.utils';
-import {Injectable} from '@nestjs/common';
+import { validateEnv } from '../common/utils/env.utils';
+import { Injectable } from '@nestjs/common';
 
 dotenv.config();
 

@@ -14,10 +14,13 @@ import { RefreshTokenNonce } from './entity/refresh-token-nonce.entity';
         TypeOrmModule.forFeature([RefreshTokenNonce]),
         JwtModule.register({}),
         forwardRef(() => AuthModule),
-        UsersModule
+        UsersModule,
     ],
-    providers: [RefreshTokenNonceService, RefreshTokenNonceRepository, NonceUtils],
+    providers: [
+        RefreshTokenNonceService,
+        RefreshTokenNonceRepository,
+        NonceUtils,
+    ],
     exports: [RefreshTokenNonceService, NonceUtils],
 })
-export class RefreshTokenNonceModule {
-}
+export class RefreshTokenNonceModule {}

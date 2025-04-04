@@ -1,7 +1,10 @@
 // src/user/dto/update-user.dto.ts
 import {
     IsUserEmail,
-    IsUserName, IsUserPassword, IsUserProfilePicture, ValidatePasswordUpdate,
+    IsUserName,
+    IsUserPassword,
+    IsUserProfilePicture,
+    ValidatePasswordUpdate,
 } from '../users.validator';
 
 export class UpdateUserDto {

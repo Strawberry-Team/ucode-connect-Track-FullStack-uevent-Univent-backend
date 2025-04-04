@@ -12,19 +12,25 @@ export class JwtCleanSchedulerService {
     constructor(
         private readonly refreshTokenNonceService: RefreshTokenNonceService,
         private configService: ConfigService,
-    ) {
-    }
+    ) {}
 
     @Cron(SchedulerConfig.prototype.cleanRefreshTokensFromDb)
     @Timeout(10000)
     async cleanRefreshTokensFromDb() {
-        const expirationTime = convertToSeconds((String(this.configService.get<string>(`jwt.expiresIn.refresh`))));
-        const nonces: RefreshTokenNonce[] = await this.refreshTokenNonceService.getAll(expirationTime);
+        const expirationTime = convertToSeconds(
+            String(this.configService.get<string>(`jwt.expiresIn.refresh`)),
+        );
+        const nonces: RefreshTokenNonce[] =
+            await this.refreshTokenNonceService.getAll(expirationTime);
 
         if (nonces.length > 0) {
-            await Promise.all(nonces.map(nonce =>
-                this.refreshTokenNonceService.deleteRefreshTokenNonceByNonceId(nonce.id)
-            ));
+            await Promise.all(
+                nonces.map((nonce) =>
+                    this.refreshTokenNonceService.deleteRefreshTokenNonceByNonceId(
+                        nonce.id,
+                    ),
+                ),
+            );
         }
     }
 }

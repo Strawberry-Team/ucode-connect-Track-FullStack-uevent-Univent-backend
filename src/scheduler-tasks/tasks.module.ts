@@ -8,7 +8,10 @@ import { SchedulerConfig } from 'src/config/scheduler.config';
 
 @Module({
     imports: [RefreshTokenNonceModule, UsersModule],
-    providers: [UserNotificationSchedulerService, JwtCleanSchedulerService, SchedulerConfig],
+    providers: [
+        UserNotificationSchedulerService,
+        JwtCleanSchedulerService,
+        SchedulerConfig,
+    ],
 })
-export class SchedulerTasksModule {
-}
+export class SchedulerTasksModule {}

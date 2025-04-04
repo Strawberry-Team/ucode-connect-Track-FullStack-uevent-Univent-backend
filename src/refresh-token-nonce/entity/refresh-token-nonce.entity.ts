@@ -1,5 +1,12 @@
 // src/refresh-token-nonce/entity/refresh-token-nonce.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, Index } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    JoinColumn,
+    ManyToOne,
+    Index,
+} from 'typeorm';
 import { User } from '../../user/entity/user.entity';
 
 @Entity('refresh_token_nonces')
@@ -11,13 +18,19 @@ export class RefreshTokenNonce {
     @Column({ name: 'user_id' })
     userId: number;
 
-    @ManyToOne(() => User, (user) => user.refreshTokenNonces, { onDelete: 'CASCADE' })
+    @ManyToOne(() => User, (user) => user.refreshTokenNonces, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({ name: 'nonce', type: 'char',  length: 32 })
+    @Column({ name: 'nonce', type: 'char', length: 32 })
     nonce: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
+    @Column({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        name: 'created_at',
+    })
     createdAt: Date;
 }

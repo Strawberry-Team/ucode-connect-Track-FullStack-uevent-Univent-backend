@@ -52,7 +52,7 @@ export class User {
         type: 'bit',
         width: 1,
         default: () => "b'0'",
-        transformer: BooleanTransformer(false)
+        transformer: BooleanTransformer(false),
     })
     @Expose({ groups: ['confidential'] })
     emailVerified?: boolean;
@@ -65,9 +65,13 @@ export class User {
     @Expose({ groups: ['basic'] })
     updatedAt: Date;
 
-    @OneToMany(() => RefreshTokenNonce, (RefreshTokenNonce) => RefreshTokenNonce.user, {
-        cascade: true,
-    })
+    @OneToMany(
+        () => RefreshTokenNonce,
+        (RefreshTokenNonce) => RefreshTokenNonce.user,
+        {
+            cascade: true,
+        },
+    )
     @Expose({ groups: ['confidential'] })
     refreshTokenNonces: Promise<RefreshTokenNonce[]>;
 }

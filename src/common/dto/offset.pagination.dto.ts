@@ -1,5 +1,8 @@
 // src/common/dto/offset.pagination.dto.ts
-import {IsOffsetPaginationPage, IsOffsetPaginationLimit} from "../validators/offset.pagination.validator";
+import {
+    IsOffsetPaginationPage,
+    IsOffsetPaginationLimit,
+} from '../validators/offset.pagination.validator';
 
 export class OffsetPaginationDto {
     @IsOffsetPaginationPage(true)

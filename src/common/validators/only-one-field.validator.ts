@@ -1,7 +1,13 @@
 // src/common/validators/only-one-field.validator.ts
-import {registerDecorator, ValidationOptions, ValidationArguments} from 'class-validator';
+import {
+    registerDecorator,
+    ValidationOptions,
+    ValidationArguments,
+} from 'class-validator';
 
-export function ValidateSingleFieldUpdate(validationOptions?: ValidationOptions) {
+export function ValidateSingleFieldUpdate(
+    validationOptions?: ValidationOptions,
+) {
     return function (object: Object, propertyName: string) {
         registerDecorator({
             name: 'validateSingleFieldUpdate',
@@ -11,13 +17,17 @@ export function ValidateSingleFieldUpdate(validationOptions?: ValidationOptions)
             validator: {
                 validate(value: any, args: ValidationArguments) {
                     const dto = args.object as any;
-                    const definedFields = Object.entries(dto).filter(([_, value]) => value !== undefined);
+                    const definedFields = Object.entries(dto).filter(
+                        ([_, value]) => value !== undefined,
+                    );
 
                     return definedFields.length === 1;
                 },
                 defaultMessage(args: ValidationArguments) {
                     const dto = args.object as any;
-                    const definedFields = Object.entries(dto).filter(([_, value]) => value !== undefined);
+                    const definedFields = Object.entries(dto).filter(
+                        ([_, value]) => value !== undefined,
+                    );
 
                     if (definedFields.length < 1) {
                         return 'At least one field must be provided';
@@ -26,8 +36,8 @@ export function ValidateSingleFieldUpdate(validationOptions?: ValidationOptions)
                     }
 
                     return 'Invalid field update';
-                }
-            }
+                },
+            },
         });
     };
 }

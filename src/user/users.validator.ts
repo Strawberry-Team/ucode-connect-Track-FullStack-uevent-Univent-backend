@@ -4,7 +4,11 @@ import {
     IsEmail,
     IsOptional,
     IsStrongPassword,
-    Length, Matches, MaxLength, registerDecorator, ValidateIf,
+    Length,
+    Matches,
+    MaxLength,
+    registerDecorator,
+    ValidateIf,
     ValidationArguments,
     ValidationOptions,
 } from 'class-validator';
@@ -15,9 +19,9 @@ export function IsUserName(isOptional: boolean, allowNull: boolean = false) {
 
     if (allowNull) {
         return applyDecorators(
-            ValidateIf(value => value !== null),
+            ValidateIf((value) => value !== null),
             ...baseDecorators,
-            IsOptional()
+            IsOptional(),
         );
     } else if (isOptional) {
         return applyDecorators(IsOptional(), ...baseDecorators);
@@ -36,13 +40,16 @@ export function IsUserEmail(isOptional: boolean) {
 }
 
 export function IsUserPassword(isOptional: boolean) {
-    const decorators = [IsStrongPassword({
-        minLength: 8,
-        minLowercase: 1,
-        minUppercase: 1,
-        minNumbers: 1,
-        minSymbols: 1,
-    }), MaxLength(32)];
+    const decorators = [
+        IsStrongPassword({
+            minLength: 8,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1,
+        }),
+        MaxLength(32),
+    ];
 
     if (isOptional) {
         return applyDecorators(IsOptional(), ...decorators);
@@ -52,11 +59,16 @@ export function IsUserPassword(isOptional: boolean) {
 }
 
 export function IsUserProfilePicture(isOptional: boolean) {
-    const uuidWithExtensionPattern = new RegExp(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.(${AvatarConfig.prototype.allowedTypes})$`, 'i');
+    const uuidWithExtensionPattern = new RegExp(
+        `^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.(${AvatarConfig.prototype.allowedTypes})$`,
+        'i',
+    );
 
-    const decorators = [Matches(uuidWithExtensionPattern, {
-        message: 'Profile picture must be in format {uuid}.jpg|jpeg|png'
-    })];
+    const decorators = [
+        Matches(uuidWithExtensionPattern, {
+            message: 'Profile picture must be in format {uuid}.jpg|jpeg|png',
+        }),
+    ];
 
     if (isOptional) {
         return applyDecorators(IsOptional(), ...decorators);
@@ -76,8 +88,12 @@ export function ValidatePasswordUpdate(validationOptions?: ValidationOptions) {
                 validate(value: any, args: ValidationArguments) {
                     const dto = args.object as any;
                     const dtoKeys = Object.keys(dto);
-                    const hasPasswordFields = dto.oldPassword !== undefined || dto.newPassword !== undefined;
-                    const nonPasswordFields = dtoKeys.filter(key => key !== 'oldPassword' && key !== 'newPassword');
+                    const hasPasswordFields =
+                        dto.oldPassword !== undefined ||
+                        dto.newPassword !== undefined;
+                    const nonPasswordFields = dtoKeys.filter(
+                        (key) => key !== 'oldPassword' && key !== 'newPassword',
+                    );
 
                     if (hasPasswordFields) {
                         if (!dto.oldPassword || !dto.newPassword) {
@@ -95,13 +111,21 @@ export function ValidatePasswordUpdate(validationOptions?: ValidationOptions) {
                 defaultMessage(args: ValidationArguments) {
                     const dto = args.object as any;
                     const dtoKeys = Object.keys(dto);
-                    const hasPasswordFields = dto.oldPassword !== undefined || dto.newPassword !== undefined;
+                    const hasPasswordFields =
+                        dto.oldPassword !== undefined ||
+                        dto.newPassword !== undefined;
 
                     if (hasPasswordFields) {
                         if (!dto.oldPassword || !dto.newPassword) {
                             return 'Both old and new passwords are required to update password';
                         }
-                        if (dtoKeys.filter(key => key !== 'oldPassword' && key !== 'newPassword').length > 0) {
+                        if (
+                            dtoKeys.filter(
+                                (key) =>
+                                    key !== 'oldPassword' &&
+                                    key !== 'newPassword',
+                            ).length > 0
+                        ) {
                             return 'Password update must be performed separately from other field updates';
                         }
                     } else if (dtoKeys.length === 0) {
@@ -109,8 +133,8 @@ export function ValidatePasswordUpdate(validationOptions?: ValidationOptions) {
                     }
 
                     return 'Invalid password update request';
-                }
-            }
+                },
+            },
         });
     };
 }

@@ -11,6 +11,4 @@ import { JwtUtils } from './jwt-token.utils';
     providers: [JwtUtils],
     exports: [JwtUtils, JwtModule],
 })
-export class JwtConfigModule {
-
-}
+export class JwtConfigModule {}

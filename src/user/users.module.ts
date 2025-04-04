@@ -5,16 +5,15 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
 import { User } from './entity/user.entity';
-import { PasswordService } from "./passwords.service";
+import { PasswordService } from './passwords.service';
 import { OwnAccountGuard } from './guards/own-account.guard';
-import { EmailModule } from "../email/email.module";
-import { EmailService } from "../email/email.service";
-import { GoogleOAuthService } from "../google/google-oauth.service";
-import { GoogleModule } from "../google/google.module";
+import { EmailModule } from '../email/email.module';
+import { EmailService } from '../email/email.service';
+import { GoogleOAuthService } from '../google/google-oauth.service';
+import { GoogleModule } from '../google/google.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User]), EmailModule, GoogleModule,
-    ],
+    imports: [TypeOrmModule.forFeature([User]), EmailModule, GoogleModule],
     controllers: [UsersController],
     providers: [
         UsersService,
@@ -22,13 +21,8 @@ import { GoogleModule } from "../google/google.module";
         PasswordService,
         OwnAccountGuard,
         GoogleOAuthService,
-        EmailService
+        EmailService,
     ],
-    exports: [
-        UsersService,
-        UsersRepository,
-        PasswordService
-    ],
+    exports: [UsersService, UsersRepository, PasswordService],
 })
-export class UsersModule {
-}
+export class UsersModule {}

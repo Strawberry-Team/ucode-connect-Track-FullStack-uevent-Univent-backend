@@ -1,10 +1,10 @@
 // src/email/email.module.ts
-import {Module} from '@nestjs/common';
-import {EmailService} from './email.service';
-import {ConfigModule} from '@nestjs/config';
+import { Module } from '@nestjs/common';
+import { EmailService } from './email.service';
+import { ConfigModule } from '@nestjs/config';
 import googleConfig from '../config/google.config';
 import appConfig from '../config/app.config';
-import {GoogleModule} from '../google/google.module';
+import { GoogleModule } from '../google/google.module';
 
 @Module({
     imports: [
@@ -15,5 +15,4 @@ import {GoogleModule} from '../google/google.module';
     providers: [EmailService],
     exports: [EmailService],
 })
-export class EmailModule {
-}
+export class EmailModule {}

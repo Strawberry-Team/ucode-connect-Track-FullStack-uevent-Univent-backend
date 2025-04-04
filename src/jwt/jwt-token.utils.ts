@@ -2,7 +2,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { TokenType, JwtContext, TOKEN_CONTEXT_MAP, JwtPayload } from './jwt.types';
+import {
+    TokenType,
+    JwtContext,
+    TOKEN_CONTEXT_MAP,
+    JwtPayload,
+} from './jwt.types';
 
 @Injectable()
 export class JwtUtils {
@@ -21,8 +26,12 @@ export class JwtUtils {
 
     private initializeConfig() {
         const tokenTypes: TokenType[] = [
-            'access', 'refresh', 'confirmEmail', 'resetPassword',
-            'confirmCalendar', 'confirmArrangement'
+            'access',
+            'refresh',
+            'confirmEmail',
+            'resetPassword',
+            'confirmCalendar',
+            'confirmArrangement',
         ];
         const contexts: JwtContext[] = ['auth', 'calendar', 'event'];
 
@@ -31,20 +40,33 @@ export class JwtUtils {
         this.issuers = {} as Record<JwtContext, string>;
         this.audiences = {} as Record<JwtContext, string>;
 
-        tokenTypes.forEach(type => {
-            this.secrets[type] = String(this.configService.get<string>(`jwt.secrets.${type}`));
-            this.expirationTimes[type] = String(this.configService.get<string>(`jwt.expiresIn.${type}`));
+        tokenTypes.forEach((type) => {
+            this.secrets[type] = String(
+                this.configService.get<string>(`jwt.secrets.${type}`),
+            );
+            this.expirationTimes[type] = String(
+                this.configService.get<string>(`jwt.expiresIn.${type}`),
+            );
         });
 
-        contexts.forEach(context => {
-            this.issuers[context] = String(this.configService.get<string>(`jwt.issuer.${context}`));
-            this.audiences[context] = String(this.configService.get<string>(`jwt.audience.${context}`));
+        contexts.forEach((context) => {
+            this.issuers[context] = String(
+                this.configService.get<string>(`jwt.issuer.${context}`),
+            );
+            this.audiences[context] = String(
+                this.configService.get<string>(`jwt.audience.${context}`),
+            );
         });
 
-        this.algorithm = String(this.configService.get<string>('jwt.algorithm'));
+        this.algorithm = String(
+            this.configService.get<string>('jwt.algorithm'),
+        );
     }
 
-    generateToken(payload: Omit<JwtPayload, 'iss' | 'aud' | 'iat' | 'exp'>, type: TokenType): string {
+    generateToken(
+        payload: Omit<JwtPayload, 'iss' | 'aud' | 'iat' | 'exp'>,
+        type: TokenType,
+    ): string {
         const context = TOKEN_CONTEXT_MAP[type];
         return this.jwtService.sign(
             {

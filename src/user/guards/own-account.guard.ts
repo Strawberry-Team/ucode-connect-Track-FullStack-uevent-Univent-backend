@@ -1,5 +1,10 @@
 // src/user/guards/own-account.guard.ts
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import {
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    ForbiddenException,
+} from '@nestjs/common';
 
 @Injectable()
 export class OwnAccountGuard implements CanActivate {
@@ -13,10 +18,11 @@ export class OwnAccountGuard implements CanActivate {
         }
 
         if (user.userId != requestUserId) {
-            throw new ForbiddenException('You can only access your own account');
+            throw new ForbiddenException(
+                'You can only access your own account',
+            );
         }
 
         return true;
     }
 }
-

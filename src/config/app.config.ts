@@ -1,6 +1,6 @@
 // src/config/app.config.ts
 import * as dotenv from 'dotenv';
-import {validateEnv} from '../common/utils/env.utils';
+import { validateEnv } from '../common/utils/env.utils';
 
 dotenv.config();
 
@@ -16,7 +16,9 @@ export default () => {
             host: String(validateEnv('APP_HOST')),
             globalPrefix: String(validateEnv('APP_GLOBAL_PREFIX')),
             protocol: String(validateEnv('APP_PROTOCOL')),
-            passwordSaltRounds: parseInt(String(validateEnv('APP_PASSWORD_BCRYPT_SALT_ROUNDS'))),
+            passwordSaltRounds: parseInt(
+                String(validateEnv('APP_PASSWORD_BCRYPT_SALT_ROUNDS')),
+            ),
             frontendProtocol,
             frontendHost,
             frontendPort,
@@ -24,11 +26,13 @@ export default () => {
             nodeEnv: String(validateEnv('APP_NODE_ENV')),
             logo: {
                 path: String(validateEnv('APP_LOGO_PATH')),
-                filename: String(validateEnv('APP_LOGO_FILENAME'))
+                filename: String(validateEnv('APP_LOGO_FILENAME')),
             },
             cors: {
                 methods: String(validateEnv('APP_CORS_METHODS')).split(','),
-                allowedHeaders: String(validateEnv('APP_CORS_ALLOWED_HEADERS')).split(','),
+                allowedHeaders: String(
+                    validateEnv('APP_CORS_ALLOWED_HEADERS'),
+                ).split(','),
                 credentials: Boolean(validateEnv('APP_CORS_CREDENTIALS')),
             },
             csrf: {
@@ -37,8 +41,10 @@ export default () => {
                     httpOnly: Boolean(validateEnv('APP_CSRF_COOKIE_HTTP_ONLY')),
                     sameSite: String(validateEnv('APP_CSRF_COOKIE_SAME_SITE')),
                 },
-                ignoreMethods: String(validateEnv('APP_CSRF_IGNORE_METHODS')).split(','),
+                ignoreMethods: String(
+                    validateEnv('APP_CSRF_IGNORE_METHODS'),
+                ).split(','),
             },
-        }
+        },
     };
 };

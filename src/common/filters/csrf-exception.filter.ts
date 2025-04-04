@@ -1,6 +1,11 @@
 // src/common/filters/csrf-exception.filter.ts
-import {ExceptionFilter, Catch, ArgumentsHost, HttpStatus} from '@nestjs/common';
-import {Request, Response} from 'express';
+import {
+    ExceptionFilter,
+    Catch,
+    ArgumentsHost,
+    HttpStatus,
+} from '@nestjs/common';
+import { Request, Response } from 'express';
 
 export class CsrfError extends Error {
     code: string;

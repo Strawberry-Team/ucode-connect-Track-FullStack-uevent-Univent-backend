@@ -1,15 +1,21 @@
 // src/common/validators/id.validator.ts
-import {applyDecorators} from "@nestjs/common";
-import {IsArray, IsInt, IsOptional, IsPositive, ValidateIf} from "class-validator";
+import { applyDecorators } from '@nestjs/common';
+import {
+    IsArray,
+    IsInt,
+    IsOptional,
+    IsPositive,
+    ValidateIf,
+} from 'class-validator';
 
 export function IsId(isOptional: boolean, allowNull: boolean = false) {
     const decorators = [IsInt(), IsPositive()];
 
     if (allowNull) {
         return applyDecorators(
-            ValidateIf(value => value !== null),
+            ValidateIf((value) => value !== null),
             ...decorators,
-            IsOptional()
+            IsOptional(),
         );
     } else if (isOptional) {
         return applyDecorators(IsOptional(), ...decorators);
@@ -19,7 +25,11 @@ export function IsId(isOptional: boolean, allowNull: boolean = false) {
 }
 
 export function IsIdArray(isOptional: boolean) {
-    const decorators = [IsArray(), IsInt({each: true}), IsPositive({each: true})];
+    const decorators = [
+        IsArray(),
+        IsInt({ each: true }),
+        IsPositive({ each: true }),
+    ];
     if (isOptional) {
         return applyDecorators(IsOptional(), ...decorators);
     } else {

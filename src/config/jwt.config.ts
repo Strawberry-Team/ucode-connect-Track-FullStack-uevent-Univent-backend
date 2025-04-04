@@ -1,6 +1,6 @@
 // src/config/jwt.config.ts
 import * as dotenv from 'dotenv';
-import {validateEnv} from '../common/utils/env.utils';
+import { validateEnv } from '../common/utils/env.utils';
 
 dotenv.config();
 
@@ -20,7 +20,9 @@ export default () => ({
             confirmEmail: validateEnv('JWT_CONFIRM_EMAIL_EXPIRES_IN'),
             resetPassword: validateEnv('JWT_RESET_PASSWORD_EXPIRES_IN'),
             confirmCalendar: validateEnv('JWT_CONFIRM_CALENDAR_EXPIRES_IN'),
-            confirmArrangement: validateEnv('JWT_CONFIRM_ARRANGEMENT_EXPIRES_IN'),
+            confirmArrangement: validateEnv(
+                'JWT_CONFIRM_ARRANGEMENT_EXPIRES_IN',
+            ),
         },
         issuer: {
             auth: validateEnv('JWT_ISSUER'),

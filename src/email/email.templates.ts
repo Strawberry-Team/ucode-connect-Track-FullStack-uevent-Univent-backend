@@ -1,7 +1,7 @@
 // src/email/email.templates.ts
 export const getConfirmationEmailTemplate = (
-  confirmationLink: string,
-  projectName: string
+    confirmationLink: string,
+    projectName: string,
 ) => `
 <div style="margin:0; padding:0; background-color:#f4f4f4;">
   <div
@@ -38,8 +38,8 @@ export const getConfirmationEmailTemplate = (
 `;
 
 export const getResetPasswordEmailTemplate = (
-  resetLink: string,
-  projectName: string
+    resetLink: string,
+    projectName: string,
 ) => `
 <div style="margin:0; padding:0; background-color:#f4f4f4;">
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:20px; border:1px solid #ddd;">

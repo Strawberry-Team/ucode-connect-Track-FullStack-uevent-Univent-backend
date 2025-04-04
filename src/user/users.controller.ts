@@ -3,9 +3,17 @@ import {
     Controller,
     UseInterceptors,
     UploadedFile,
-    BadRequestException, Post,
-    Body, Req, NotImplementedException, Param, Patch, Delete,
-    UseGuards, Get, SerializeOptions,
+    BadRequestException,
+    Post,
+    Body,
+    Req,
+    NotImplementedException,
+    Param,
+    Patch,
+    Delete,
+    UseGuards,
+    Get,
+    SerializeOptions,
     Query,
     UsePipes,
     ValidationPipe,
@@ -16,22 +24,21 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { Express } from 'express';
-import { createFileUploadInterceptor } from "../common/interceptor/file-upload.interceptor";
+import { createFileUploadInterceptor } from '../common/interceptor/file-upload.interceptor';
 import { AvatarConfig } from '../config/avatar.config';
 import { OwnAccountGuard } from './guards/own-account.guard';
 import { UserId } from './decorators/user.decorator';
 
 @Controller('users')
 @SerializeOptions({
-    groups: SERIALIZATION_GROUPS.BASIC
+    groups: SERIALIZATION_GROUPS.BASIC,
 })
 export class UsersController extends BaseCrudController<
     User,
     CreateUserDto,
     UpdateUserDto
 > {
-    constructor(
-        private readonly usersService: UsersService) {
+    constructor(private readonly usersService: UsersService) {
         super();
     }
 
@@ -39,14 +46,17 @@ export class UsersController extends BaseCrudController<
         return await this.usersService.getUserByIdWithoutPassword(id);
     }
 
-    protected async createEntity(dto: CreateUserDto, userId: number): Promise<User> {
+    protected async createEntity(
+        dto: CreateUserDto,
+        userId: number,
+    ): Promise<User> {
         return await this.usersService.createUser(dto);
     }
 
     protected async updateEntity(
         id: number,
         dto: UpdateUserDto,
-        userId: number
+        userId: number,
     ): Promise<User> {
         return await this.usersService.updateUser(id, dto);
     }
@@ -56,19 +66,29 @@ export class UsersController extends BaseCrudController<
     }
 
     @Post()
-    async create(@Body() dto: CreateUserDto, @UserId() userId: number): Promise<User> {
+    async create(
+        @Body() dto: CreateUserDto,
+        @UserId() userId: number,
+    ): Promise<User> {
         throw new NotImplementedException();
     }
 
     @Patch(':id')
     @UseGuards(OwnAccountGuard)
-    async update(@Param('id') id: number, @Body() dto: UpdateUserDto, @UserId() userId: number): Promise<User> {
+    async update(
+        @Param('id') id: number,
+        @Body() dto: UpdateUserDto,
+        @UserId() userId: number,
+    ): Promise<User> {
         return super.update(id, dto, userId);
     }
 
     @Delete(':id')
     @UseGuards(OwnAccountGuard)
-    async delete(@Param('id') id: number, @UserId() userId: number): Promise<void> {
+    async delete(
+        @Param('id') id: number,
+        @UserId() userId: number,
+    ): Promise<void> {
         return super.delete(id, userId);
     }
 
@@ -81,14 +101,13 @@ export class UsersController extends BaseCrudController<
         return await this.usersService.getUserByEmailWithoutPassword(email);
     }
 
-
     @Post('upload-avatar')
     @UseInterceptors(
         createFileUploadInterceptor({
             destination: './public/uploads/avatars',
             allowedTypes: AvatarConfig.prototype.allowedTypesForInterceptor,
             maxSize: 5 * 1024 * 1024,
-        })
+        }),
     )
     async uploadAvatar(
         @UploadedFile() file: Express.Multer.File,

@@ -9,8 +9,7 @@ export class UsersRepository {
     constructor(
         @InjectRepository(User)
         private readonly repo: Repository<User>,
-    ) {
-    }
+    ) {}
 
     async getAllUnactivatedUsers(seconds?: number): Promise<User[]> {
         const thresholdDate = new Date();
@@ -38,7 +37,10 @@ export class UsersRepository {
         return this.repo.save(user);
     }
 
-    async updateUser(id: number, updateData: Partial<User>): Promise<User | null> {
+    async updateUser(
+        id: number,
+        updateData: Partial<User>,
+    ): Promise<User | null> {
         await this.repo.update(id, updateData);
         return this.findById(id);
     }

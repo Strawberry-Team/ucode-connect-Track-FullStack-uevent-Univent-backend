@@ -8,16 +8,17 @@ import { RefreshTokenNonce } from './entity/refresh-token-nonce.entity';
 export class RefreshTokenNonceRepository {
     constructor(
         @InjectRepository(RefreshTokenNonce)
-        private readonly nonceRepo: Repository<RefreshTokenNonce>
-    ) {
-    }
+        private readonly nonceRepo: Repository<RefreshTokenNonce>,
+    ) {}
 
     async getAll(seconds?: number): Promise<RefreshTokenNonce[]> {
         const whereCondition: any = {};
 
         if (seconds !== undefined) {
             const thresholdDate = new Date();
-            thresholdDate.setSeconds(thresholdDate.getSeconds() - Number(seconds));
+            thresholdDate.setSeconds(
+                thresholdDate.getSeconds() - Number(seconds),
+            );
             whereCondition.createdAt = LessThan(thresholdDate);
         }
 
@@ -27,12 +28,19 @@ export class RefreshTokenNonceRepository {
         });
     }
 
-    async saveRefreshTokenNonce(data: Partial<RefreshTokenNonce>): Promise<RefreshTokenNonce> {
+    async saveRefreshTokenNonce(
+        data: Partial<RefreshTokenNonce>,
+    ): Promise<RefreshTokenNonce> {
         return this.nonceRepo.save(data);
     }
 
-    async findByRefreshTokenNonceAndUserId(userId: number, nonce: string): Promise<RefreshTokenNonce | null> {
-        return this.nonceRepo.findOne({ where: { nonce: nonce, user: { id: userId } } });
+    async findByRefreshTokenNonceAndUserId(
+        userId: number,
+        nonce: string,
+    ): Promise<RefreshTokenNonce | null> {
+        return this.nonceRepo.findOne({
+            where: { nonce: nonce, user: { id: userId } },
+        });
     }
 
     async deleteRefreshTokenNoncesByUserId(userId: number): Promise<void> {
