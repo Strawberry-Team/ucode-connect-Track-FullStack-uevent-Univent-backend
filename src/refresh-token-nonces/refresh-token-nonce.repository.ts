@@ -1,4 +1,4 @@
-// src/refresh-token-nonce/refresh-token-nonce.repository.ts
+// src/refresh-token-nonces/refresh-token-nonces.repository.ts
 import { Injectable } from '@nestjs/common';
 import { RefreshTokenNonce } from './entity/refresh-token-nonce.entity';
 import { DatabaseService } from '../db/database.service';

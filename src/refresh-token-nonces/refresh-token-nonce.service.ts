@@ -1,4 +1,4 @@
-// src/refresh-token-nonce/refresh-token-nonce.service.ts
+// src/refresh-token-nonces/refresh-token-nonces.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRefreshTokenNonceDto } from './dto/create-refresh-nonce.dto';
 import { RefreshTokenNonce } from './entity/refresh-token-nonce.entity';

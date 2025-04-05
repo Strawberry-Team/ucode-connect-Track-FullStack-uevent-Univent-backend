@@ -1,4 +1,4 @@
-// src/user/users.repository.ts
+// src/users/users.repository.ts
 import { Injectable } from '@nestjs/common';
 import { User } from './entity/user.entity';
 import { DatabaseService } from '../db/database.service';
@@ -57,13 +57,13 @@ export class UsersRepository {
     }
 
     // async findAllWithPagination(page: number, limit: number) {
-    //     return this.paginateOffset('user', {
+    //     return this.paginateOffset('users', {
     //         orderBy: { createdAt: 'desc' }
     //     }, page, limit);
     // }
     //
     // async findAllWithCursor(after: UserCursor | null, limit: number) {
-    //     return this.paginateCursor('user', {
+    //     return this.paginateCursor('users', {
     //         orderBy: [
     //             { createdAt: 'desc' },
     //             { id: 'asc' }
@@ -71,8 +71,8 @@ export class UsersRepository {
     //     }, after, limit, {
     //         cursorFields: ['createdAt', 'id'],
     //         entityAliases: {
-    //             createdAt: 'user',
-    //             id: 'user',
+    //             createdAt: 'users',
+    //             id: 'users',
     //         },
     //         sortDirections: {
     //             createdAt: 'DESC',

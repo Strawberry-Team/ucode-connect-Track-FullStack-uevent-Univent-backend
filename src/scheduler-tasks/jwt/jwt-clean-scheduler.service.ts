@@ -1,11 +1,11 @@
 // src/scheduler-tasks/jwt/jwt-clean-scheduler.service.ts
 import { Injectable } from '@nestjs/common';
 import { Cron, Timeout } from '@nestjs/schedule';
-import { RefreshTokenNonceService } from 'src/refresh-token-nonce/refresh-token-nonce.service';
+import { RefreshTokenNonceService } from 'src/refresh-token-nonces/refresh-token-nonce.service';
 import { ConfigService } from '@nestjs/config';
 import { convertToSeconds } from 'src/common/utils/time.utils';
 import { SchedulerConfig } from 'src/config/scheduler.config';
-import { RefreshTokenNonce } from 'src/refresh-token-nonce/entity/refresh-token-nonce.entity';
+import { RefreshTokenNonce } from 'src/refresh-token-nonces/entity/refresh-token-nonce.entity';
 
 @Injectable()
 export class JwtCleanSchedulerService {

@@ -1,6 +1,6 @@
-// src/refresh-token-nonce/entity/refresh-token-nonce.entity.ts
+// src/refresh-token-nonces/entity/refresh-token-nonces.entity.ts
 import { RefreshTokenNonce as PrismaRefreshTokenNonce } from '@prisma/client';
-import { User } from '../../user/entity/user.entity';
+import { User } from '../../users/entity/user.entity';
 
 export class RefreshTokenNonce implements PrismaRefreshTokenNonce {
     id: number;

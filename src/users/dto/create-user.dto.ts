@@ -1,4 +1,4 @@
-// src/user/dto/create-user.dto.ts
+// src/users/dto/create-users.dto.ts
 import { IsUserEmail, IsUserName, IsUserPassword } from '../users.validator';
 
 export class CreateUserDto {

@@ -1,7 +1,7 @@
 // src/auth/guards/auth.jwt-guards.ts
 import { AuthGuard } from '@nestjs/passport';
 import { createJwtGuard } from '../../jwt/jwt-guard.factory';
-import { RefreshTokenNonceService } from 'src/refresh-token-nonce/refresh-token-nonce.service';
+import { RefreshTokenNonceService } from 'src/refresh-token-nonces/refresh-token-nonce.service';
 import {
     CanActivate,
     ExecutionContext,

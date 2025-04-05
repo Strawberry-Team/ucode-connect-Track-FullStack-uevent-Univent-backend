@@ -1,5 +1,5 @@
 // src/auth/dto/reset-password.dto.ts
-import { IsUserEmail } from '../../user/users.validator';
+import { IsUserEmail } from '../../users/users.validator';
 
 export class ResetPasswordDto {
     @IsUserEmail(false)

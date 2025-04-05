@@ -10,7 +10,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/auth.jwt-guards';
-import { UserId } from 'src/user/decorators/user.decorator';
+import { UserId } from 'src/users/decorators/user.decorator';
 
 @UseGuards(JwtAuthGuard)
 export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
