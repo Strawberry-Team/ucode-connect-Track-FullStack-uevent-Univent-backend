@@ -90,7 +90,7 @@ export class EmailService {
 
             // transporter.on("token", (token) => {
             //     console.log("A new access token was generated");
-            //     console.log("User: %s", token.user);
+            //     console.log("User: %s", token.users);
             //     console.log("Access Token: %s", token.accessToken);
             //     console.log("Expires: %s", new Date(token.expires));
             // });

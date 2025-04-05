@@ -1,4 +1,4 @@
-// src/user/users.controller.ts
+// src/users/users.controller.ts
 import {
     Controller,
     UseInterceptors,

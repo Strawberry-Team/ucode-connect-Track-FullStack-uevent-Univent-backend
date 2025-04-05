@@ -1,4 +1,4 @@
-// src/user/decorators/user.decorator.ts
+// src/users/decorators/users.decorator.ts
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { UserPayloadType } from '../../common/types/request.types';
 

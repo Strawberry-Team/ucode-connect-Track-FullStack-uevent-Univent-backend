@@ -6,8 +6,8 @@ import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtResetPasswordStrategy } from './strategies/jwt-reset-password.stategy';
 import { JwtConfirmEmailStrategy } from './strategies/jwt-confirm-email.strategy';
-import { UsersModule } from '../user/users.module';
-import { RefreshTokenNonceModule } from 'src/refresh-token-nonce/refresh-token-nonce.module';
+import { UsersModule } from '../users/users.module';
+import { RefreshTokenNonceModule } from 'src/refresh-token-nonces/refresh-token-nonce.module';
 import {
     JwtAuthGuard,
     JwtRefreshGuard,

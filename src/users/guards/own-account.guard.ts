@@ -1,4 +1,4 @@
-// src/user/guards/own-account.guard.ts
+// src/users/guards/own-account.guard.ts
 import {
     CanActivate,
     ExecutionContext,

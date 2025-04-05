@@ -82,7 +82,7 @@ export class GoogleOAuthService {
             const { data } = await oauth2.userinfo.get();
             return data;
         } catch (error) {
-            console.error('Failed to get user profile', error);
+            console.error('Failed to get users profile', error);
             throw error;
         }
     }

@@ -1,4 +1,4 @@
-// src/user/users.validator.ts
+// src/users/users.validator.ts
 import { applyDecorators } from '@nestjs/common';
 import {
     IsEmail,

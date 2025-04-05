@@ -5,15 +5,15 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserDto } from '../user/dto/create-user.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from '../auth/dto/login.dto';
 import { ResetPasswordDto } from '../auth/dto/reset-password.dto';
-import { CreateRefreshTokenNonceDto } from '.././refresh-token-nonce/dto/create-refresh-nonce.dto';
+import { CreateRefreshTokenNonceDto } from '../refresh-token-nonces/dto/create-refresh-nonce.dto';
 import { newPasswordDto } from './dto/new-password.dto';
-import { UsersService } from 'src/user/users.service';
-import { RefreshTokenNonceService } from 'src/refresh-token-nonce/refresh-token-nonce.service';
+import { UsersService } from 'src/users/users.service';
+import { RefreshTokenNonceService } from 'src/refresh-token-nonces/refresh-token-nonce.service';
 import { JwtUtils } from '../jwt/jwt-token.utils';
-import { PasswordService } from '../user/passwords.service';
+import { PasswordService } from '../users/passwords.service';
 import { convertToSeconds } from '../common/utils/time.utils';
 import { EmailService } from 'src/email/email.service';
 import { ConfigService } from '@nestjs/config';

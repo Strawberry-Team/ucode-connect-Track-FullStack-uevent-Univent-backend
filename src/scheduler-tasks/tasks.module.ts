@@ -2,8 +2,8 @@
 import { Module } from '@nestjs/common';
 import { UserNotificationSchedulerService } from './user/user.notification.scheduler.service';
 import { JwtCleanSchedulerService } from './jwt/jwt-clean-scheduler.service';
-import { RefreshTokenNonceModule } from 'src/refresh-token-nonce/refresh-token-nonce.module';
-import { UsersModule } from 'src/user/users.module';
+import { RefreshTokenNonceModule } from 'src/refresh-token-nonces/refresh-token-nonce.module';
+import { UsersModule } from 'src/users/users.module';
 import { SchedulerConfig } from 'src/config/scheduler.config';
 
 @Module({

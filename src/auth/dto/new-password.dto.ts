@@ -1,5 +1,5 @@
 // src/auth/dto/new-password.dto.ts
-import { IsUserPassword } from '../../user/users.validator';
+import { IsUserPassword } from '../../users/users.validator';
 
 export class newPasswordDto {
     @IsUserPassword(false)
