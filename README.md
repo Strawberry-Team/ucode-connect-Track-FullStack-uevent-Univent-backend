@@ -14,8 +14,12 @@ Before starting, ensure the required technologies are installed.
    ```bash
    npm install
    ```
-3. Configure the database connection by copying [.env.example](.env.example) to new file `.env`. After that put your MySQL credentials of root and new DB user. 
+3. Configure the database connection by copying [.env.example](.env.example) to new file `.env`. After that put your MySQL credentials of root and new DB user.
 4. Run script for create databases and user.
    ```shell
    npm run setup-database
+   ```
+5. Run command to apply necessary migrations.
+   ```shell
+   npm run migrate
    ```

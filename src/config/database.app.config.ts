@@ -1,9 +1,11 @@
 // src/config/database.app.config.ts
 import * as dotenv from 'dotenv';
+import * as dotenvExpand from 'dotenv-expand';
 
 import { validateEnv } from '../common/utils/env.utils';
 
-dotenv.config();
+const myEnv = dotenv.config();
+dotenvExpand.expand(myEnv);
 
 export default () => ({
     database: {
@@ -13,5 +15,6 @@ export default () => ({
         password: validateEnv('DB_APP_PASSWORD'),
         name: validateEnv('DB_APP_DATABASE'),
         connectionLimit: Number(validateEnv('DB_APP_CONNECTION_LIMIT')),
+        url: validateEnv('DB_APP_URL'),
     },
 });

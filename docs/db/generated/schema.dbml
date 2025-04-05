@@ -1,0 +1,26 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table users {
+  id Int [pk, increment]
+  password String [not null]
+  firstName String [not null]
+  lastName String
+  email String [unique, not null]
+  profilePictureName String [not null, default: 'default-avatar.png']
+  isEmailVerified Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  refreshTokenNonces refresh_token_nonces [not null]
+}
+
+Table refresh_token_nonces {
+  id Int [pk, increment]
+  userId Int [not null]
+  nonce String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  user users [not null]
+}
+
+Ref: refresh_token_nonces.userId > users.id [delete: Cascade]

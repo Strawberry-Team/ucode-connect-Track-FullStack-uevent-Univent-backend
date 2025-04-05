@@ -1,6 +1,5 @@
 // src/refresh-token-nonce/refresh-token-nonce.module.ts
 import { forwardRef, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenNonceService } from './refresh-token-nonce.service';
 import { RefreshTokenNonceRepository } from './refresh-token-nonce.repository';
 import { JwtModule } from '@nestjs/jwt';
@@ -11,7 +10,6 @@ import { RefreshTokenNonce } from './entity/refresh-token-nonce.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([RefreshTokenNonce]),
         JwtModule.register({}),
         forwardRef(() => AuthModule),
         UsersModule,

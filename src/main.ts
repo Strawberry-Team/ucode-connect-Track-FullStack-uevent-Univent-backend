@@ -35,32 +35,32 @@ async function bootstrap() {
 
     app.useStaticAssets('public');
 
-    app.enableCors({
+    app.enableCors({ //TODO: read more about cors. about Postman.
         origin: frontendOrigin,
         methods: corsConfig.methods,
         allowedHeaders: corsConfig.allowedHeaders,
         credentials: corsConfig.credentials, // Required to send cookies cross-origin
     });
 
-    app.use(
-        csurf({
-            cookie: {
-                key: csrfConfig.cookie.key,
-                httpOnly: csrfConfig.cookie.httpOnly, //Not available via JS
-                secure: nodeEnv === 'production', //cookies are only transmitted via HTTPS
-                sameSite: csrfConfig.cookie.sameSite, //Cookies will only be sent for requests originating from the same domain (site)
-            },
-            ignoreMethods: csrfConfig.ignoreMethods,
-        }),
-    );
-
-    app.use((err: any, req: any, res: any, next: any) => {
-        if (err && err.code === 'EBADCSRFTOKEN') {
-            next(new CsrfError());
-        } else {
-            next(err);
-        }
-    });
+    // app.use( //TODO: uncomment when using csrf
+    //     csurf({
+    //         cookie: {
+    //             key: csrfConfig.cookie.key,
+    //             httpOnly: csrfConfig.cookie.httpOnly, //Not available via JS
+    //             secure: nodeEnv === 'production', //cookies are only transmitted via HTTPS
+    //             sameSite: csrfConfig.cookie.sameSite, //Cookies will only be sent for requests originating from the same domain (site)
+    //         },
+    //         ignoreMethods: csrfConfig.ignoreMethods,
+    //     }),
+    // );
+    //
+    // app.use((err: any, req: any, res: any, next: any) => {
+    //     if (err && err.code === 'EBADCSRFTOKEN') {
+    //         next(new CsrfError());
+    //     } else {
+    //         next(err);
+    //     }
+    // });
 
     app.useGlobalPipes(
         new ValidationPipe({

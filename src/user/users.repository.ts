@@ -1,51 +1,87 @@
 // src/user/users.repository.ts
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
 import { User } from './entity/user.entity';
+import { DatabaseService } from '../db/database.service';
 
 @Injectable()
 export class UsersRepository {
-    constructor(
-        @InjectRepository(User)
-        private readonly repo: Repository<User>,
-    ) {}
+    constructor(private readonly db: DatabaseService) {}
 
     async getAllUnactivatedUsers(seconds?: number): Promise<User[]> {
         const thresholdDate = new Date();
         thresholdDate.setSeconds(thresholdDate.getSeconds() - Number(seconds));
 
-        return this.repo.find({
+        return this.db.user.findMany({
             where: {
-                createdAt: LessThan(thresholdDate),
-                emailVerified: false,
+                createdAt: { lt: thresholdDate },
+                isEmailVerified: false,
             },
-            order: { createdAt: 'DESC' }, // Новые сверху
+            orderBy: { createdAt: 'desc' },
         });
     }
 
     async findById(id: number): Promise<User | null> {
-        return this.repo.findOne({ where: { id } });
+        return this.db.user.findUnique({
+            where: { id },
+            include: { refreshTokenNonces: true },
+        });
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        return this.repo.findOne({ where: { email } });
+        return this.db.user.findUnique({
+            where: { email },
+            include: { refreshTokenNonces: true },
+        });
     }
 
     async createUser(data: Partial<User>): Promise<User> {
-        const user = this.repo.create(data);
-        return this.repo.save(user);
+        return this.db.user.create({
+            data: data as any,
+        });
     }
 
     async updateUser(
         id: number,
         updateData: Partial<User>,
     ): Promise<User | null> {
-        await this.repo.update(id, updateData);
-        return this.findById(id);
+        return this.db.user.update({
+            where: { id },
+            data: updateData as any,
+        });
     }
 
     async deleteUser(id: number): Promise<void> {
-        await this.repo.delete(id);
+        await this.db.user.delete({
+            where: { id },
+        });
     }
+
+    // async findAllWithPagination(page: number, limit: number) {
+    //     return this.paginateOffset('user', {
+    //         orderBy: { createdAt: 'desc' }
+    //     }, page, limit);
+    // }
+    //
+    // async findAllWithCursor(after: UserCursor | null, limit: number) {
+    //     return this.paginateCursor('user', {
+    //         orderBy: [
+    //             { createdAt: 'desc' },
+    //             { id: 'asc' }
+    //         ]
+    //     }, after, limit, {
+    //         cursorFields: ['createdAt', 'id'],
+    //         entityAliases: {
+    //             createdAt: 'user',
+    //             id: 'user',
+    //         },
+    //         sortDirections: {
+    //             createdAt: 'DESC',
+    //             id: 'ASC',
+    //         },
+    //         fieldTypes: {
+    //             createdAt: 'date',
+    //             id: 'number',
+    //         }
+    //     });
+    // }
 }

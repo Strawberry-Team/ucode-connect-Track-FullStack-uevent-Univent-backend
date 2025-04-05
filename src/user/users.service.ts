@@ -120,7 +120,7 @@ export class UsersService {
     }
 
     async confirmEmail(userId: number) {
-        const updateData: Partial<User> = { emailVerified: true };
+        const updateData: Partial<User> = { isEmailVerified: true };
         const result = await this.usersRepository.updateUser(
             userId,
             updateData,

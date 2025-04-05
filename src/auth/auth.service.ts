@@ -62,7 +62,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid password');
         }
 
-        if (!user.emailVerified) {
+        if (!user.isEmailVerified) {
             throw new ForbiddenException('Please verify your email.');
         }
 
@@ -82,10 +82,8 @@ export class AuthService {
             nonce: newNonce,
         } as CreateRefreshTokenNonceDto);
 
-        delete user.emailVerified;
-
-        const { password, ...userWithoutPass } = user;
-        return { user: userWithoutPass, accessToken, refreshToken };
+        const { password, isEmailVerified, refreshTokenNonces, ...userWithoutSensitiveInfo } = user;
+        return { user: userWithoutSensitiveInfo, accessToken, refreshToken };
     }
 
     async logout(userId: number, refreshNonceDto: string) {

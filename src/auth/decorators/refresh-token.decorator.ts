@@ -1,3 +1,4 @@
+// src/auth/decorators/refresh-token.decorator.ts
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { RefreshTokenPayloadType } from '../../common/types/request.types';
 
