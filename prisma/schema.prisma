@@ -28,13 +28,13 @@ model User {
 
   // Relations
   refreshTokenNonces RefreshTokenNonce[] // Add this line
+
   // eventAttendees EventAttendee[]
   // ownedCompanies Company[]
   // orders         Order[]
   // subscriptions  Subscription[]
   // notifications  Notification[]
   // news           News[]
-
   @@map("users")
 }
 
@@ -144,7 +144,7 @@ model RefreshTokenNonce {
 //
 //   // Relations
 //   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_attendees_event_id_fk")
-//   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "event_attendees_user_id_fk")
+//   users  User  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "event_attendees_user_id_fk")
 //
 //   @@unique([eventId, userId], map: "event_attendees_event_id_user_id_uq")
 //   @@index([eventId], map: "event_attendees_event_id_fk")
@@ -183,7 +183,7 @@ model RefreshTokenNonce {
 //   updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 //
 //   // Relations
-//   user       User        @relation(fields: [userId], references: [id], onDelete: Restrict, map: "orders_user_id_fk")
+//   users       User        @relation(fields: [userId], references: [id], onDelete: Restrict, map: "orders_user_id_fk")
 //   promoCode  PromoCode?  @relation(fields: [promoCodeId], references: [id], onDelete: SetNull, map: "orders_promo_code_id_fk")
 //   orderItems OrderItem[]
 //
@@ -256,7 +256,7 @@ model RefreshTokenNonce {
 //   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 //
 //   // Relations
-//   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "subscriptions_user_id_fk")
+//   users    User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "subscriptions_user_id_fk")
 //   event   Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull, map: "subscriptions_event_id_fk")
 //   company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull, map: "subscriptions_company_id_fk")
 //
@@ -282,7 +282,7 @@ model RefreshTokenNonce {
 //   updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 //
 //   // Relations
-//   user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "notifications_user_id_fk")
+//   users User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "notifications_user_id_fk")
 //
 //   @@index([userId], map: "notifications_user_id_fk")
 //   @@map("notifications")

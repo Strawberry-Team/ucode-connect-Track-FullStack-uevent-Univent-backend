@@ -1,4 +1,4 @@
-// src/user/users.service.ts
+// src/users/users.service.ts
 import {
     BadRequestException,
     ConflictException,

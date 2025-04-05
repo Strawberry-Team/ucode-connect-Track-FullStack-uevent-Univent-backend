@@ -1,4 +1,4 @@
-// src/user/dto/update-user.dto.ts
+// src/users/dto/update-users.dto.ts
 import {
     IsUserEmail,
     IsUserName,

@@ -1,4 +1,4 @@
-// src/user/entity/user.entity.ts
+// src/users/entity/users.entity.ts
 import { User as PrismaUser, RefreshTokenNonce as PrismaRefreshTokenNonce } from '@prisma/client';
 import { Expose } from 'class-transformer';
 

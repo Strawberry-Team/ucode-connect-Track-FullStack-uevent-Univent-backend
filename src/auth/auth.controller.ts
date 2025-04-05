@@ -11,7 +11,7 @@ import {
     Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from '../user/dto/create-user.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { newPasswordDto } from './dto/new-password.dto';
@@ -22,7 +22,7 @@ import {
     JwtAuthGuard,
 } from './guards/auth.jwt-guards';
 import { Request as ExpressRequest } from 'express';
-import { UserId } from 'src/user/decorators/user.decorator';
+import { UserId } from 'src/users/decorators/user.decorator';
 import { RefreshTokenPayload } from 'src/auth/decorators/refresh-token.decorator';
 
 @Controller('auth')

@@ -1,12 +1,12 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './user/users.module';
+import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import databaseConfig from './config/database.app.config';
 import jwtConfig from './config/jwt.config';
 import appConfig from './config/app.config';
-import { RefreshTokenNonceModule } from './refresh-token-nonce/refresh-token-nonce.module';
+import { RefreshTokenNonceModule } from './refresh-token-nonces/refresh-token-nonce.module';
 import { JwtConfigModule } from './jwt/jwt.module';
 import { SchedulerTasksModule } from './scheduler-tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';

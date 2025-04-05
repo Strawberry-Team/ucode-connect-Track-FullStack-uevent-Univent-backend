@@ -1,10 +1,10 @@
-// src/scheduler-tasks/user/user.notification.scheduler.service.ts
+// src/scheduler-tasks/users/users.notification.scheduler.service.ts
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { convertToSeconds } from 'src/common/utils/time.utils';
-import { User } from 'src/user/entity/user.entity';
-import { UsersService } from 'src/user/users.service';
+import { User } from 'src/users/entity/user.entity';
+import { UsersService } from 'src/users/users.service';
 import { SchedulerConfig } from '../../config/scheduler.config';
 
 @Injectable()
