@@ -36,6 +36,21 @@ Table companies {
   owner users [not null]
 }
 
+Enum AttendeeVisibility {
+  EVERYONE
+  ATTENDEES_ONLY
+  NOBODY
+}
+
+Enum EventStatus {
+  DRAFT
+  PUBLISHED
+  SALES_STARTED
+  ONGOING
+  FINISHED
+  CANCELLED
+}
+
 Ref: refresh_token_nonces.userId > users.id [delete: Cascade]
 
 Ref: companies.ownerId - users.id [delete: Restrict]

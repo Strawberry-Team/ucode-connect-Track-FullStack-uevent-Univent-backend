@@ -30,18 +30,18 @@ Table "refresh_token_nonces" {
 Table events {
   "id" INT [pk, increment]
   "company_id" INT [not null]
+  "format_id" INT [not null]
   "title" VARCHAR(100) [not null]
   "description" TEXT [not null]
   "venue" VARCHAR(255) [not null]
   "location_coordinates" POINT [not null]
   "started_at" DATETIME [not null]
   "ended_at" DATETIME [not null]
-  "poster_name" VARCHAR(255) [not null, default: 'default-poster.png']
-  "format_id" INT [not null]
-  "attendee_visibility" ENUM('everyone', 'attendees_only', 'nobody') [default: 'everyone']
   "published_at" DATETIME [not null]
   "tickets_available_from" DATETIME [not null]
-  "status" ENUM('draft', 'published', 'sales_started', 'ongoing', 'finished', 'cancelled')
+  "poster_name" VARCHAR(255) [not null, default: 'default-poster.png']
+  "attendee_visibility" ENUM('everyone', 'attendees_only', 'nobody') [default: 'everyone']
+  "status" ENUM('draft', 'published', 'sales_started', 'ongoing', 'finished', 'cancelled') [default: 'draft']
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
   "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
 
