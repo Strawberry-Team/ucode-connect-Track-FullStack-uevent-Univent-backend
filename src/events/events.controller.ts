@@ -31,8 +31,5 @@ export class EventsController {
     @Delete(':id')
     async remove(@Param('id') id: number) {
         return this.eventsService.deleteEvent(id);
-    }
-    
-    
-    
+    }   
 }
