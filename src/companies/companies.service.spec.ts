@@ -26,7 +26,7 @@ describe('CompaniesService', () => {
         ['ownerId', 'email', 'title', 'description'],
     );
     const fakeUpdateCompanyDto: UpdateCompanyDto = pickCompanyFields(
-        generateFakeCompany(),
+        generateFakeCompany(true),
         ['ownerId', 'email', 'title', 'description'],
     );
     const fakeUpdatedCompany: Company = {
