@@ -4,7 +4,7 @@ import {
     ValidationOptions,
     ValidationArguments,
 } from 'class-validator';
-import { TicketStatus } from './entities/ticket.entity';
+import { TicketStatus } from '@prisma/client';
 import {
     IsString,
     IsNumber,

@@ -4,12 +4,12 @@ import { TicketsService } from './tickets.service';
 import { TicketsRepository } from './tickets.repository';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { Ticket, TicketStatus } from './entities/ticket.entity';
+import { Ticket } from './entities/ticket.entity';
+import { TicketStatus } from '@prisma/client';
 import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
 import { Prisma } from '@prisma/client';
 
-// Объявляем mockRepository вне хуков, чтобы переиспользовать его в каждом тесте
 const mockRepository = {
   create: jest.fn(),
   findAll: jest.fn(),

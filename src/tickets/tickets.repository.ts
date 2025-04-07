@@ -1,7 +1,8 @@
 // src/tickets/tickets.repository.ts
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../db/database.service';
-import { Ticket, TicketStatus } from './entities/ticket.entity';
+import { Ticket } from './entities/ticket.entity';
+import { TicketStatus } from '@prisma/client';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 

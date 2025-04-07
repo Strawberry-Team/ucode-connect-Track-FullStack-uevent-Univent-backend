@@ -1,12 +1,7 @@
 // src/tickets/entities/ticket.entity.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { Decimal } from '@prisma/client/runtime/library';
-
-export enum TicketStatus {
-    SOLD = 'sold',
-    RESERVED = 'reserved',
-    AVAILABLE = 'available',
-}
+import { TicketStatus } from '@prisma/client';
 
 export class Ticket {
     @ApiProperty({ description: 'Unique ticket identifier' })

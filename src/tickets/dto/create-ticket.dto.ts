@@ -1,6 +1,6 @@
 // src/tickets/dto/create-ticket.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { TicketStatus } from '../entities/ticket.entity';
+import { TicketStatus } from '@prisma/client';
 import {
     IsTicketEventId,
     IsTicketNumber,

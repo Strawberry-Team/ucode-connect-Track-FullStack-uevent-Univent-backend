@@ -23,7 +23,8 @@ import {
     ApiBearerAuth,
 } from '@nestjs/swagger';
 import { TicketsService } from './tickets.service';
-import { Ticket, TicketStatus } from './entities/ticket.entity';
+import { Ticket } from './entities/ticket.entity';
+import { TicketStatus } from '@prisma/client';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { BaseCrudController } from '../common/controller/base-crud.controller';
