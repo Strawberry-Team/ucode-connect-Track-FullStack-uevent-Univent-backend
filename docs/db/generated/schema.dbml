@@ -36,24 +36,6 @@ Table companies {
   owner users [not null]
 }
 
-Table tickets {
-  id Int [pk, increment]
-  eventId Int [not null]
-  title String [not null]
-  number String [unique, not null]
-  price Decimal [not null, default: 0]
-  status TicketStatus [not null, default: 'AVAILABLE']
-  createdAt DateTime [default: `now()`, not null]
-  updatedAt DateTime [default: `now()`, not null]
-  name String [not null]
-}
-
-Enum TicketStatus {
-  SOLD
-  RESERVED
-  AVAILABLE
-}
-
 Ref: refresh_token_nonces.userId > users.id [delete: Cascade]
 
 Ref: companies.ownerId - users.id [delete: Restrict]

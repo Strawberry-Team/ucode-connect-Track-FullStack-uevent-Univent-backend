@@ -155,7 +155,7 @@ model Company {
 //   @@map("event_attendees")
 // }
 //
-// Tickets model
+// // Tickets model
 // model Ticket {
 //   id        Int          @id @default(autoincrement())
 //   eventId   Int          @map("event_id")
@@ -165,16 +165,14 @@ model Company {
 //   status    TicketStatus @default(AVAILABLE)
 //   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
 //   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//   name      String       @db.VarChar(100)
 //
 //   // Relations
-//   // event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
-//   // orderItems OrderItem[]
+//   event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
+//   orderItems OrderItem[]
 //
 //   @@index([eventId], map: "tickets_event_id_fk")
 //   @@map("tickets")
 // }
-
 //
 // // Orders model
 // model Order {
@@ -338,7 +336,6 @@ model Company {
 //   RESERVED  @map("reserved")
 //   AVAILABLE @map("available")
 // }
-
 //
 // enum PaymentStatus {
 //   PENDING  @map("pending")
