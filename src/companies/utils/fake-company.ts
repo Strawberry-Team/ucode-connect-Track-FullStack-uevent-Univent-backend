@@ -2,20 +2,20 @@ import { Company } from '../entities/company.entity';
 import { faker } from '@faker-js/faker';
 
 export function generateFakeId(): number {
-    return faker.number.int({min: 1, max: 100});
+    return faker.number.int({ min: 1, max: 100 });
 }
 
 function generateFakeCompanyEmail(title: string): string {
     return faker.internet.email({
-        firstName: '',
-        lastName: "support",
-        provider: title.toLowerCase().replace(" ", ".") + ".com",
-        allowSpecialCharacters: false
+        firstName: 'customer',
+        lastName: 'support',
+        provider: title.toLowerCase().replace(' ', '.') + '.com',
+        allowSpecialCharacters: false,
     });
 }
 
 function generateFakeCompanyTitle(): string {
-    return faker.company.name();
+    return faker.company.catchPhraseNoun();
 }
 
 function generateFakeCompanyDescription(): string {
@@ -24,18 +24,18 @@ function generateFakeCompanyDescription(): string {
 
 export function generateFakeCompany<K extends keyof Company>(
     allFields = true,
-    fields: K[] = []
+    fields: K[] = [],
 ): Pick<Company, K> {
     const title = generateFakeCompanyTitle();
     const fakeCompany: Company = {
-        id: 1,
-        ownerId: 1,
+        id: generateFakeId(),
+        ownerId: generateFakeId(),
         email: generateFakeCompanyEmail(title),
         title: title,
         description: generateFakeCompanyDescription(),
-        logoName: "default-logo.png",
+        logoName: 'default-logo.png',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
     };
 
     if (allFields) {
@@ -51,9 +51,9 @@ export function generateFakeCompany<K extends keyof Company>(
     return company;
 }
 
-export function pickFields<T extends Company, K extends keyof T>(
+export function pickCompanyFields<T extends Company, K extends keyof T>(
     obj: T,
-    fields: K[]
+    fields: K[],
 ): Pick<T, K> {
     const result = {} as Pick<T, K>;
 
@@ -65,4 +65,3 @@ export function pickFields<T extends Company, K extends keyof T>(
 
     return result;
 }
-

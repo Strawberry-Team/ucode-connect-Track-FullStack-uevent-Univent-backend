@@ -19,7 +19,7 @@ export class CompanyOwnerGuard implements CanActivate {
 
         if (!company) {
             throw new ForbiddenException(
-                'Company not found or you do not have access'
+                'Company not found or you do not have access',
             );
         }
 

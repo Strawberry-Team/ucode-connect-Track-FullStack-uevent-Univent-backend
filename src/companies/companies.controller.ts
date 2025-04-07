@@ -10,7 +10,8 @@ import {
     NotImplementedException,
     UseInterceptors,
     UploadedFile,
-    BadRequestException, UseGuards,
+    BadRequestException,
+    UseGuards,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { SERIALIZATION_GROUPS, Company } from './entities/company.entity';
@@ -41,7 +42,7 @@ export class CompaniesController extends BaseCrudController<
         private readonly companyService: CompaniesService,
         private readonly userService: UsersService,
         private readonly emailService: EmailService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
     ) {
         super();
         this.frontUrl = String(
@@ -57,7 +58,10 @@ export class CompaniesController extends BaseCrudController<
         return await this.companyService.createCompany(dto);
     }
 
-    protected async updateEntity(id: number, dto: UpdateCompanyDto): Promise<Company> {
+    protected async updateEntity(
+        id: number,
+        dto: UpdateCompanyDto,
+    ): Promise<Company> {
         return await this.companyService.updateCompany(id, dto);
     }
 
@@ -66,10 +70,7 @@ export class CompaniesController extends BaseCrudController<
     }
 
     @Post()
-    async create(
-        @Body() dto: CreateCompanyDto,
-        @UserId() userId: number
-    ) {
+    async create(@Body() dto: CreateCompanyDto, @UserId() userId: number) {
         const company = await super.create(dto, userId);
         const owner = await this.userService.getUserById(company.ownerId);
 
@@ -77,7 +78,7 @@ export class CompaniesController extends BaseCrudController<
             owner.email,
             `${owner.firstName} ${owner.lastName}`,
             company.title,
-            this.frontUrl
+            this.frontUrl,
         );
 
         return company;
@@ -98,30 +99,29 @@ export class CompaniesController extends BaseCrudController<
     async update(
         @Param('id') id: number,
         @Body() dto: UpdateCompanyDto,
-        @UserId() userId: number
+        @UserId() userId: number,
     ) {
         return super.update(id, dto, userId);
     }
 
     @Delete(':id')
     @UseGuards(CompanyOwnerGuard)
-    async remove(
-        @Param('id') id: number,
-        @UserId() userId: number
-    ) {
+    async remove(@Param('id') id: number, @UserId() userId: number) {
         throw new NotImplementedException();
     }
 
     @Post(':id/upload-logo')
     @UseGuards(CompanyOwnerGuard)
-    @UseInterceptors(createFileUploadInterceptor({
-        destination: './public/uploads/company-logos',
-        allowedTypes: AvatarConfig.prototype.allowedTypesForInterceptor,
-        maxSize: 5 * 1024 * 1024
-    }))
+    @UseInterceptors(
+        createFileUploadInterceptor({
+            destination: './public/uploads/company-logos',
+            allowedTypes: AvatarConfig.prototype.allowedTypesForInterceptor,
+            maxSize: 5 * 1024 * 1024,
+        }),
+    )
     async uploadLogo(
         @Param('id') id: number,
-        @UploadedFile() file: Express.Multer.File
+        @UploadedFile() file: Express.Multer.File,
     ): Promise<{ server_filename: string }> {
         if (!file) {
             throw new BadRequestException('No file uploaded.');

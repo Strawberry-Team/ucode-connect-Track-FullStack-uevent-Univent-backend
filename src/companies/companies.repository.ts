@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Company } from './entities/company.entity';
+import { User } from '../users/entity/user.entity';
 import { DatabaseService } from '../db/database.service';
 
 @Injectable()
@@ -34,6 +35,12 @@ export class CompaniesRepository {
         return this.db.company.findUnique({
             where: { email },
             include: { owner: true },
+        });
+    }
+
+    async findUserByOwnerId(ownerId: number): Promise<User | null> {
+        return this.db.user.findUnique({
+            where: { id: ownerId },
         });
     }
 
