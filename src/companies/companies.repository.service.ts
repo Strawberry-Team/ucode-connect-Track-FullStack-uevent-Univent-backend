@@ -3,7 +3,7 @@ import { Company } from './entities/company.entity';
 import { DatabaseService } from '../db/database.service';
 
 @Injectable()
-export class CompanyRepository {
+export class CompaniesRepository {
     constructor(private readonly db: DatabaseService) {}
 
     async create(data: Partial<Company>): Promise<Company> {

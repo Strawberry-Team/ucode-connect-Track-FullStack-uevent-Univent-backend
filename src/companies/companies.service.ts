@@ -6,14 +6,14 @@ import {
 } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { CompanyRepository } from './company.repository';
+import { CompaniesRepository } from './companies.repository.service';
 import { Company, SERIALIZATION_GROUPS } from './entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 
 @Injectable()
-export class CompanyService {
+export class CompaniesService {
     constructor(
-        private readonly companyRepository: CompanyRepository
+        private readonly companyRepository: CompaniesRepository
     ) {}
 
     async createCompany(dto: CreateCompanyDto) {
@@ -114,7 +114,7 @@ export class CompanyService {
         let company = plainToInstance(Company, dto, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
-        
+
         let existingCompany = await this.companyRepository.findById(id);
 
         if (!existingCompany) {

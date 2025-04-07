@@ -12,7 +12,7 @@ import {
     UploadedFile,
     BadRequestException, UseGuards,
 } from '@nestjs/common';
-import { CompanyService } from './company.service';
+import { CompaniesService } from './companies.service';
 import { SERIALIZATION_GROUPS, Company } from './entities/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -26,11 +26,11 @@ import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { CompanyOwnerGuard } from './guards/company-owner.guard';
 
-@Controller('company')
+@Controller('companies')
 @SerializeOptions({
     groups: SERIALIZATION_GROUPS.BASIC,
 })
-export class CompanyController extends BaseCrudController<
+export class CompaniesController extends BaseCrudController<
     Company,
     CreateCompanyDto,
     UpdateCompanyDto
@@ -38,7 +38,7 @@ export class CompanyController extends BaseCrudController<
     private frontUrl: string;
 
     constructor(
-        private readonly companyService: CompanyService,
+        private readonly companyService: CompaniesService,
         private readonly userService: UsersService,
         private readonly emailService: EmailService,
         private readonly configService: ConfigService

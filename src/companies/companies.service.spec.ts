@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CompanyService } from './company.service';
-import { CompanyRepository } from './company.repository';
+import { CompaniesService } from './companies.service';
+import { CompaniesRepository } from './companies.repository.service';
 import { Company } from './entities/company.entity';
 import { NotFoundException } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { generateFakeCompany, generateFakeId, pickFields } from './utils/fake-company';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 
-describe('CompanyService', () => {
-    let service: CompanyService;
-    let repository: CompanyRepository;
+describe('CompaniesService', () => {
+    let service: CompaniesService;
+    let repository: CompaniesRepository;
 
     const fakeCompany: Company = generateFakeCompany(true);
     const fakeCreateCompanyDto: CreateCompanyDto = pickFields(
@@ -30,9 +30,9 @@ describe('CompanyService', () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                CompanyService,
+                CompaniesService,
                 {
-                    provide: CompanyRepository,
+                    provide: CompaniesRepository,
                     useValue: {
                         create: jest.fn(),
                         findAll: jest.fn(),
@@ -46,8 +46,8 @@ describe('CompanyService', () => {
             ],
         }).compile();
 
-        service = module.get<CompanyService>(CompanyService);
-        repository = module.get<CompanyRepository>(CompanyRepository);
+        service = module.get<CompaniesService>(CompaniesService);
+        repository = module.get<CompaniesRepository>(CompaniesRepository);
     });
 
     describe('Create Company', () => {

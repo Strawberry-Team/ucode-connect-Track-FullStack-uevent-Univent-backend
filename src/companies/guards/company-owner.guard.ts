@@ -4,11 +4,11 @@ import {
     Injectable,
     ForbiddenException,
 } from '@nestjs/common';
-import { CompanyService } from '../company.service';
+import { CompaniesService } from '../companies.service';
 
 @Injectable()
 export class CompanyOwnerGuard implements CanActivate {
-    constructor(private readonly companyService: CompanyService) {}
+    constructor(private readonly companyService: CompaniesService) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
