@@ -11,6 +11,7 @@ import { JwtConfigModule } from './jwt/jwt.module';
 import { SchedulerTasksModule } from './scheduler-tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './db/database.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { DatabaseModule } from './db/database.module';
         AuthModule,
         RefreshTokenNonceModule,
         SchedulerTasksModule,
+        CompanyModule,
     ],
     controllers: [],
     providers: [],
