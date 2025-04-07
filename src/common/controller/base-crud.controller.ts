@@ -10,7 +10,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/auth.jwt-guards';
-import { UserId } from 'src/users/decorators/user.decorator';
+import { UserId } from '../../users/decorators/user.decorator';
 
 @UseGuards(JwtAuthGuard)
 export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
@@ -49,10 +49,10 @@ export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
         @Body() dto: UpdateDto,
         @UserId() userId: number,
     ): Promise<T> {
-        const existing = await this.findById(id, userId);
-        if (!existing) {
-            throw new NotFoundException('Entity not found');
-        }
+        // const existing = await this.findById(id, userId);
+        // if (!existing) {
+        //     throw new NotFoundException('Entity not found');
+        // }
         return await this.updateEntity(id, dto, userId);
     }
 

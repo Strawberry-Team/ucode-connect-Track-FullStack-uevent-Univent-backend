@@ -1,7 +1,7 @@
 // src/auth/guards/auth.jwt-guards.ts
 import { AuthGuard } from '@nestjs/passport';
 import { createJwtGuard } from '../../jwt/jwt-guard.factory';
-import { RefreshTokenNonceService } from 'src/refresh-token-nonces/refresh-token-nonce.service';
+import { RefreshTokenNonceService } from '../../refresh-token-nonces/refresh-token-nonce.service';
 import {
     CanActivate,
     ExecutionContext,
@@ -9,7 +9,7 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
+import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
 
 export const JwtConfirmEmailGuard = createJwtGuard('jwt-confirm-email');
 export const JwtResetPasswordGuard = createJwtGuard('jwt-password-reset');

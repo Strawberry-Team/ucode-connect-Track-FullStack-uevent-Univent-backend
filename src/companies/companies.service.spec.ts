@@ -20,15 +20,17 @@ describe('CompaniesService', () => {
     let service: CompaniesService;
     let repository: CompaniesRepository;
 
-    const fakeCompany: Company = generateFakeCompany(true);
+    const fakeCompany: Company = generateFakeCompany();
     const fakeCreateCompanyDto: CreateCompanyDto = pickCompanyFields(
         fakeCompany,
         ['ownerId', 'email', 'title', 'description'],
     );
-    const fakeUpdateCompanyDto: UpdateCompanyDto = pickCompanyFields(
-        generateFakeCompany(true),
-        ['ownerId', 'email', 'title', 'description'],
-    );
+    const fakeUpdateCompanyDto: UpdateCompanyDto = generateFakeCompany(false, [
+        'ownerId',
+        'email',
+        'title',
+        'description',
+    ]);
     const fakeUpdatedCompany: Company = {
         ...fakeCompany,
         ...fakeUpdateCompanyDto,
@@ -58,6 +60,10 @@ describe('CompaniesService', () => {
 
         service = module.get<CompaniesService>(CompaniesService);
         repository = module.get<CompaniesRepository>(CompaniesRepository);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     describe('Create Company', () => {
