@@ -35,16 +35,19 @@ async function setupDatabase(): Promise<void> {
         await connection.query(
             `GRANT ALL PRIVILEGES ON \`${config.database.name}\`.* TO '${config.database.username}'@'%'`,
         );
-        console.log(`Privileges granted to user "${config.database.username}" for database "${config.database.name}"`);
+        console.log(
+            `Privileges granted to user "${config.database.username}" for database "${config.database.name}"`,
+        );
 
         await connection.query(
             `GRANT ALL PRIVILEGES ON \`${shadowDbName}\`.* TO '${config.database.username}'@'%'`,
         );
-        console.log(`Privileges granted to user "${config.database.username}" for shadow database "${shadowDbName}"`);
+        console.log(
+            `Privileges granted to user "${config.database.username}" for shadow database "${shadowDbName}"`,
+        );
 
         await connection.query(`FLUSH PRIVILEGES`);
         console.log('All privileges have been flushed successfully.');
-
     } catch (error) {
         throw error;
     } finally {

@@ -84,7 +84,12 @@ export class AuthService {
             nonce: newNonce,
         } as CreateRefreshTokenNonceDto);
 
-        const { password, isEmailVerified, refreshTokenNonces, ...userWithoutSensitiveInfo } = user;
+        const {
+            password,
+            isEmailVerified,
+            refreshTokenNonces,
+            ...userWithoutSensitiveInfo
+        } = user;
         return { user: userWithoutSensitiveInfo, accessToken, refreshToken };
     }
 
