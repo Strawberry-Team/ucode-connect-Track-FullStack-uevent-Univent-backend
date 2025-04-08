@@ -158,7 +158,7 @@ describe('CompaniesController', () => {
                 fakeCompany,
             );
 
-            const result = await controller.findOne(fakeCompany.id);
+            const result = await controller.getById(fakeCompany.id, mockUserId);
             expect(result).toEqual(fakeCompany);
             expect(companiesService.findCompanyById).toHaveBeenCalledWith(
                 fakeCompany.id,
@@ -168,6 +168,9 @@ describe('CompaniesController', () => {
 
     describe('Update Company', () => {
         it('Should update a company', async () => {
+            jest.spyOn(companiesService, 'findCompanyById').mockResolvedValue(
+                fakeUpdatedCompany,
+            );
             jest.spyOn(companiesService, 'updateCompany').mockResolvedValue(
                 fakeUpdatedCompany,
             );
@@ -178,6 +181,7 @@ describe('CompaniesController', () => {
                 mockUserId,
             );
             expect(result).toEqual(fakeUpdatedCompany);
+            expect(companiesService.findCompanyById).toHaveBeenCalledWith(fakeCompany.id);
             expect(companiesService.updateCompany).toHaveBeenCalledWith(
                 fakeCompany.id,
                 fakeUpdateCompanyDto,
@@ -187,11 +191,15 @@ describe('CompaniesController', () => {
 
     describe('Remove Company', () => {
         it('Should throw NotImplementedException', async () => {
+            jest.spyOn(companiesService, 'findCompanyById').mockResolvedValue(
+                fakeUpdatedCompany,
+            );
             jest.spyOn(companiesService, 'removeCompany');
 
             await expect(
-                controller.remove(fakeCompany.id, mockUserId),
+                controller.delete(fakeCompany.id, mockUserId),
             ).rejects.toThrow(NotImplementedException);
+            expect(companiesService.findCompanyById).not.toHaveBeenCalled();
             expect(companiesService.removeCompany).not.toHaveBeenCalled();
         });
     });
