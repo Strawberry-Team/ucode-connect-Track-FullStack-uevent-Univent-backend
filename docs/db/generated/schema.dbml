@@ -31,6 +31,17 @@ Table companies {
   title String [not null]
   description String [not null]
   logoName String [not null, default: 'default-logo.png']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  owner users [not null]
+}
+
+Table events {
+  id Int [pk, increment]
+  companyId Int [not null]
+  formatId Int [not null]
+  title String [not null]
+  description String [not null]
   venue String [not null]
   locationCoordinates String [not null]
   startedAt DateTime [not null]
@@ -42,7 +53,6 @@ Table companies {
   status EventStatus [not null, default: 'DRAFT']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [default: `now()`, not null]
-  owner users [not null]
 }
 
 Enum AttendeeVisibility {
