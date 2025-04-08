@@ -16,7 +16,7 @@ import {
     SerializeOptions,
     Query,
     UsePipes,
-    ValidationPipe,
+    ValidationPipe, HttpStatus, NotFoundException,
 } from '@nestjs/common';
 import { BaseCrudController } from '../common/controller/base-crud.controller';
 import { SERIALIZATION_GROUPS, User } from './entity/user.entity';
@@ -28,11 +28,22 @@ import { createFileUploadInterceptor } from '../common/interceptor/file-upload.i
 import { AvatarConfig } from '../config/avatar.config';
 import { OwnAccountGuard } from './guards/own-account.guard';
 import { UserId } from './decorators/user.decorator';
+import {
+    ApiBody,
+    ApiConsumes,
+    ApiExcludeEndpoint,
+    ApiOperation,
+    ApiParam, ApiQuery,
+    ApiResponse, ApiSecurity,
+    ApiTags,
+} from '@nestjs/swagger';
 
 @Controller('users')
 @SerializeOptions({
     groups: SERIALIZATION_GROUPS.BASIC,
 })
+@ApiTags('Users')
+@ApiSecurity('JWT')
 export class UsersController extends BaseCrudController<
     User,
     CreateUserDto,
@@ -66,6 +77,41 @@ export class UsersController extends BaseCrudController<
     }
 
     @Post()
+    @ApiOperation({ summary: 'User registration' })
+    @ApiBody({ type: CreateUserDto, description: 'User registration data' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Successful registration',
+        type: User,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Email already in use',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Access denied',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
     async create(
         @Body() dto: CreateUserDto,
         @UserId() userId: number,
@@ -73,8 +119,152 @@ export class UsersController extends BaseCrudController<
         throw new NotImplementedException();
     }
 
+    @Get()
+    @ApiOperation({ summary: 'Get user data' })
+    @ApiQuery({
+        name: 'email',
+        required: true,
+        type: String,
+        description: 'Email address of the user to retrieve',
+        example: 'ann.nichols@gmail.ua',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully retrieve',
+        type: User
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Access denied',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User not found',
+                },
+            },
+        },
+    })
+    async findOne(@Query('email') email: string): Promise<User> {
+        if (!email) {
+            throw new BadRequestException('Email parameter is required');
+        }
+
+        return await this.usersService.getUserByEmailWithoutPassword(email);
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get user data' })
+    @ApiParam({ name: 'id', type: 'number', description: 'User ID', example: 1 })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully retrieve',
+        type: User
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Access denied',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User not found',
+                },
+            },
+        },
+    })
+    async getById(@Param('id') id: number, @UserId() userId: number): Promise<User> {
+        const existing = await this.usersService.getUserByIdWithoutPassword(id);
+        if (!existing) {
+            throw new NotFoundException('User not found');
+        }
+        return existing;
+    }
+
     @Patch(':id')
     @UseGuards(OwnAccountGuard)
+    @ApiOperation({ summary: 'Update user data' })
+    @ApiParam({ name: 'id', type: 'number', description: 'User ID', example: 1 })
+    @ApiBody({ type: UpdateUserDto, description: 'User update data' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully update',
+        type: User
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Email update is temporarily unavailable',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Access denied',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Old password does not match',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User not found',
+                },
+            },
+        },
+    })
     async update(
         @Param('id') id: number,
         @Body() dto: UpdateUserDto,
@@ -85,20 +275,12 @@ export class UsersController extends BaseCrudController<
 
     @Delete(':id')
     @UseGuards(OwnAccountGuard)
+    @ApiExcludeEndpoint()
     async delete(
         @Param('id') id: number,
         @UserId() userId: number,
     ): Promise<void> {
         return super.delete(id, userId);
-    }
-
-    @Get()
-    async getAllUsers(@Query('email') email: string): Promise<User> {
-        if (!email) {
-            throw new BadRequestException('Email parameter is required');
-        }
-
-        return await this.usersService.getUserByEmailWithoutPassword(email);
     }
 
     @Post('upload-avatar')
@@ -109,9 +291,62 @@ export class UsersController extends BaseCrudController<
             maxSize: 5 * 1024 * 1024,
         }),
     )
+    @ApiOperation({ summary: 'Upload user profile picture' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'Avatar image file (e.g., PNG, JPEG). Example: "avatar.png" (max size: 5MB)',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Avatar successfully uploaded',
+        schema: {
+            type: 'object',
+            properties: {
+                server_filename: {
+                    type: 'string',
+                    description: 'Server-generated filename for the uploaded avatar',
+                    example: 'avatar-123456789.png',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: { type: 'string', example: 'Invalid file format' },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Access denied',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Old password does not match',
+                },
+            },
+        },
+    })
     async uploadAvatar(
         @UploadedFile() file: Express.Multer.File,
     ): Promise<{ server_filename: string }> {
+        //TODO: add verification of file type. in case of error - throw BadRequestException
         //TODO: (not now) Delete old pictures (that a person just uploaded) do in Scheduler
         if (!file) {
             throw new BadRequestException('No file uploaded.');
