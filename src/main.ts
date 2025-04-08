@@ -78,12 +78,12 @@ async function bootstrap() {
         .setTitle('uevent API')
         .setDescription('The uevent API documentation')
         .setVersion('1.0')
-        .addApiKey({       // <--- Покажет опцию X-API-KEY (apiKey)
-            type: "apiKey",  // в окне 'Available authorizations' в Swagger
-            name: "X-API-KEY",
+        .addApiKey({
+            type: "apiKey",
+            name: "JWT",
             in: "header",
             description: "Enter your API key"
-        }, "X-API-KEY")
+        }, "JWT")
         .build();
 
     const document = SwaggerModule.createDocument(app, configDoc);

@@ -34,7 +34,7 @@ import {
     ApiExcludeEndpoint,
     ApiOperation,
     ApiParam, ApiQuery,
-    ApiResponse,
+    ApiResponse, ApiSecurity,
     ApiTags,
 } from '@nestjs/swagger';
 
@@ -43,6 +43,7 @@ import {
     groups: SERIALIZATION_GROUPS.BASIC,
 })
 @ApiTags('Users')
+@ApiSecurity('JWT')
 export class UsersController extends BaseCrudController<
     User,
     CreateUserDto,
@@ -168,7 +169,7 @@ export class UsersController extends BaseCrudController<
         return await this.usersService.getUserByEmailWithoutPassword(email);
     }
 
-    @Get()
+    @Get(':id')
     @ApiOperation({ summary: 'Get user data' })
     @ApiParam({ name: 'id', type: 'number', description: 'User ID', example: 1 })
     @ApiResponse({
@@ -299,15 +300,24 @@ export class UsersController extends BaseCrudController<
                 file: {
                     type: 'string',
                     format: 'binary',
-                    description: 'Avatar image file (e.g., PNG, JPEG)',
+                    description: 'Avatar image file (e.g., PNG, JPEG). Example: "avatar.png" (max size: 5MB)',
                 },
             },
         },
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Successfully upload',
-        type: User
+        description: 'Avatar successfully uploaded',
+        schema: {
+            type: 'object',
+            properties: {
+                server_filename: {
+                    type: 'string',
+                    description: 'Server-generated filename for the uploaded avatar',
+                    example: 'avatar-123456789.png',
+                },
+            },
+        },
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
@@ -315,11 +325,7 @@ export class UsersController extends BaseCrudController<
         schema: {
             type: 'object',
             properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid file format',
-                },
+                message: { type: 'string', example: 'Invalid file format' },
             },
         },
     })

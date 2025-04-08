@@ -39,7 +39,7 @@ import { User } from '../users/entity/user.entity';
 @Controller('auth')
 @UsePipes(new ValidationPipe({ whitelist: true }))
 @ApiTags('Auth')
-@ApiSecurity('X-API-KEY', ['X-API-KEY'])
+@ApiSecurity('JWT')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
