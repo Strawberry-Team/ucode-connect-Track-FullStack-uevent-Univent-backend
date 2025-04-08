@@ -120,20 +120,26 @@ export class EmailService {
     async sendConfirmationEmail(
         to: string,
         confirmationLink: string,
+        fullName: string,
     ): Promise<void> {
         const html = getConfirmationEmailTemplate(
             confirmationLink,
             this.appName,
+            fullName
         );
         await this.sendEmail(
             to,
-            `Email Confirmation for ${this.appName}`,
+            `[Action Required] Confirm Email | ${this.appName}`,
             html,
         );
     }
 
-    async sendResetPasswordEmail(to: string, resetLink: string): Promise<void> {
-        const html = getResetPasswordEmailTemplate(resetLink, this.appName);
-        await this.sendEmail(to, `Reset Password for ${this.appName}`, html);
+    async sendResetPasswordEmail(to: string, resetLink: string, fullName: string): Promise<void> {
+        const html = getResetPasswordEmailTemplate(resetLink, this.appName, fullName);
+        await this.sendEmail(
+            to,
+            `[Action Required] Password Reset | ${this.appName}`,
+            html,
+        );
     }
 }
