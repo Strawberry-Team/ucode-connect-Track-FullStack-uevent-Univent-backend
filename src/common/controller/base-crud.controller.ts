@@ -49,10 +49,10 @@ export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
         @Body() dto: UpdateDto,
         @UserId() userId: number,
     ): Promise<T> {
-        // const existing = await this.findById(id, userId);
-        // if (!existing) {
-        //     throw new NotFoundException('Entity not found');
-        // }
+        const existing = await this.findById(id, userId);
+        if (!existing) {
+            throw new NotFoundException('Entity not found');
+        }
         return await this.updateEntity(id, dto, userId);
     }
 
