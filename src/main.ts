@@ -90,8 +90,8 @@ async function bootstrap() {
     SwaggerModule.setup('api-docs', app, document);
 
     await app.listen(port);
-    console.log(`✔ Application is running on: ${baseUrl}/${globalPrefix}`);
-    console.log(`✔ API Docs is available on: ${baseUrl}/api-docs`);
+    console.log(`✔ Application is running on: ${baseUrl}`);
+    console.log(`✔ API Docs is available on: ${baseUrl}/${globalPrefix}`);
 }
 
 bootstrap();

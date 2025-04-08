@@ -11,7 +11,7 @@ import { JwtConfigModule } from './jwt/jwt.module';
 import { SchedulerTasksModule } from './scheduler-tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './db/database.module';
-import { CompaniesModule } from './companies/companiesModule';
+import { CompaniesModule } from './companies/companies.module';
 
 @Module({
     imports: [

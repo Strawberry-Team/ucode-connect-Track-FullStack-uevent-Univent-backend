@@ -26,7 +26,7 @@ export const getConfirmationEmailTemplate = (
       </div>
       <p>⏳ This link will expire in 7 days.</p>
       <p>If you didn’t sign up for this account, you can safely ignore this email.</p>
-      <p>© 2025 <a href="http://localhost:3000/">${projectName}</a>. All rights reserved.</p>
+      <p>© 2025 <a href="http://localhost:8080/">${projectName}</a>. All rights reserved.</p>
     </div>
   </div>
 </div>
@@ -56,7 +56,7 @@ export const getResetPasswordEmailTemplate = (
         </a>
       </div>
       <p>If you didn’t request a password reset, please ignore this email.</p>
-      <p>© 2025 <a href="http://localhost:3000/">${projectName}</a>. All rights reserved.</p>
+      <p>© 2025 <a href="http://localhost:8080/">${projectName}</a>. All rights reserved.</p>
     </div>
   </div>
 </div>

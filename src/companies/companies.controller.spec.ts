@@ -43,7 +43,7 @@ describe('CompaniesController', () => {
         ...fakeUpdateCompanyDto,
     };
     const mockUserId = fakeUser.id;
-    const mockFrontUrl = 'http://localhost:3000';
+    const mockFrontUrl = 'http://localhost:8080';
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({

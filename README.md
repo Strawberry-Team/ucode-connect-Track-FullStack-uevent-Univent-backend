@@ -14,14 +14,16 @@ Before starting, ensure the required technologies are installed.
    ```bash
    npm install
    ```
-3. Configure the database connection by copying [.env.example](.env.example) to new file `.env`. After that put your MySQL credentials of root and new DB user:
+3. Configure the database connection by copying `.env.example` to new file `.env`. After that put your MySQL credentials of root user:
     ```
     # Database Root Configuration
     DB_ROOT_HOST=localhost
     DB_ROOT_PORT=3306
     DB_ROOT_USER=root
     DB_ROOT_PASSWORD=root
-
+    ```
+   Also, new DB user `uevent_sql` will be created after executing the next command. Credentials of `uevent_sql` user can be changed:
+    ```
     # Database App Configuration
     DB_APP_HOST=localhost
     DB_APP_PORT=3306
@@ -41,12 +43,12 @@ Before starting, ensure the required technologies are installed.
     ```bash
     npm run start:dev
    ```
-7. Application will be launched on [http://localhost:3000/api](http://localhost:3000/api).
+7. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
 
 
 ## 📫 Mailing Service
 [Ethereal](https://ethereal.email/) is a fake SMTP service, mostly aimed at Nodemailer and EmailEngine users (but not limited to). It's a completely free anti-transactional email service where messages never get delivered.
-To view the letter that the user will receive, you need to log in to this service using a test login and password. Default credentials you can find in [.env.example](.env.example) or:
+To view the letter that the user will receive, you need to log in to this service using a test login and password. Default credentials you can find in `.env.example` or:
 * login:
     ```text
     ricky43@ethereal.email
@@ -57,7 +59,7 @@ To view the letter that the user will receive, you need to log in to this servic
     ```
 
 ## 🔁 REST API documentation
-The documentation of all available endpoints can be found [http://localhost:3000/api-docs](http://localhost:3000/api-docs). The [Swagger](https://swagger.io/) library is used.
+The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api). The [Swagger](https://swagger.io/) library is used.
 
 
 ## 🪲 Unit Testing
