@@ -13,6 +13,7 @@ Table users {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [default: `now()`, not null]
   refreshTokenNonces refresh_token_nonces [not null]
+  ownedCompany companies
 }
 
 Table refresh_token_nonces {
@@ -23,4 +24,18 @@ Table refresh_token_nonces {
   user users [not null]
 }
 
+Table companies {
+  id Int [pk, increment]
+  ownerId Int [unique, not null]
+  email String [unique, not null]
+  title String [not null]
+  description String [not null]
+  logoName String [not null, default: 'default-logo.png']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  owner users [not null]
+}
+
 Ref: refresh_token_nonces.userId > users.id [delete: Cascade]
+
+Ref: companies.ownerId - users.id [delete: Restrict]

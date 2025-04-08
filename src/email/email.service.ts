@@ -4,7 +4,7 @@ import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 import {
     getConfirmationEmailTemplate,
-    getResetPasswordEmailTemplate,
+    getResetPasswordEmailTemplate, getWelcomeCompanyEmailTemplate,
 } from './email.templates';
 import { GoogleOAuthService } from '../google/google-oauth.service';
 import * as fs from 'fs';
@@ -139,6 +139,25 @@ export class EmailService {
         await this.sendEmail(
             to,
             `[Action Required] Password Reset | ${this.appName}`,
+            html,
+        );
+    }
+
+    async sendWelcomeCompanyEmail(
+        to: string,
+        companyOwnerName: string,
+        companyTitle: string,
+        redirectLink: string,
+    ): Promise<void> {
+        const html = getWelcomeCompanyEmailTemplate(
+            companyOwnerName,
+            companyTitle,
+            redirectLink,
+            this.appName,
+        );
+        await this.sendEmail(
+            to,
+            `Welcome to ${this.appName} – Start Selling Tickets Today! 🎉`,
             html,
         );
     }

@@ -30,7 +30,9 @@ model User {
   refreshTokenNonces RefreshTokenNonce[] // Add this line
 
   // eventAttendees EventAttendee[]
-  // ownedCompanies Company[]
+  // ownedCompany Company[]
+  ownedCompany Company?
+
   // orders         Order[]
   // subscriptions  Subscription[]
   // notifications  Notification[]
@@ -54,25 +56,26 @@ model RefreshTokenNonce {
 }
 
 // Companies model
-// model Company {
-//   id          Int      @id @default(autoincrement())
-//   ownerId     Int      @map("owner_id")
-//   title       String   @db.VarChar(100)
-//   email       String   @unique @db.VarChar(255)
-//   description String   @db.Text
-//   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   owner         User           @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
-//   events        Event[]
-//   subscriptions Subscription[]
-//   news          News[]
-//
-//   @@index([ownerId], map: "companies_owner_id_fk")
-//   @@map("companies")
-// }
-//
+model Company {
+  id          Int      @id @default(autoincrement())
+  ownerId     Int      @unique @map("owner_id")
+  email       String   @unique @db.VarChar(255)
+  title       String   @db.VarChar(100)
+  description String   @db.Text
+  logoName    String   @default("default-logo.png") @map("logo_name") @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
+  // events        Event[]
+  // subscriptions Subscription[]
+  // news          News[]
+
+  @@index([ownerId], map: "companies_owner_id_fk")
+  @@map("companies")
+}
+
 // // Event Formats model
 // model EventFormat {
 //   id        Int      @id @default(autoincrement())
