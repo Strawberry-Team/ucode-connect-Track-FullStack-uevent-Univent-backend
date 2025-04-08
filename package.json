@@ -7,23 +7,18 @@
     "license": "UNLICENSED",
     "scripts": {
         "setupdb": "ts-node src/setup_database.ts",
-
         "migrate": "npx prisma migrate deploy",
         "migrate:create": "npx prisma migrate dev",
         "migrate:generate": "npx prisma generate",
         "migrate:seed": "npx prisma db seed",
         "migrate:reset": "npx prisma migrate reset --force",
-
         "build": "nest build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-
         "start": "nest start",
         "start:dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
         "start:prod": "node dist/main",
-
         "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-
         "test": "npx jest",
         "test:watch": "npx jest --watch",
         "test:cov": "npx jest --coverage",
@@ -36,7 +31,6 @@
         "@nestjs/config": "^4.0.1",
         "@nestjs/core": "^11.0.1",
         "@nestjs/jwt": "^11.0.0",
-        "@nestjs/mapped-types": "*",
         "@nestjs/passport": "^11.0.5",
         "@nestjs/platform-express": "^11.0.1",
         "@nestjs/schedule": "^5.0.1",
