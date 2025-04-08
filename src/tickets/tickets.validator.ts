@@ -40,9 +40,6 @@ export function IsTicketStatusValid(validationOptions?: ValidationOptions) {
     };
 }
 
-/**
- * Decorator for eventId.
- */
 export function IsTicketEventId(): PropertyDecorator {
     return applyDecorators(
         IsNumber(),
@@ -54,10 +51,6 @@ export function IsTicketEventId(): PropertyDecorator {
     );
 }
 
-/**
- * Decorator for ticket title.
- * @param isOptional Set to true when the field is optional.
- */
 export function IsTicketTitle(isOptional: boolean): PropertyDecorator {
     const decorators = [
         IsString(),
@@ -76,10 +69,6 @@ export function IsTicketTitle(isOptional: boolean): PropertyDecorator {
     );
 }
 
-/**
- * Decorator for unique ticket number.
- * @param isOptional Set to true when the field is optional.
- */
 export function IsTicketNumber(isOptional: boolean): PropertyDecorator {
     const decorators = [
         IsString(),
@@ -98,10 +87,6 @@ export function IsTicketNumber(isOptional: boolean): PropertyDecorator {
     );
 }
 
-/**
- * Decorator for ticket price.
- * @param isOptional Set to true when the field is optional.
- */
 export function IsTicketPrice(isOptional: boolean): PropertyDecorator {
     const decorators = [
         IsNumber(),
@@ -119,10 +104,6 @@ export function IsTicketPrice(isOptional: boolean): PropertyDecorator {
     );
 }
 
-/**
- * Decorator for ticket status.
- * @param isOptional Set to true when the field is optional.
- */
 export function IsTicketStatus(isOptional: boolean): PropertyDecorator {
     const decorators = [
         IsEnum(TicketStatus),

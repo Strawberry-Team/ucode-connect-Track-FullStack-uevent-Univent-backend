@@ -13,12 +13,20 @@ import { TicketStatus } from '@prisma/client';
 
 @Injectable()
 export class TicketsService {
-    constructor(private readonly ticketsRepository: TicketsRepository) { }
+    constructor(private readonly ticketsRepository: TicketsRepository) {}
 
     async create(
         createTicketDto: CreateTicketDto,
         userId: number,
     ): Promise<Ticket> {
+        // const existingEvent = await this.eventRepository.findById(//TODO: implement this when eventRepository will be done
+        //     createTicketDto.eventId,
+        // );
+        //
+        // if(!existingEvent) {
+        //     throw new NotFoundException(`Event with id ${createTicketDto.eventId} does not exist`);
+        // }
+
         const existingTicket = await this.ticketsRepository.findByNumber(
             createTicketDto.number,
         );
@@ -29,53 +37,43 @@ export class TicketsService {
             );
         }
 
+        // createTicketDto.price = new Prisma.Decimal(createTicketDto.price.toString());
+
         return this.ticketsRepository.create(createTicketDto);
     }
 
     async findAll(params?: {
-        //TODO: Remove pagination for tickets
-        page?: number;
-        limit?: number;
         eventId?: number;
+        title?: string;
         status?: TicketStatus;
     }): Promise<{
         items: Ticket[];
         total: number;
-        page: number;
-        limit: number;
     }> {
-        const { page = 1, limit = 10, eventId, status } = params || {};
+        const { eventId, title, status } = params || {};
 
-        if (page < 1) {
-            throw new BadRequestException(
-                'The page number must be greater than 0',
-            );
-        }
-
-        if (limit < 1 || limit > 100) {
-            throw new BadRequestException(
-                'The limit should be between 1 and 100',
-            );
-        }
-
-        const skip = (page - 1) * limit;
+        // const existingEvent = await this.eventRepository.findById(//TODO: implement this when eventRepository will be done
+        //     createTicketDto.eventId,
+        // );
+        //
+        // if(!existingEvent) {
+        //     throw new NotFoundException(`Event with id ${createTicketDto.eventId} does not exist`);
+        // }
 
         const [items, total] = await Promise.all([
             this.ticketsRepository.findAll({
-                skip,
-                take: limit,
                 eventId,
+                title,
                 status,
             }),
-            this.ticketsRepository.count({ eventId, status }),
+            this.ticketsRepository.count({ eventId, title, status }),
         ]);
 
-        return {
-            items,
-            total,
-            page,
-            limit,
-        };
+        if (!items) {
+            throw new NotFoundException('Tickets not found');
+        }
+
+        return { items, total };
     }
 
     async findOne(id: number, userId?: number): Promise<Ticket> {

@@ -8,7 +8,6 @@ import {
     IsTicketStatus,
     IsTicketTitle,
 } from '../tickets.validator';
-import { ToDecimal } from '../decorators/decimal.decorator';
 
 export class CreateTicketDto {
     @IsTicketEventId()
@@ -20,7 +19,6 @@ export class CreateTicketDto {
     @IsTicketNumber(true)
     number: string;
 
-    @ToDecimal()
     @IsTicketPrice(false)
     price: number;
 

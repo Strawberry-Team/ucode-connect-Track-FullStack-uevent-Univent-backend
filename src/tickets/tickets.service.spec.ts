@@ -1,192 +1,169 @@
-// src/tickets/tickets.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { TicketsService } from './tickets.service';
 import { TicketsRepository } from './tickets.repository';
+import { Ticket } from './entities/ticket.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { Ticket } from './entities/ticket.entity';
-import { TicketStatus } from '@prisma/client';
-import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
-import { faker } from '@faker-js/faker';
-import { Prisma } from '@prisma/client';
-
-const mockRepository = {
-  create: jest.fn(),
-  findAll: jest.fn(),
-  count: jest.fn(),
-  findOne: jest.fn(),
-  findByNumber: jest.fn(),
-  update: jest.fn(),
-  remove: jest.fn(),
-};
+import {
+    ConflictException,
+    NotFoundException
+} from '@nestjs/common';
+import { generateFakeTicket } from './utils/fake-ticket';
 
 describe('TicketsService', () => {
-  let service: TicketsService;
-  let repository: TicketsRepository;
-  let moduleRef: TestingModule;
+    let service: TicketsService;
+    let repository: TicketsRepository;
 
-  const generateMockTicket = (): Ticket => ({
-    id: faker.number.int({ min: 1, max: 1000 }),
-    eventId: faker.number.int({ min: 1, max: 100 }),
-    title: faker.lorem.words(3),
-    number: `TICKET-${faker.string.uuid().slice(0, 8)}`,
-    price: new Prisma.Decimal(faker.finance.amount({ min: 5, max: 100, dec: 2 })),
-    status: faker.helpers.arrayElement(Object.values(TicketStatus)),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-  });
+    const fakeTicket: Ticket = generateFakeTicket();
+    const fakeCreateTicketDto: CreateTicketDto = {
+        eventId: fakeTicket.eventId,
+        title: fakeTicket.title,
+        number: fakeTicket.number,
+        price: fakeTicket.price.toNumber(), // DTO ожидает примитивное число
+        status: fakeTicket.status,
+    };
 
-  const mockRepository = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    count: jest.fn(),
-    findOne: jest.fn(),
-    findByNumber: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
-  };
+    const fakeUpdateTicketDto: UpdateTicketDto = {
+        title: `Updated ${fakeTicket.title}`,
+    };
 
-  beforeEach(async () => {
-    moduleRef = await Test.createTestingModule({
-      providers: [
-        TicketsService,
-        { provide: TicketsRepository, useValue: mockRepository },
-      ],
-    }).compile();
+    const fakeUpdatedTicket: Ticket = { ...fakeTicket, title: `Updated ${fakeTicket.title}` };
 
-    service = moduleRef.get<TicketsService>(TicketsService);
-    repository = moduleRef.get<TicketsRepository>(TicketsRepository);
-  });
+    beforeEach(async () => {
+        // Создаём TestingModule аналогично примеру для CompaniesService
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                TicketsService,
+                {
+                    provide: TicketsRepository,
+                    useValue: {
+                        create: jest.fn().mockResolvedValue(null),
+                        findAll: jest.fn().mockResolvedValue([]),
+                        count: jest.fn().mockResolvedValue(0),
+                        findOne: jest.fn().mockResolvedValue(null),
+                        findByNumber: jest.fn().mockResolvedValue(null),
+                        update: jest.fn().mockResolvedValue(null),
+                        remove: jest.fn().mockResolvedValue(null),
+                    },
+                },
+            ],
+        }).compile();
 
-  afterEach(async () => {
-    if (moduleRef) {
-      await moduleRef.close();
-    }
-  });
-
-  describe('create', () => {
-    it('should create a ticket successfully', async () => {
-      const mockTicket = generateMockTicket();
-      const createTicketDto: CreateTicketDto = {
-        eventId: mockTicket.eventId,
-        title: mockTicket.title,
-        number: mockTicket.number,
-        price: mockTicket.price.toNumber(),
-        status: mockTicket.status,
-      };
-
-      mockRepository.findByNumber.mockResolvedValue(null);
-      mockRepository.create.mockResolvedValue(mockTicket);
-
-      const result = await service.create(createTicketDto, faker.number.int());
-      expect(result).toEqual(mockTicket);
-      expect(mockRepository.findByNumber).toHaveBeenCalledWith(mockTicket.number);
-      expect(mockRepository.create).toHaveBeenCalledWith(createTicketDto);
+        service = module.get<TicketsService>(TicketsService);
+        repository = module.get<TicketsRepository>(TicketsRepository);
     });
 
-    it('should throw ConflictException if ticket number already exists', async () => {
-      const mockTicket = generateMockTicket();
-      const createTicketDto: CreateTicketDto = {
-        eventId: mockTicket.eventId,
-        title: mockTicket.title,
-        number: mockTicket.number,
-        price: mockTicket.price.toNumber(),
-        status: mockTicket.status,
-      };
-
-      mockRepository.findByNumber.mockResolvedValue(mockTicket);
-
-      await expect(service.create(createTicketDto, faker.number.int())).rejects.toThrow(
-        ConflictException,
-      );
-    });
-  });
-
-  describe('Minimal Test', () => {
-    it('should pass without memory issues', () => {
-      expect(1 + 1).toBe(2);
-    });
-  });
-
-  describe('findAll', () => {
-    it('should return a list of tickets with pagination', async () => {
-      const mockTickets = [generateMockTicket(), generateMockTicket()];
-      const params = {
-        page: faker.number.int({ min: 1, max: 5 }),
-        limit: faker.number.int({ min: 5, max: 20 }),
-        eventId: faker.number.int({ min: 1, max: 100 }),
-        status: faker.helpers.arrayElement(Object.values(TicketStatus)),
-      };
-
-      mockRepository.findAll.mockResolvedValue(mockTickets);
-      mockRepository.count.mockResolvedValue(mockTickets.length);
-
-      const result = await service.findAll(params);
-      expect(result).toEqual({
-        items: mockTickets,
-        total: mockTickets.length,
-        page: params.page,
-        limit: params.limit,
-      });
-      expect(mockRepository.findAll).toHaveBeenCalledWith({
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
-        eventId: params.eventId,
-        status: params.status,
-      });
-      expect(mockRepository.count).toHaveBeenCalledWith({
-        eventId: params.eventId,
-        status: params.status,
-      });
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
-    it('should throw BadRequestException for invalid page', async () => {
-      await expect(service.findAll({ page: 0 })).rejects.toThrow(BadRequestException);
+    describe('Create Ticket', () => {
+        it('Should create a Ticket', async () => {
+            jest
+                .spyOn(repository, 'findByNumber')
+                .mockResolvedValue(null);
+            jest
+                .spyOn(repository, 'create')
+                .mockResolvedValue(fakeTicket);
+
+            const result = await service.create(fakeCreateTicketDto, 1);
+            expect(repository.findByNumber).toHaveBeenCalledWith(fakeTicket.number);
+            expect(repository.create).toHaveBeenCalledWith(fakeCreateTicketDto);
+            expect(result).toEqual(fakeTicket);
+        });
+
+        it('Should throw ConflictException when ticket number already exists', async () => {
+            jest.spyOn(repository, 'findByNumber').mockResolvedValue(fakeTicket);
+
+            await expect(
+                service.create(fakeCreateTicketDto, 1)
+            ).rejects.toThrow(ConflictException);
+        });
     });
 
-    it('should throw BadRequestException for invalid limit', async () => {
-      await expect(service.findAll({ limit: 101 })).rejects.toThrow(BadRequestException);
+    describe('Find All Tickets', () => {
+        it('Should return a list of Tickets with total count', async () => {
+            const fakeTickets: Ticket[] = [fakeTicket];
+            jest.spyOn(repository, 'findAll').mockResolvedValue(fakeTickets);
+            jest.spyOn(repository, 'count').mockResolvedValue(fakeTickets.length);
+
+            const params = {
+                eventId: fakeTicket.eventId,
+                title: fakeTicket.title,
+                status: fakeTicket.status,
+            };
+            const result = await service.findAll(params);
+            expect(repository.findAll).toHaveBeenCalledWith(params);
+            expect(repository.count).toHaveBeenCalledWith(params);
+
+            expect(result).toEqual({
+                items: fakeTickets,
+                total: fakeTickets.length,
+            });
+        });
     });
-  });
 
-  describe('findOne', () => {
-    it('should return a ticket by id', async () => {
-      const mockTicket = generateMockTicket();
-      mockRepository.findOne.mockResolvedValue(mockTicket);
+    describe('Find One Ticket', () => {
+        it('Should return a Ticket when found', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(fakeTicket);
 
-      const result = await service.findOne(mockTicket.id);
-      expect(result).toEqual(mockTicket);
-      expect(mockRepository.findOne).toHaveBeenCalledWith(mockTicket.id);
+            const result = await service.findOne(fakeTicket.id);
+            expect(repository.findOne).toHaveBeenCalledWith(fakeTicket.id);
+            expect(result).toEqual(fakeTicket);
+        });
+
+        it('Should throw NotFoundException when Ticket not found', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+
+            await expect(service.findOne(9999)).rejects.toThrow(NotFoundException);
+        });
     });
 
-    it('should throw NotFoundException if ticket not found', async () => {
-      mockRepository.findOne.mockResolvedValue(null);
+    describe('Update Ticket', () => {
+        it('Should update a Ticket successfully', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(fakeTicket);
+            jest
+                .spyOn(repository, 'update')
+                .mockResolvedValue(fakeUpdatedTicket);
 
-      await expect(service.findOne(faker.number.int())).rejects.toThrow(NotFoundException);
+            const result = await service.update(
+                fakeTicket.id,
+                fakeUpdateTicketDto,
+                1
+            );
+            expect(repository.findOne).toHaveBeenCalledWith(fakeTicket.id);
+            expect(repository.update).toHaveBeenCalledWith(
+                fakeTicket.id,
+                fakeUpdateTicketDto
+            );
+            expect(result).toEqual(fakeUpdatedTicket);
+        });
+
+        it('Should throw NotFoundException when Ticket not found on update', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+
+            await expect(
+                service.update(fakeTicket.id, fakeUpdateTicketDto, 1)
+            ).rejects.toThrow(NotFoundException);
+        });
     });
-  });
 
-  describe('update', () => {
-    it('should update a ticket successfully', async () => {
-      const mockTicket = generateMockTicket();
-      const updateTicketDto: UpdateTicketDto = { title: faker.lorem.words(3) };
-      mockRepository.findOne.mockResolvedValue(mockTicket);
-      mockRepository.update.mockResolvedValue({ ...mockTicket, ...updateTicketDto });
+    describe('Remove Ticket', () => {
+        it('Should remove a Ticket successfully', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(fakeTicket);
+            jest.spyOn(repository, 'remove').mockResolvedValue(fakeTicket);
 
-      const result = await service.update(mockTicket.id, updateTicketDto, faker.number.int());
-      expect(result).toEqual({ ...mockTicket, ...updateTicketDto });
-      expect(mockRepository.update).toHaveBeenCalledWith(mockTicket.id, updateTicketDto);
+            await service.remove(fakeTicket.id, 1);
+            expect(repository.findOne).toHaveBeenCalledWith(fakeTicket.id);
+            expect(repository.remove).toHaveBeenCalledWith(fakeTicket.id);
+        });
+
+        it('Should throw NotFoundException when Ticket not found on removal', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+
+            await expect(service.remove(fakeTicket.id, 1)).rejects.toThrow(
+                NotFoundException
+            );
+        });
     });
-  });
-
-  describe('remove', () => {
-    it('should remove a ticket successfully', async () => {
-      const mockTicket = generateMockTicket();
-      mockRepository.findOne.mockResolvedValue(mockTicket);
-      mockRepository.remove.mockResolvedValue(mockTicket);
-
-      await service.remove(mockTicket.id, faker.number.int());
-      expect(mockRepository.remove).toHaveBeenCalledWith(mockTicket.id);
-    });
-  });
 });

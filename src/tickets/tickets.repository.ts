@@ -11,6 +11,7 @@ export class TicketsRepository {
     constructor(private db: DatabaseService) {}
 
     async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
+        console.log("TicketsRepository: ", createTicketDto)
         return this.db.ticket.create({
             data: {
                 eventId: createTicketDto.eventId,
@@ -23,19 +24,17 @@ export class TicketsRepository {
     }
 
     async findAll(params?: {
-        skip?: number;
-        take?: number;
         eventId?: number;
+        title?: string,
         status?: TicketStatus;
     }): Promise<Ticket[]> {
-        const { skip, take, eventId, status } = params || {};
+        const { eventId, title, status } = params || {};
 
         return this.db.ticket.findMany({
-            skip,
-            take,
             where: {
                 ...(eventId && { eventId }),
                 ...(status && { status }),
+                ...(title && { title })
             },
             orderBy: {
                 createdAt: 'desc',
@@ -73,13 +72,15 @@ export class TicketsRepository {
 
     async count(params?: {
         eventId?: number;
+        title?: string;
         status?: TicketStatus;
     }): Promise<number> {
-        const { eventId, status } = params || {};
+        const { eventId, title, status } = params || {};
 
         return this.db.ticket.count({
             where: {
                 ...(eventId && { eventId }),
+                ...(title && { title }),
                 ...(status && { status }),
             },
         });

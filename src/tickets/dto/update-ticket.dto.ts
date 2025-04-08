@@ -6,13 +6,11 @@ import {
     IsTicketStatusValid,
     IsTicketTitle,
 } from '../tickets.validator';
-import { ToDecimal } from '../decorators/decimal.decorator';
 
 export class UpdateTicketDto {
     @IsTicketTitle(true)
     title?: string;
 
-    @ToDecimal()
     @IsTicketPrice(true)
     price?: number;
 
