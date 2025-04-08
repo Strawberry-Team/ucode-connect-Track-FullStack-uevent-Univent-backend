@@ -33,10 +33,6 @@ describe('AuthController', () => {
         authService = module.get(AuthService);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe('register (POST /auth/register)', () => {
         it('should register a new user and return its result', async () => {
             // Arrange

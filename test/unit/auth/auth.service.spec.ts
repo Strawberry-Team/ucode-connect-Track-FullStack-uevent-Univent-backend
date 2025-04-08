@@ -105,7 +105,6 @@ describe('AuthService', () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
         jest.restoreAllMocks();
     });
 
