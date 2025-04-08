@@ -6,10 +6,10 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginDto } from '../auth/dto/login.dto';
-import { ResetPasswordDto } from '../auth/dto/reset-password.dto';
+import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { CreateRefreshTokenNonceDto } from '../refresh-token-nonces/dto/create-refresh-nonce.dto';
-import { newPasswordDto } from './dto/new-password.dto';
+import { NewPasswordDto } from './dto/new-password.dto';
 import { UsersService } from 'src/users/users.service';
 import { RefreshTokenNonceService } from 'src/refresh-token-nonces/refresh-token-nonce.service';
 import { JwtUtils } from '../jwt/jwt-token.utils';
@@ -45,7 +45,9 @@ export class AuthService {
             'confirmEmail',
         );
         const link = this.frontUrl + 'auth/confirm-email/' + result;
-        this.emailService.sendConfirmationEmail(user.email, link);
+        this.emailService.sendConfirmationEmail(user.email, link,
+            `${user.firstName}${!user.lastName ? '' : user.lastName}`
+        );
 
         return { user: user };
     }
@@ -140,7 +142,7 @@ export class AuthService {
     }
 
     async resetPasswordWithConfirmToken(
-        newPasswordDto: newPasswordDto,
+        newPasswordDto: NewPasswordDto,
         userId: number,
     ) {
         await this.usersService.updatePassword(
@@ -170,7 +172,11 @@ export class AuthService {
         const link =
             this.frontUrl + 'auth/reset-password/' + passwordResetToken;
 
-        this.emailService.sendResetPasswordEmail(user.email, link);
+        this.emailService.sendResetPasswordEmail(user.email, link,
+            `${user.firstName}${!user.lastName ? '' : user.lastName}`
+        );
+
+        return { message: 'Password recovery email sent' };
     }
 
     async confirmEmail(userId: number) {

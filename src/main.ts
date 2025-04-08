@@ -8,6 +8,7 @@ import * as cookieParser from 'cookie-parser';
 import * as csurf from 'csurf';
 import { CsrfExceptionFilter } from './common/filters/csrf-exception.filter';
 import { CsrfError } from './common/filters/csrf-exception.filter';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -73,8 +74,24 @@ async function bootstrap() {
         }),
     );
 
+    const configDoc = new DocumentBuilder()
+        .setTitle('uevent API')
+        .setDescription('The uevent API documentation')
+        .setVersion('1.0')
+        .addApiKey({
+            type: "apiKey",
+            name: "JWT",
+            in: "header",
+            description: "Enter your API key"
+        }, "JWT")
+        .build();
+
+    const document = SwaggerModule.createDocument(app, configDoc);
+    SwaggerModule.setup('api-docs', app, document);
+
     await app.listen(port);
-    console.log(`Application is running on: ${baseUrl}/${globalPrefix}`);
+    console.log(`✔ Application is running on: ${baseUrl}/${globalPrefix}`);
+    console.log(`✔ API Docs is available on: ${baseUrl}/api-docs`);
 }
 
 bootstrap();
