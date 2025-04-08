@@ -1,8 +1,9 @@
-import { IsDate, IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { AttendeeVisibility, EventStatus } from "@prisma/client";
-import { ValidateEventDates } from "../validators/event-dates.validator";
+import { IsISO8601Date, IsTimeDifferenceGreaterThan } from "../../common/validators/date.validator";
+import { EVENT_CONSTANTS } from "../constants/event.constants";
 
-@ValidateEventDates()
 export class CreateEventDto {
     @IsString()
     @IsNotEmpty()
@@ -20,33 +21,34 @@ export class CreateEventDto {
     @IsNotEmpty()
     locationCoordinates: string;
 
-    @IsDate()
-    @IsNotEmpty()
+    //@Transform(({ value }) => new Date(value))
+    @IsISO8601Date(false)
     startedAt: Date;
 
-    @IsDate()
-    @IsNotEmpty()
+    //@Transform(({ value }) => new Date(value))
+    @IsISO8601Date(false)
+    @IsTimeDifferenceGreaterThan('startedAt', EVENT_CONSTANTS.MIN_DURATION_MINUTES)
     endedAt: Date;
 
-    @IsDate()
-    @IsNotEmpty()
-    publishedAt: Date;  
+    @IsISO8601Date(true)
+    // @IsTimeDifferenceGreaterThan('startedAt', EVENT_CONSTANTS.MIN_PUBLISH_BEFORE_START_MINUTES)
+    publishedAt?: Date;
 
-    @IsDate()
-    @IsNotEmpty()
-    ticketsAvailableFrom: Date;
+    @IsISO8601Date(true)
+    // @IsTimeDifferenceGreaterThan('startedAt', EVENT_CONSTANTS.MIN_PUBLISH_BEFORE_START_MINUTES)
+    ticketsAvailableFrom?: Date;
 
     @IsString()
-    @IsNotEmpty()
-    posterName: string;
+    @IsOptional()
+    posterName?: string;
 
     @IsEnum(AttendeeVisibility)
-    @IsNotEmpty()
-    attendeeVisibility: AttendeeVisibility;
+    @IsOptional()
+    attendeeVisibility?: AttendeeVisibility;
 
     @IsEnum(EventStatus)
-    @IsNotEmpty()
-    status: EventStatus;
+    @IsOptional()
+    status?: EventStatus;
 }
 
 

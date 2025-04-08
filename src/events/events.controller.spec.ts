@@ -3,13 +3,14 @@ import { EventsController } from './events.controller';
 import { EventsService } from './events.service';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { AttendeeVisibility, EventStatus } from '@prisma/client';
-import { EventDatesValidatorConstraint } from './validators/event-dates.validator';
 import { ValidationArguments } from 'class-validator';
+import { validate } from 'class-validator';
+import { CreateEventDto } from './dto/create-event.dto';
+import { EVENT_CONSTANTS } from './constants/event.constants';
 
 describe('EventsController', () => {
     let controller: EventsController;
     let service: EventsService;
-    let validator: EventDatesValidatorConstraint;
 
     const mockEvent = {
         id: 1,
@@ -19,11 +20,10 @@ describe('EventsController', () => {
         description: 'Test Description',
         venue: 'Test Venue',
         locationCoordinates: '50.4501,30.5234',
-        startedAt: new Date('2024-04-05T10:00:00Z'),
-        endedAt: new Date('2024-04-05T12:00:00Z'),
-        publishedAt: new Date('2024-04-04T10:00:00Z'),
-        ticketsAvailableFrom: new Date('2024-04-04T11:00:00Z'),
-        posterName: 'test-poster.jpg',
+        startedAt: '2024-04-05T10:00:00Z',  // Тепер рядок
+        endedAt: '2024-04-05T12:00:00Z',    // Тепер рядок
+        publishedAt: '2024-04-04T10:00:00Z', // Тепер рядок
+        ticketsAvailableFrom: '2024-04-04T12:00:00Z', // Тепер рядок
         attendeeVisibility: AttendeeVisibility.EVERYONE,
         status: EventStatus.PUBLISHED,
         createdAt: new Date(),
@@ -49,7 +49,6 @@ describe('EventsController', () => {
 
         controller = module.get<EventsController>(EventsController);
         service = module.get<EventsService>(EventsService);
-        validator = new EventDatesValidatorConstraint();
     });
 
     describe('create', () => {
@@ -59,88 +58,105 @@ describe('EventsController', () => {
         });
 
         it('should throw error when event duration is less than minimum', async () => {
-            const dto = {
+            const dto = new CreateEventDto();
+            Object.assign(dto, {
                 ...mockEvent,
                 startedAt: new Date('2024-04-05T10:00:00Z'),
-                endedAt: new Date('2024-04-05T10:14:59Z'), // менше 15 хвилин
-            };
+                endedAt: new Date('2024-04-05T10:30:00Z'), // 30 хвилин, менше ніж MIN_DURATION_MINUTES (60)
+            });
 
-            const args: ValidationArguments = {
-                object: dto,
-                value: dto,
-                targetName: '',
-                property: '',
-                constraints: [],
-            };
-
-            const isValid = validator.validate(dto, args);
-            expect(isValid).toBe(false);
-            expect(validator.defaultMessage(args))
-                .toContain('minimum duration');
+            const errors = await validate(dto);
+            if (errors.length > 0) {
+                console.log('Validation errors:');
+                errors.forEach(error => {
+                    console.log(`Property: ${error.property}`);
+                    console.log('Constraints:', error.constraints);
+                });
+            }
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors.some(error => 
+                error.property === 'endedAt' && 
+                error.constraints && 
+                Object.values(error.constraints).some(msg => 
+                    msg.includes('minutes different from startedAt')
+                )
+            )).toBe(true);
         });
 
         it('should throw error when endedAt is before or equal to startedAt', async () => {
-            const dto = {
+            const dto = new CreateEventDto();
+            Object.assign(dto, {
                 ...mockEvent,
                 startedAt: new Date('2024-04-05T10:00:00Z'),
-                endedAt: new Date('2024-04-05T10:00:00Z'), // та сама дата
-            };
+                endedAt: new Date('2024-04-05T09:00:00Z'), // раніше startedAt
+            });
 
-            const args: ValidationArguments = {
-                object: dto,
-                value: dto,
-                targetName: '',
-                property: '',
-                constraints: [],
-            };
-
-            const isValid = validator.validate(dto, args);
-            expect(isValid).toBe(false);
-            expect(validator.defaultMessage(args))
-                .toContain('end date must be after the start date');
+            const errors = await validate(dto);
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors.some(error => 
+                error.property === 'endedAt' && 
+                error.constraints && 
+                Object.values(error.constraints).some(msg => 
+                    msg.includes('must be later than startedAt')
+                )
+            )).toBe(true);
         });
 
-        it('should throw error when tickets are available after event starts', async () => {
-            const dto = {
+        it('should throw error when publishedAt is too close to startedAt', async () => {
+            const dto = new CreateEventDto();
+            Object.assign(dto, {
                 ...mockEvent,
                 startedAt: new Date('2024-04-05T10:00:00Z'),
-                endedAt: new Date('2024-04-05T12:00:00Z'),
-                ticketsAvailableFrom: new Date('2024-04-05T10:30:00Z'), // після початку події
-            };
+                publishedAt: new Date('2024-04-05T09:30:00Z'), // 30 хвилин до початку, менше ніж MIN_PUBLISH_BEFORE_START_MINUTES (60)
+            });
 
-            const args: ValidationArguments = {
-                object: dto,
-                value: dto,
-                targetName: '',
-                property: '',
-                constraints: [],
-            };
-
-            const isValid = validator.validate(dto, args);
-            expect(isValid).toBe(false);
-            expect(validator.defaultMessage(args))
-                .toContain('ticket sales must end before the event starts');
+            const errors = await validate(dto);
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors.some(error => 
+                error.property === 'publishedAt' && 
+                error.constraints && 
+                Object.values(error.constraints).some(msg => 
+                    msg.includes('minutes different from startedAt')
+                )
+            )).toBe(true);
         });
 
-        it('should throw error when tickets are available before publication', async () => {
-            const dto = {
+        it('should throw error when ticketsAvailableFrom is too close to startedAt', async () => {
+            const dto = new CreateEventDto();
+            Object.assign(dto, {
                 ...mockEvent,
-                publishedAt: new Date('2024-04-04T10:00:00Z'),
-                ticketsAvailableFrom: new Date('2024-04-04T09:00:00Z'), // до публікації
-            };
+                startedAt: new Date('2024-04-05T10:00:00Z'),
+                ticketsAvailableFrom: new Date('2024-04-05T09:30:00Z'), // 30 хвилин до початку, менше ніж MIN_PUBLISH_BEFORE_START_MINUTES (60)
+            });
 
-            const args: ValidationArguments = {
-                object: dto,
-                value: dto,
-                targetName: '',
-                property: '',
-                constraints: [],
-            };
+            const errors = await validate(dto);
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors.some(error => 
+                error.property === 'ticketsAvailableFrom' && 
+                error.constraints && 
+                Object.values(error.constraints).some(msg => 
+                    msg.includes('minutes different from startedAt')
+                )
+            )).toBe(true);
+        });
 
-            const isValid = validator.validate(dto, args);
-            expect(isValid).toBe(false);
-            expect(validator.defaultMessage(args))
-                .toContain('ticket sales cannot start before the event is published');
+        it('should pass validation with valid dates', async () => {
+            const dto = new CreateEventDto();
+            Object.assign(dto, {
+                title: 'Test Event',
+                description: 'Test Description',
+                venue: 'Test Venue',
+                locationCoordinates: '50.4501,30.5234',
+                startedAt: new Date('2024-04-05T10:00:00Z'),
+                endedAt: new Date('2024-04-05T12:00:00Z'), // 120 хвилин, більше ніж MIN_DURATION_MINUTES (60)
+                publishedAt: new Date('2024-04-04T10:00:00Z'), // 24 години до початку, більше ніж MIN_PUBLISH_BEFORE_START_MINUTES (60)
+                ticketsAvailableFrom: new Date('2024-04-04T12:00:00Z'), // 22 години до початку, більше ніж MIN_PUBLISH_BEFORE_START_MINUTES (60)
+                attendeeVisibility: AttendeeVisibility.EVERYONE,
+                status: EventStatus.PUBLISHED,
+            });
+
+            const errors = await validate(dto);
+            expect(errors.length).toBe(0);
         });
     });
 
@@ -157,24 +173,22 @@ describe('EventsController', () => {
         });
 
         it('should throw error when updating with invalid dates', async () => {
-            const updateDto = {
+            const updateDto = new UpdateEventDto();
+            Object.assign(updateDto, {
                 ...mockEvent,
                 startedAt: new Date('2024-04-05T10:00:00Z'),
-                endedAt: new Date('2024-04-05T10:00:00Z'), // та сама дата
-            };
+                endedAt: new Date('2024-04-05T09:00:00Z'), // раніше startedAt
+            });
 
-            const args: ValidationArguments = {
-                object: updateDto,
-                value: updateDto,
-                targetName: '',
-                property: '',
-                constraints: [],
-            };
-
-            const isValid = validator.validate(updateDto, args);
-            expect(isValid).toBe(false);
-            expect(validator.defaultMessage(args))
-                .toContain('end date must be after the start date');
+            const errors = await validate(updateDto);
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors.some(error => 
+                error.property === 'endedAt' && 
+                error.constraints && 
+                Object.values(error.constraints).some(msg => 
+                    msg.includes('must be later than startedAt')
+                )
+            )).toBe(true);
         });
     });
 

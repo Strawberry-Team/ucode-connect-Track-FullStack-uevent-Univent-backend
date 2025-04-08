@@ -37,8 +37,8 @@ Table events {
   "location_coordinates" POINT [not null]
   "started_at" DATETIME [not null]
   "ended_at" DATETIME [not null]
-  "published_at" DATETIME [not null]
-  "tickets_available_from" DATETIME [not null]
+  "published_at" DATETIME
+  "tickets_available_from" DATETIME
   "poster_name" VARCHAR(255) [not null, default: 'default-poster.png']
   "attendee_visibility" ENUM('everyone', 'attendees_only', 'nobody') [default: 'everyone']
   "status" ENUM('draft', 'published', 'sales_started', 'ongoing', 'finished', 'cancelled') [default: 'draft']

@@ -114,8 +114,8 @@ model Event {
   locationCoordinates  String             @map("location_coordinates") // Using String for POINT type
   startedAt            DateTime           @map("started_at")
   endedAt              DateTime           @map("ended_at")
-  publishedAt          DateTime           @map("published_at")
-  ticketsAvailableFrom DateTime           @map("tickets_available_from")
+  publishedAt          DateTime?          @map("published_at")
+  ticketsAvailableFrom DateTime?          @map("tickets_available_from")
   posterName           String             @default("default-poster.png") @map("poster_name") @db.VarChar(255)
   attendeeVisibility   AttendeeVisibility @default(EVERYONE) @map("attendee_visibility")
   status               EventStatus        @default(DRAFT)
