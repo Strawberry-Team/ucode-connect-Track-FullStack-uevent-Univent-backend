@@ -50,7 +50,7 @@ export class EventsController extends BaseCrudController<Event, CreateEventDto, 
         return this.eventsService.findAllEvents();
     }
     
-    async findById(id: number): Promise<Event> {
+    async findById(id: number, userId: number): Promise<Event> {
         return this.eventsService.findById(id);
     }
 
@@ -248,22 +248,11 @@ export class EventsController extends BaseCrudController<Event, CreateEventDto, 
             },
         },
     })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Event not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event not found',
-                },
-            },
-        },
-    })
-    async delete(@Param('id') id: number, @UserId() userId: number): Promise<void> {
-        throw new NotImplementedException();
+    async delete(
+        @Param('id') id: number,
+        @UserId() userId: number,
+    ): Promise<void> {
+        return await super.delete(id, userId);
     }
 
     @Public()

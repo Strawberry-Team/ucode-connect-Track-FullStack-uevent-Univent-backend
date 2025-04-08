@@ -62,7 +62,7 @@ describe('EventsController', () => {
         it('Should create an event', async () => {
             jest.spyOn(eventsService, 'createEvent').mockResolvedValue(fakeEvent);
 
-            const result = await controller.createEntity(fakeCreateEventDto);
+            const result = await controller.create(fakeCreateEventDto, 0);
             
             expect(result).toEqual(fakeEvent);
             expect(eventsService.createEvent).toHaveBeenCalledWith(fakeCreateEventDto);
@@ -84,7 +84,7 @@ describe('EventsController', () => {
         it('Should return an event by ID', async () => {
             jest.spyOn(eventsService, 'findById').mockResolvedValue(fakeEvent);
 
-            const result = await controller.findById(fakeEvent.id);
+            const result = await controller.findById(fakeEvent.id, 0);
             
             expect(result).toEqual(fakeEvent);
             expect(eventsService.findById).toHaveBeenCalledWith(fakeEvent.id);
@@ -93,43 +93,55 @@ describe('EventsController', () => {
         it('Should throw NotFoundException when event is not found', async () => {
             jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
 
-            await expect(controller.findById(999)).rejects.toThrow(NotFoundException);
+            await expect(controller.findById(999, 0)).rejects.toThrow(NotFoundException);
             expect(eventsService.findById).toHaveBeenCalledWith(999);
         });
     });
 
     describe('Update Event', () => {
         it('Should update an event', async () => {
+            // Мокуємо findById для перевірки існування події
+            jest.spyOn(eventsService, 'findById').mockResolvedValue(fakeEvent);
             jest.spyOn(eventsService, 'updateEvent').mockResolvedValue(fakeUpdatedEvent);
 
-            const result = await controller.updateEntity(fakeEvent.id, fakeUpdateEventDto);
+            const result = await controller.update(fakeEvent.id, fakeUpdateEventDto, 0);
             
             expect(result).toEqual(fakeUpdatedEvent);
+            expect(eventsService.findById).toHaveBeenCalledWith(fakeEvent.id);
             expect(eventsService.updateEvent).toHaveBeenCalledWith(fakeEvent.id, fakeUpdateEventDto);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
-            jest.spyOn(eventsService, 'updateEvent').mockRejectedValue(new NotFoundException('Event not found'));
+            // Мокуємо findById для викидання NotFoundException
+            jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
 
-            await expect(controller.updateEntity(999, fakeUpdateEventDto)).rejects.toThrow(NotFoundException);
-            expect(eventsService.updateEvent).toHaveBeenCalledWith(999, fakeUpdateEventDto);
+            await expect(controller.update(999, fakeUpdateEventDto, 0)).rejects.toThrow(NotFoundException);
+            expect(eventsService.findById).toHaveBeenCalledWith(999);
+            // updateEvent не повинен викликатися, якщо подія не знайдена
+            expect(eventsService.updateEvent).not.toHaveBeenCalled();
         });
     });
 
     describe('Delete Event', () => {
         it('Should delete an event', async () => {
+            // Мокуємо findById для перевірки існування події
+            jest.spyOn(eventsService, 'findById').mockResolvedValue(fakeEvent);
             jest.spyOn(eventsService, 'deleteEvent').mockResolvedValue(undefined);
 
-            await controller.deleteEntity(fakeEvent.id);
+            await controller.delete(fakeEvent.id, 0);
             
+            expect(eventsService.findById).toHaveBeenCalledWith(fakeEvent.id);
             expect(eventsService.deleteEvent).toHaveBeenCalledWith(fakeEvent.id);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
-            jest.spyOn(eventsService, 'deleteEvent').mockRejectedValue(new NotFoundException('Event not found'));
+            // Мокуємо findById для викидання NotFoundException
+            jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
 
-            await expect(controller.deleteEntity(999)).rejects.toThrow(NotFoundException);
-            expect(eventsService.deleteEvent).toHaveBeenCalledWith(999);
+            await expect(controller.delete(999, 0)).rejects.toThrow(NotFoundException);
+            expect(eventsService.findById).toHaveBeenCalledWith(999);
+            // deleteEvent не повинен викликатися, якщо подія не знайдена
+            expect(eventsService.deleteEvent).not.toHaveBeenCalled();
         });
     });
 
