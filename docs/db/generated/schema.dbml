@@ -31,6 +31,15 @@ Table companies {
   title String [not null]
   description String [not null]
   logoName String [not null, default: 'default-logo.png']
+  venue String [not null]
+  locationCoordinates String [not null]
+  startedAt DateTime [not null]
+  endedAt DateTime [not null]
+  publishedAt DateTime
+  ticketsAvailableFrom DateTime
+  posterName String [not null, default: 'default-poster.png']
+  attendeeVisibility AttendeeVisibility [not null, default: 'EVERYONE']
+  status EventStatus [not null, default: 'DRAFT']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [default: `now()`, not null]
   owner users [not null]

@@ -1,35 +1,43 @@
-import { Controller, Get, Param, Post, Body, Patch, Delete, ValidationPipe, UsePipes } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { BaseCrudController } from '../common/controller/base-crud.controller';
+import { Event } from './entities/events.entity';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('events')
-@UsePipes(new ValidationPipe({ whitelist: true }))
-export class EventsController {
-    constructor(private readonly eventsService: EventsService) {}
-
-    @Get()
-    async findAll() {
-        return this.eventsService.findAllEvents();
+export class EventsController extends BaseCrudController<Event, CreateEventDto, UpdateEventDto> {
+    constructor(private readonly eventsService: EventsService) {
+        super();
     }
 
-    @Get(':id')
-    async findOne(@Param('id') id: number) {
+    @Public()
+    @Get()
+    async findAll(): Promise<Event[]> {
+        return this.eventsService.findAllEvents();
+    }
+    
+    async findById(id: number): Promise<Event> {
         return this.eventsService.findById(id);
     }
 
-    @Post()
-    async create(@Body() createEventDto: CreateEventDto) {
-        return this.eventsService.createEvent(createEventDto);
+    async createEntity(dto: CreateEventDto): Promise<Event> {
+        return this.eventsService.createEvent(dto);
     }
 
-    @Patch(':id')
-    async update(@Param('id') id: number, @Body() updateEventDto: UpdateEventDto) {
-        return this.eventsService.updateEvent(id, updateEventDto);
+    async updateEntity(id: number, dto: UpdateEventDto): Promise<Event> {
+        return this.eventsService.updateEvent(id, dto);
     }
 
-    @Delete(':id')
-    async remove(@Param('id') id: number) {
+    async deleteEntity(id: number): Promise<void> {
         return this.eventsService.deleteEvent(id);
-    }   
+    }
+
+    @Public()
+    @Get(':id')
+    async getById(@Param('id') id: number): Promise<Event> {
+        // TODO: Треба зробити по нормальному userId
+        return await super.getById(id, 0);
+    }
 }

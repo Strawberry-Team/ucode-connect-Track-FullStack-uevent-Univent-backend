@@ -34,10 +34,10 @@ export class Event implements PrismaEvent {
     endedAt: Date;  
 
     @Expose({ groups: ['basic'] })
-    publishedAt: Date;
+    publishedAt: Date | null;
 
     @Expose({ groups: ['basic'] })
-    ticketsAvailableFrom: Date;
+    ticketsAvailableFrom: Date | null;
 
     @Expose({ groups: ['basic'] })
     posterName: string; 

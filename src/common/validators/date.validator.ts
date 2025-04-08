@@ -2,12 +2,8 @@
 import {
     registerDecorator,
     ValidationOptions,
-    ValidationArguments,
-    IsISO8601,
-    IsOptional,
-    ValidateIf,
+    ValidationArguments
 } from 'class-validator';
-import { applyDecorators } from '@nestjs/common';
 
 export function IsLaterThan(
     property: string,
@@ -34,25 +30,53 @@ export function IsLaterThan(
     };
 }
 
-export function IsISO8601Date(isOptional: boolean, allowNull: boolean = false) {
-    const decorators = [
-        IsISO8601({ 
-            strict: true,
-            // strictSeparator: true
-        })
-    ];
+/**
+ * Custom validator for ISO8601 date strings that provides more flexibility than the standard IsISO8601 validator.
+ * 
+ * @param isOptional - If true, allows the field to be undefined or null
+ * @param allowNull - If true, allows the field to be null (default: false)
+ * 
+ * @example
+ * class EventDto {
+ *   @IsISO8601Date(false)
+ *   startedAt: string;
+ * 
+ *   @IsISO8601Date(true)
+ *   optionalDate?: string;
+ * 
+ *   @IsISO8601Date(false, true)
+ *   nullableDate: string | null;
+ * }
+ */
 
-    if (allowNull) {
-        return applyDecorators(
-            ValidateIf((value) => value !== null),
-            ...decorators,
-            IsOptional(),
-        );
-    } else if (isOptional) {
-        return applyDecorators(IsOptional(), ...decorators);
-    } else {
-        return applyDecorators(...decorators);
-    }
+export function IsISO8601Date(isOptional: boolean, allowNull: boolean = false) {
+    return function (object: Object, propertyName: string) {
+        registerDecorator({
+            name: 'IsISO8601Date',
+            target: object.constructor,
+            propertyName: propertyName,
+            options: {
+                message: `${propertyName} must be a valid ISO 8601 date string. Example: 2025-01-01T00:00:00.000Z`,
+            },
+            validator: {
+                validate(value: any, args: ValidationArguments) {
+                    if (isOptional && (value === undefined || value === null)) {
+                        return true;
+                    }
+                    
+                    if (allowNull && value === null) {
+                        return true;
+                    }
+                    
+                    const date = new Date(value);
+                    return !isNaN(date.getTime());
+                },
+                defaultMessage(args: ValidationArguments) {
+                    return `${args.property} must be a valid ISO 8601 date string`;
+                },
+            },
+        });
+    };
 }
 
 /**
@@ -76,23 +100,17 @@ export function IsTimeDifferenceGreaterThan(
             validator: {
                 validate(value: any, args: ValidationArguments) {
                     const [relatedPropertyName, minDiffMinutes] = args.constraints;
-                    // console.log('relatedPropertyName', relatedPropertyName);
-                    // console.log('minDiffMinutes', minDiffMinutes);
                     const relatedValue = (args.object as any)[relatedPropertyName];
                     
                     if (!value || !relatedValue) {
-                        return true; // Skip validation if one of the values is missing
+                        return true;
                     }
                     
                     const date1 = new Date(value);
                     const date2 = new Date(relatedValue);
                     
-                    // Calculate the difference in milliseconds
                     const differenceMs = Math.abs(date1.getTime() - date2.getTime());
-                    
-                    // Convert milliseconds to minutes
                     const differenceMinutes = differenceMs / (60 * 1000);
-                    // console.log('differenceMinutes', differenceMinutes);
 
                     return differenceMinutes >= minDiffMinutes;
                 },
