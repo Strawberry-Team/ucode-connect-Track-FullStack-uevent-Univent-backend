@@ -16,7 +16,9 @@ import {
     SerializeOptions,
     Query,
     UsePipes,
-    ValidationPipe, HttpStatus, NotFoundException,
+    ValidationPipe,
+    HttpStatus,
+    NotFoundException,
 } from '@nestjs/common';
 import { BaseCrudController } from '../common/controller/base-crud.controller';
 import { SERIALIZATION_GROUPS, User } from './entity/user.entity';
@@ -33,8 +35,10 @@ import {
     ApiConsumes,
     ApiExcludeEndpoint,
     ApiOperation,
-    ApiParam, ApiQuery,
-    ApiResponse, ApiSecurity,
+    ApiParam,
+    ApiQuery,
+    ApiResponse,
+    ApiSecurity,
     ApiTags,
 } from '@nestjs/swagger';
 
@@ -77,41 +81,7 @@ export class UsersController extends BaseCrudController<
     }
 
     @Post()
-    @ApiOperation({ summary: 'User registration' })
-    @ApiBody({ type: CreateUserDto, description: 'User registration data' })
-    @ApiResponse({
-        status: HttpStatus.CREATED,
-        description: 'Successful registration',
-        type: User,
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Validation error',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Email already in use',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid or expired refresh token',
-                },
-            },
-        },
-    })
+    @ApiExcludeEndpoint()
     async create(
         @Body() dto: CreateUserDto,
         @UserId() userId: number,
@@ -119,23 +89,25 @@ export class UsersController extends BaseCrudController<
         throw new NotImplementedException();
     }
 
+    // TODO create findAll route
+
     @Get()
     @ApiOperation({ summary: 'Get user data' })
     @ApiQuery({
         name: 'email',
         required: true,
-        type: String,
+        type: 'string',
         description: 'Email address of the user to retrieve',
         example: 'ann.nichols@gmail.ua',
     })
     @ApiResponse({
         status: HttpStatus.OK,
+        type: User,
         description: 'Successfully retrieve',
-        type: User
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
+        description: 'Unauthorized access',
         schema: {
             type: 'object',
             properties: {
@@ -171,15 +143,21 @@ export class UsersController extends BaseCrudController<
 
     @Get(':id')
     @ApiOperation({ summary: 'Get user data' })
-    @ApiParam({ name: 'id', type: 'number', description: 'User ID', example: 1 })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User ID',
+        example: 1,
+    })
     @ApiResponse({
         status: HttpStatus.OK,
+        type: User,
         description: 'Successfully retrieve',
-        type: User
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
+        description: 'Unauthorized access',
         schema: {
             type: 'object',
             properties: {
@@ -205,7 +183,10 @@ export class UsersController extends BaseCrudController<
             },
         },
     })
-    async getById(@Param('id') id: number, @UserId() userId: number): Promise<User> {
+    async getById(
+        @Param('id') id: number,
+        @UserId() userId: number,
+    ): Promise<User> {
         const existing = await this.usersService.getUserByIdWithoutPassword(id);
         if (!existing) {
             throw new NotFoundException('User not found');
@@ -216,12 +197,18 @@ export class UsersController extends BaseCrudController<
     @Patch(':id')
     @UseGuards(OwnAccountGuard)
     @ApiOperation({ summary: 'Update user data' })
-    @ApiParam({ name: 'id', type: 'number', description: 'User ID', example: 1 })
-    @ApiBody({ type: UpdateUserDto, description: 'User update data' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User ID',
+        example: 1,
+    })
+    @ApiBody({ required: true, type: UpdateUserDto, description: 'User update data' })
     @ApiResponse({
         status: HttpStatus.OK,
+        type: User,
         description: 'Successfully update',
-        type: User
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
@@ -239,7 +226,7 @@ export class UsersController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
+        description: 'Unauthorized access',
         schema: {
             type: 'object',
             properties: {
@@ -261,6 +248,20 @@ export class UsersController extends BaseCrudController<
                     type: 'string',
                     description: 'Error message',
                     example: 'User not found',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.CONFLICT,
+        description: 'User data conflict',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User email already in use',
                 },
             },
         },
@@ -293,14 +294,23 @@ export class UsersController extends BaseCrudController<
     )
     @ApiOperation({ summary: 'Upload user profile picture' })
     @ApiConsumes('multipart/form-data')
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User ID',
+        example: 1,
+    })
     @ApiBody({
+        required: true,
         schema: {
             type: 'object',
             properties: {
                 file: {
                     type: 'string',
                     format: 'binary',
-                    description: 'Avatar image file (e.g., PNG, JPEG). Example: "avatar.png" (max size: 5MB)',
+                    description:
+                        'Avatar image file (e.g., PNG, JPEG). Example: "avatar.png" (max size: 5MB)',
                 },
             },
         },
@@ -313,8 +323,9 @@ export class UsersController extends BaseCrudController<
             properties: {
                 server_filename: {
                     type: 'string',
-                    description: 'Server-generated filename for the uploaded avatar',
-                    example: 'avatar-123456789.png',
+                    description:
+                        'Filename for the uploaded avatar',
+                    example: 'avatar.png',
                 },
             },
         },
@@ -325,20 +336,34 @@ export class UsersController extends BaseCrudController<
         schema: {
             type: 'object',
             properties: {
-                message: { type: 'string', example: 'Invalid file format' },
+                message: { type: 'string', example: 'Invalid file format or missing file' },
             },
         },
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
+        description: 'Unauthorized access',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Old password does not match',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.CONFLICT,
+        description: 'File data conflict',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Filename already in use',
                 },
             },
         },
@@ -349,7 +374,7 @@ export class UsersController extends BaseCrudController<
         //TODO: add verification of file type. in case of error - throw BadRequestException
         //TODO: (not now) Delete old pictures (that a person just uploaded) do in Scheduler
         if (!file) {
-            throw new BadRequestException('No file uploaded.');
+            throw new BadRequestException('Invalid file format or missing file');
         }
         return { server_filename: file.filename };
     }

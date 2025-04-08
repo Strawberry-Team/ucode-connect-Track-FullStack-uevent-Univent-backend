@@ -61,11 +61,11 @@ export class AuthService {
         );
 
         if (!passwordValid) {
-            throw new UnauthorizedException('Invalid password');
+            throw new UnauthorizedException('Invalid email or password');
         }
 
         if (!user.isEmailVerified) {
-            throw new ForbiddenException('Please verify your email.');
+            throw new ForbiddenException('User email is unverified');
         }
 
         const newNonce = this.nonceUtils.generateNonce();

@@ -11,33 +11,37 @@ import { ApiProperty } from '@nestjs/swagger';
 export class UpdateUserDto {
     @IsUserName(true)
     @ApiProperty({
+        required: false,
         description: 'First name',
         nullable: true,
         type: 'string',
-        example: 'Rayna',
+        example: 'Ann',
     })
     firstName?: string;
 
     @IsUserName(true)
     @ApiProperty({
+        required: false,
         description: 'Last name',
         nullable: true,
         type: 'string',
-        example: 'Gariette',
+        example: 'Nichols',
     })
     lastName?: string;
 
     @IsUserEmail(true)
     @ApiProperty({
+        required: false,
         description: 'User email',
         nullable: true,
         type: 'string',
-        example: 'rayna.gariette@gmail.com',
+        example: 'ann.nichols@gmail.com',
     })
     email?: string;
 
     @IsUserPassword(true)
     @ApiProperty({
+        required: false,
         description: 'Old password',
         nullable: true,
         type: 'string',
@@ -47,6 +51,7 @@ export class UpdateUserDto {
 
     @IsUserPassword(true)
     @ApiProperty({
+        required: false,
         description: 'New password',
         nullable: true,
         type: 'string',
@@ -56,10 +61,11 @@ export class UpdateUserDto {
 
     @IsUserProfilePicture(true)
     @ApiProperty({
+        required: false,
         description: 'Profile picture',
         nullable: true,
         type: 'string',
-        example: 'rayna-avatar.png',
+        example: 'ann-nichols-avatar.png',
     })
     profilePictureName?: string;
 

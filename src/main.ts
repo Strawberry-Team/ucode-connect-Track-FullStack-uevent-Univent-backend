@@ -74,24 +74,44 @@ async function bootstrap() {
         }),
     );
 
-    const configDoc = new DocumentBuilder()
+    const configAPIDoc = new DocumentBuilder()
         .setTitle('uevent API')
         .setDescription('The uevent API documentation')
         .setVersion('1.0')
-        .addApiKey({
-            type: "apiKey",
-            name: "JWT",
-            in: "header",
-            description: "Enter your API key"
-        }, "JWT")
+        .addBearerAuth(
+            {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+                name: 'Authorization',
+                description: 'Enter JWT access token',
+                in: 'header',
+            },
+            'JWT',
+        )
+        .addTag('Auth')
+        .addTag('Users')
+        .addTag('Companies')
+        .addTag('Companies')
+        .addTag('Events')
+        .addTag('Orders')
+        .addTag('Tickets')
+        .addTag('Promo codes')
         .build();
 
-    const document = SwaggerModule.createDocument(app, configDoc);
-    SwaggerModule.setup('api', app, document);
+    const document = SwaggerModule.createDocument(app, configAPIDoc);
+
+    SwaggerModule.setup('api', app, document,  {
+        /* Keeps token even after reload */
+        swaggerOptions: {
+            persistAuthorization: true,
+        },
+    });
 
     await app.listen(port);
-    console.log(`✔ Application is running on: ${baseUrl}`);
-    console.log(`✔ API Docs is available on: ${baseUrl}/${globalPrefix}`);
+
+    console.log(`\n✔ Application is running on: ${baseUrl}`);
+    console.log(`\n✔ API Docs is available on: ${baseUrl}/${globalPrefix}\n`);
 }
 
 bootstrap();

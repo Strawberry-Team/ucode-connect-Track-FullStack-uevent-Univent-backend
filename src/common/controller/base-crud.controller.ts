@@ -11,8 +11,10 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/auth.jwt-guards';
 import { UserId } from '../../users/decorators/user.decorator';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiSecurity('JWT')
 export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
     protected abstract findById(id: number, userId: number): Promise<T>;
 

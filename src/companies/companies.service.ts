@@ -7,7 +7,7 @@ import {
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { CompaniesRepository } from './companies.repository';
-import { Company, SERIALIZATION_GROUPS } from './entities/company.entity';
+import { Company } from './entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class CompaniesService {
         );
 
         if (!existingUser) {
-            throw new NotFoundException(`New Owner not found`);
+            throw new NotFoundException(`Company owner not found`);
         }
 
         let existingCompany = await this.companyRepository.findByOwnerId(
@@ -48,9 +48,7 @@ export class CompaniesService {
 
         const company = await this.companyRepository.create(dto);
 
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
+        return plainToInstance(Company, company);
     }
 
     public async findAllCompanies(): Promise<Company[]> {
@@ -61,9 +59,7 @@ export class CompaniesService {
         }
 
         return companies.map((company) =>
-            plainToInstance(Company, company, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            }),
+            plainToInstance(Company, company),
         );
     }
 
@@ -78,9 +74,7 @@ export class CompaniesService {
             throw new NotFoundException(`Company not found`);
         }
 
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
+        return plainToInstance(Company, company);
     }
 
     public async findCompanyByOwnerId(ownerId: number): Promise<Company> {
@@ -96,9 +90,8 @@ export class CompaniesService {
             throw new NotFoundException(`Company not found`);
         }
 
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
+        return plainToInstance(Company, company);
+
     }
 
     public async findCompanyByEmail(email: string): Promise<Company> {
@@ -112,9 +105,7 @@ export class CompaniesService {
             throw new NotFoundException(`Company not found`);
         }
 
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
+        return plainToInstance(Company, company);
     }
 
     async updateCompany(id: number, dto: UpdateCompanyDto): Promise<Company> {
@@ -161,9 +152,7 @@ export class CompaniesService {
 
         const company = await this.companyRepository.update(id, dto);
 
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
+        return plainToInstance(Company, company);
     }
 
     async updateCompanyLogo(id: number, logo: string): Promise<Company> {
@@ -175,9 +164,7 @@ export class CompaniesService {
         company.logoName = logo;
         company = await this.companyRepository.update(id, company);
 
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
+        return plainToInstance(Company, company);
     }
 
     async removeCompany(id: number): Promise<void> {

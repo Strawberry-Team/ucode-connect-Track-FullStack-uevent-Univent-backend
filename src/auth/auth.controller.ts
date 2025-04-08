@@ -45,23 +45,126 @@ export class AuthController {
 
     @Post('register')
     @ApiOperation({ summary: 'User registration' })
-    @ApiBody({ type: CreateUserDto, description: 'User registration data' })
+    @ApiBody({
+        required: true,
+        type: CreateUserDto,
+        description: 'User registration data',
+    })
     @ApiResponse({
         status: HttpStatus.CREATED,
-        description: 'Successful registration',
         type: User,
+        description: 'Successful user registration',
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
         description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'First name must be not empty',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.CONFLICT,
+        description: 'User data conflict',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Email already in use',
+                },
+            },
+        },
     })
     async register(@Body() createUserDto: CreateUserDto) {
         return this.authService.register(createUserDto);
     }
 
+    //TODO: (not now) add email verification guard for 1 time use(redis)
+    @Post('confirm-email/:confirm_token')
+    @UseGuards(JwtConfirmEmailGuard)
+    @ApiOperation({ summary: "Confirm the user's email by token" })
+    @ApiParam({
+        required: true,
+        name: 'confirm_token',
+        description: 'Email confirmation token',
+        example:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successful email confirmation',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Success message',
+                    example: 'Email confirmed successfully',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid refresh token',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User not found',
+                },
+            },
+        },
+    })
+    async verifyEmailWithConfirmToken(@UserId() userId: number) {
+        return this.authService.confirmEmail(userId);
+    }
+
     @Post('login')
     @ApiOperation({ summary: 'User login' })
-    @ApiBody({ type: LoginDto, description: 'User login credentials' })
+    @ApiBody({
+        required: true,
+        type: LoginDto,
+        description: 'User login credentials',
+    })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successful login',
@@ -70,6 +173,44 @@ export class AuthController {
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
         description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid email or password ',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid email or password',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Access denied',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User email is unverified',
+                },
+            },
+        },
     })
     async login(@Body() loginDto: LoginDto) {
         return this.authService.login(loginDto);
@@ -86,7 +227,36 @@ export class AuthController {
                 csrfToken: {
                     type: 'string',
                     description: 'New CSRF token',
-                    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
+                    example:
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'CSRF token not generated',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'CSRF token not generated',
                 },
             },
         },
@@ -117,10 +287,20 @@ export class AuthController {
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
         description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid user data',
+                },
+            },
+        },
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
+        description: 'Unauthorized access',
         schema: {
             type: 'object',
             properties: {
@@ -128,6 +308,20 @@ export class AuthController {
                     type: 'string',
                     description: 'Error message',
                     example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Refresh token not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User refresh token not found',
                 },
             },
         },
@@ -165,7 +359,7 @@ export class AuthController {
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
+        description: 'Unauthorized access',
         schema: {
             type: 'object',
             properties: {
@@ -185,107 +379,10 @@ export class AuthController {
         return this.authService.refreshToken(userId, createdAt, nonce);
     }
 
-    @Post('reset-password/:confirm_token') //TODO: (not now) add guard for 1 time use(redis)
-    @UseGuards(JwtResetPasswordGuard)
-    @ApiOperation({ summary: 'Confirm password recovery by token' })
-    @ApiParam({
-        name: 'confirm_token',
-        required: true,
-        description: 'Password reset confirmation token',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88'
-    })
-    @ApiBody({ type: NewPasswordDto, description: 'New password data' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Successful password update',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Success message',
-                    example: 'Password has been reset successfully',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid token',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid or expired refresh token',
-                },
-            },
-        },
-    })
-    async resetPasswordWithConfirmToken(
-        @Body() newPasswordDto: NewPasswordDto,
-        @UserId() userId: number,
-    ) {
-        return this.authService.resetPasswordWithConfirmToken(
-            newPasswordDto,
-            userId,
-        );
-    }
-
-    //TODO: (not now) add email verification guard for 1 time use(redis)
-    @Post('confirm-email/:confirm_token')
-    @UseGuards(JwtConfirmEmailGuard)
-    @ApiOperation({ summary: "Confirm the user's email by token" })
-    @ApiParam({
-        name: 'confirm_token',
-        required: true,
-        description: 'Email confirmation token',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88'
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Successful email confirmation',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Success message',
-                    example: 'Email confirmed successfully',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid token',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Access denied',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid or expired refresh token',
-                },
-            },
-        },
-    })
-    async verifyEmailWithConfirmToken(@UserId() userId: number) {
-        return this.authService.confirmEmail(userId);
-    }
-
     @Post('reset-password')
     @ApiOperation({ summary: 'Send a password recovery email' })
     @ApiBody({
+        required: true,
         type: ResetPasswordDto,
         description: 'Email for password reset',
     })
@@ -304,14 +401,115 @@ export class AuthController {
         },
     })
     @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'User not found by email',
-    })
-    @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
         description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid user data',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User not found by email',
+                },
+            },
+        },
     })
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         return this.authService.resetPassword(resetPasswordDto);
+    }
+
+    @Post('reset-password/:confirm_token') //TODO: (not now) add guard for 1 time use(redis)
+    @UseGuards(JwtResetPasswordGuard)
+    @ApiOperation({ summary: 'Confirm password recovery by token' })
+    @ApiParam({
+        required: true,
+        name: 'confirm_token',
+        description: 'Password reset confirmation token',
+        example:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
+    })
+    @ApiBody({
+        required: true,
+        type: NewPasswordDto,
+        description: 'New password data',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successful password update',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Success message',
+                    example: 'Password has been reset successfully',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid token',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid new password',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User with this email not found',
+                },
+            },
+        },
+    })
+    async resetPasswordWithConfirmToken(
+        @Body() newPasswordDto: NewPasswordDto,
+        @UserId() userId: number,
+    ) {
+        return this.authService.resetPasswordWithConfirmToken(
+            newPasswordDto,
+            userId,
+        );
     }
 }
