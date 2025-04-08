@@ -16,7 +16,7 @@ import {
     SerializeOptions,
     Query,
     UsePipes,
-    ValidationPipe, HttpStatus,
+    ValidationPipe, HttpStatus, NotFoundException,
 } from '@nestjs/common';
 import { BaseCrudController } from '../common/controller/base-crud.controller';
 import { SERIALIZATION_GROUPS, User } from './entity/user.entity';
@@ -168,10 +168,54 @@ export class UsersController extends BaseCrudController<
         return await this.usersService.getUserByEmailWithoutPassword(email);
     }
 
+    @Get()
+    @ApiOperation({ summary: 'Get user data' })
+    @ApiParam({ name: 'id', type: 'number', description: 'User ID', example: 1 })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully retrieve',
+        type: User
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Access denied',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Invalid or expired refresh token',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'User not found',
+                },
+            },
+        },
+    })
+    async getById(@Param('id') id: number, @UserId() userId: number): Promise<User> {
+        const existing = await this.usersService.getUserByIdWithoutPassword(id);
+        if (!existing) {
+            throw new NotFoundException('User not found');
+        }
+        return existing;
+    }
+
     @Patch(':id')
     @UseGuards(OwnAccountGuard)
     @ApiOperation({ summary: 'Update user data' })
-    @ApiParam({ name: 'id', type: 'number', description: 'User ID' })
+    @ApiParam({ name: 'id', type: 'number', description: 'User ID', example: 1 })
     @ApiBody({ type: UpdateUserDto, description: 'User update data' })
     @ApiResponse({
         status: HttpStatus.OK,
