@@ -12,6 +12,7 @@ export interface JwtStrategyConfig {
     tokenType: TokenType;
     extractor: (req: any) => any;
     validateFn: (payload: any, req?: any) => any;
+    handleError?: (error: Error) => void;
 }
 
 export function createJwtStrategy(config: JwtStrategyConfig): Type<any> {
@@ -46,7 +47,14 @@ export function createJwtStrategy(config: JwtStrategyConfig): Type<any> {
         }
 
         validate(payload: any, req?: any): any {
-            return config.validateFn(payload, req);
+            try {
+                return config.validateFn(payload, req);
+            } catch (error) {
+                if (config.handleError) {
+                    config.handleError(error);
+                }
+                throw error;
+            }
         }
     }
 
