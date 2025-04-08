@@ -30,6 +30,8 @@ describe('EventsService', () => {
     };
 
     const mockCreateEventDto: CreateEventDto = {
+        companyId: 1,
+        formatId: 1,
         title: 'Test Event',
         description: 'Test Description',
         venue: 'Test Venue',
