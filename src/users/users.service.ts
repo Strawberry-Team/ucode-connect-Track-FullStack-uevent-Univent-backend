@@ -12,6 +12,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { SERIALIZATION_GROUPS, User } from './entity/user.entity';
 import { PasswordService } from './passwords.service';
 import { plainToClass, plainToInstance } from 'class-transformer';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -54,13 +55,22 @@ export class UsersService {
         });
     }
 
+    async getAllUnactivatedUsers(time: number): Promise<User[]> {
+        const users = await this.usersRepository.getAllUnactivatedUsers(time);
+        return users.map((user) =>
+            plainToInstance(User, user, {
+                groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+            }),
+        );
+    }
+
     async createUser(dto: CreateUserDto): Promise<User> {
         const existing = await this.usersRepository.findByEmail(dto.email);
         if (existing) {
             throw new ConflictException('Email already in use');
         }
         dto.password = await this.passwordService.hash(dto.password);
-        const result = await this.usersRepository.createUser(dto);
+        const result = await this.usersRepository.create(dto);
 
         return plainToInstance(User, result, {
             groups: SERIALIZATION_GROUPS.BASIC,
@@ -68,33 +78,55 @@ export class UsersService {
     }
 
     async updateUser(id: number, dto: UpdateUserDto): Promise<User> {
-        if (dto.email !== undefined) {
-            throw new BadRequestException(
-                'Email update is temporarily unavailable',
-            );
+        const result = await this.usersRepository.update(id, dto);
+        if (!result) {
+            throw new NotFoundException('User not found');
         }
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
+    }
 
+    async updateUserPassword(
+        id: number,
+        dto: UpdateUserPasswordDto,
+    ): Promise<User> {
         const user = await this.getUserById(id);
-        let result;
-        if (dto.oldPassword || dto.newPassword) {
-            const isMatch = await this.passwordService.compare(
-                String(dto.oldPassword),
-                String(user.password),
-            );
-            if (!isMatch) {
-                throw new UnauthorizedException('Old password does not match');
-            }
-            const hashedNewPassword = await this.passwordService.hash(
-                String(dto.newPassword),
-            );
-            delete dto.oldPassword;
-            delete dto.newPassword;
-            const updateData: Partial<User> = { ...dto };
-            updateData.password = hashedNewPassword;
-            result = await this.usersRepository.updateUser(id, updateData);
-        } else {
-            result = await this.usersRepository.updateUser(id, dto);
+        if (!user) {
+            throw new NotFoundException('User with this email not found');
         }
+        const isMatch = await this.passwordService.compare(
+            dto.oldPassword,
+            user.password,
+        );
+        if (!isMatch) {
+            throw new UnauthorizedException('Old password does not match');
+        }
+        const hashedNewPassword = await this.passwordService.hash(
+            String(dto.newPassword),
+        );
+        const result = await this.usersRepository.update(id, {
+            password: hashedNewPassword,
+        });
+        if (!result) {
+            throw new NotFoundException('User not found');
+        }
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
+    }
+
+    async updateUserAvatar(
+        id: number,
+        profilePictureName: string,
+    ): Promise<User> {
+        const user = await this.getUserById(id);
+        if (!user) {
+            throw new NotFoundException('User with this email not found');
+        }
+        const result = await this.usersRepository.update(id, {
+            profilePictureName,
+        });
         if (!result) {
             throw new NotFoundException('User not found');
         }
@@ -106,7 +138,7 @@ export class UsersService {
     async updatePassword(id: number, newPassword: string): Promise<User> {
         const hashedPassword = await this.passwordService.hash(newPassword);
         const updateData: Partial<User> = { password: hashedPassword };
-        const result = await this.usersRepository.updateUser(id, updateData);
+        const result = await this.usersRepository.update(id, updateData);
         if (!result) {
             throw new NotFoundException('User not found');
         }
@@ -115,27 +147,15 @@ export class UsersService {
         });
     }
 
-    async deleteUser(id: number): Promise<void> {
-        await this.usersRepository.deleteUser(id);
-    }
-
     async confirmEmail(userId: number) {
         const updateData: Partial<User> = { isEmailVerified: true };
-        const result = await this.usersRepository.updateUser(
-            userId,
-            updateData,
-        );
+        const result = await this.usersRepository.update(userId, updateData);
         return plainToInstance(User, result, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
     }
 
-    async getAllUnactivatedUsers(time: number): Promise<User[]> {
-        const users = await this.usersRepository.getAllUnactivatedUsers(time);
-        return users.map((user) =>
-            plainToInstance(User, user, {
-                groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
-            }),
-        );
+    async deleteUser(id: number): Promise<void> {
+        await this.usersRepository.delete(id);
     }
 }

@@ -6,7 +6,6 @@ import {
     BadRequestException,
     Post,
     Body,
-    Req,
     NotImplementedException,
     Param,
     Patch,
@@ -30,6 +29,7 @@ import { createFileUploadInterceptor } from '../common/interceptor/file-upload.i
 import { AvatarConfig } from '../config/avatar.config';
 import { OwnAccountGuard } from './guards/own-account.guard';
 import { UserId } from './decorators/user.decorator';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import {
     ApiBody,
     ApiConsumes,
@@ -87,9 +87,12 @@ export class UsersController extends BaseCrudController<
         @UserId() userId: number,
     ): Promise<User> {
         throw new NotImplementedException();
+        // const user: User = await super.create(dto, userId);
+        // this.authService.sendConfirmationEmailAndNewPassword(user);
+        // return user;
     }
 
-    // TODO create findAll route
+    // TODO create get user events route
 
     @Get()
     @ApiOperation({ summary: 'Get user data' })
@@ -304,6 +307,15 @@ export class UsersController extends BaseCrudController<
         return super.update(id, dto, userId);
     }
 
+    @Patch(':id/password')
+    @UseGuards(OwnAccountGuard)
+    async updatePassword(
+        @Param('id') id: number,
+        @Body() dto: UpdateUserPasswordDto,
+    ): Promise<User> {
+        return this.usersService.updateUserPassword(id, dto);
+    }
+
     @Delete(':id')
     @UseGuards(OwnAccountGuard)
     @ApiExcludeEndpoint()
@@ -311,10 +323,12 @@ export class UsersController extends BaseCrudController<
         @Param('id') id: number,
         @UserId() userId: number,
     ): Promise<void> {
-        return super.delete(id, userId);
+        throw new NotImplementedException();
+        // return super.delete(id, userId);
     }
 
     @Post(':id/upload-avatar')
+    @UseGuards(OwnAccountGuard)
     @UseInterceptors(
         createFileUploadInterceptor({
             destination: './public/uploads/avatars',
@@ -425,12 +439,16 @@ export class UsersController extends BaseCrudController<
     })
     async uploadAvatar(
         @UploadedFile() file: Express.Multer.File,
+        @Param('id') id: number,
     ): Promise<{ server_filename: string }> {
         //TODO: add verification of file type. in case of error - throw BadRequestException
         //TODO: (not now) Delete old pictures (that a person just uploaded) do in Scheduler
         if (!file) {
             throw new BadRequestException('Invalid file format or missing file');
         }
+
+        this.usersService.updateUserAvatar(id, file.filename);
+
         return { server_filename: file.filename };
     }
 }

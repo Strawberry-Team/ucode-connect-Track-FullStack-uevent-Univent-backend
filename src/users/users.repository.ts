@@ -7,19 +7,6 @@ import { DatabaseService } from '../db/database.service';
 export class UsersRepository {
     constructor(private readonly db: DatabaseService) {}
 
-    async getAllUnactivatedUsers(seconds?: number): Promise<User[]> {
-        const thresholdDate = new Date();
-        thresholdDate.setSeconds(thresholdDate.getSeconds() - Number(seconds));
-
-        return this.db.user.findMany({
-            where: {
-                createdAt: { lt: thresholdDate },
-                isEmailVerified: false,
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-    }
-
     async findById(id: number): Promise<User | null> {
         return this.db.user.findUnique({
             where: { id },
@@ -34,13 +21,26 @@ export class UsersRepository {
         });
     }
 
-    async createUser(data: Partial<User>): Promise<User> {
+    async getAllUnactivatedUsers(seconds?: number): Promise<User[]> {
+        const thresholdDate = new Date();
+        thresholdDate.setSeconds(thresholdDate.getSeconds() - Number(seconds));
+
+        return this.db.user.findMany({
+            where: {
+                createdAt: { lt: thresholdDate },
+                isEmailVerified: false,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async create(data: Partial<User>): Promise<User> {
         return this.db.user.create({
             data: data as any,
         });
     }
 
-    async updateUser(
+    async update(
         id: number,
         updateData: Partial<User>,
     ): Promise<User | null> {
@@ -50,19 +50,19 @@ export class UsersRepository {
         });
     }
 
-    async deleteUser(id: number): Promise<void> {
+    async delete(id: number): Promise<void> {
         await this.db.user.delete({
             where: { id },
         });
     }
 
-    // async findAllWithPagination(page: number, limit: number) {
+    // async findAllWithOffsetPagination(page: number, limit: number) {
     //     return this.paginateOffset('users', {
     //         orderBy: { createdAt: 'desc' }
     //     }, page, limit);
     // }
     //
-    // async findAllWithCursor(after: UserCursor | null, limit: number) {
+    // async findAllWithCursorPagination(after: UserCursor | null, limit: number) {
     //     return this.paginateCursor('users', {
     //         orderBy: [
     //             { createdAt: 'desc' },

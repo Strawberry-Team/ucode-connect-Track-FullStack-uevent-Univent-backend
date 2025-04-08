@@ -56,8 +56,9 @@ export class EmailService {
         console.log(
             `Using transport: ${nodeEnv === 'production' ? 'Gmail' : 'Ethereal'}`,
         );
-        if (nodeEnv === 'production' || nodeEnv === 'test') {
-            const accessToken = await this.googleOAuthService.getAccessToken();
+        if (nodeEnv === 'production') {
+            // if (nodeEnv === 'development') { // TODO: for presentation
+                const accessToken = await this.googleOAuthService.getAccessToken();
             const oauthDetails = this.googleOAuthService.getOAuthCredentials();
 
             return nodemailer.createTransport({
@@ -72,7 +73,7 @@ export class EmailService {
                     accessToken,
                 },
             });
-        } else {
+        } else if (nodeEnv === 'test' || nodeEnv === 'development') {
             return nodemailer.createTransport({
                 host: this.configService.get<string>('ETHEREAL_HOST'),
                 port: this.configService.get<number>('ETHEREAL_PORT'),
