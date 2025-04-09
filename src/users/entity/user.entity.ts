@@ -9,6 +9,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
     CONFIDENTIAL: ['basic', 'confidential'],
+    SYSTEMIC: ['basic','confidential','systemic'],
 };
 
 export class User implements PrismaUser {
@@ -72,7 +73,7 @@ export class User implements PrismaUser {
     })
     createdAt: Date;
 
-    @Expose({ groups: ['basic'] })
+    @Expose({ groups: ['systemic'] })
     updatedAt: Date;
 
     @Expose({ groups: ['confidential'] })
