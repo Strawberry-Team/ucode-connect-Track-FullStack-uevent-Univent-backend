@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../db/database.service';
 import { Ticket } from './entities/ticket.entity';
-import { TicketStatus } from '@prisma/client';
+import { Prisma, TicketStatus } from '@prisma/client';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 
@@ -11,8 +11,10 @@ export class TicketsRepository {
     constructor(private db: DatabaseService) {}
 
     async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
-        console.log("TicketsRepository: ", createTicketDto)
-        return this.db.ticket.create({
+        console.log('TicketsRepository createTicketDto:', createTicketDto);
+        console.log('Price before conversion:', createTicketDto.price);
+
+        const result = await this.db.ticket.create({
             data: {
                 eventId: createTicketDto.eventId,
                 title: createTicketDto.title,
@@ -21,51 +23,86 @@ export class TicketsRepository {
                 status: createTicketDto.status,
             },
         });
+
+        const { price, ...ticketWithoutPrice } = result;
+        return { ...ticketWithoutPrice, price: Number(price) };
     }
 
     async findAll(params?: {
         eventId?: number;
-        title?: string,
+        title?: string;
         status?: TicketStatus;
     }): Promise<Ticket[]> {
         const { eventId, title, status } = params || {};
 
-        return this.db.ticket.findMany({
+        const result = await this.db.ticket.findMany({
             where: {
                 ...(eventId && { eventId }),
                 ...(status && { status }),
-                ...(title && { title })
+                ...(title && { title }),
             },
             orderBy: {
                 createdAt: 'desc',
             },
         });
+
+        const finalResult: Ticket[] = [];
+
+        result.forEach((ticket) => {
+            const { price, ...ticketWithoutPrice } = ticket;
+            const result = { ...ticketWithoutPrice, price: Number(price) };
+            finalResult.push(result);
+        });
+
+        return finalResult;
     }
 
     async findOne(id: number): Promise<Ticket | null> {
-        return this.db.ticket.findUnique({
+        const ticket = await this.db.ticket.findUnique({
             where: { id },
         });
+
+        if (!ticket) {
+            return null;
+        }
+
+        const { price, ...ticketWithoutPrice } = ticket;
+        return { ...ticketWithoutPrice, price: Number(price) };
     }
 
     async findByNumber(number: string): Promise<Ticket | null> {
-        return this.db.ticket.findUnique({
+        const ticket = await this.db.ticket.findUnique({
             where: { number },
         });
+
+        if (!ticket) {
+            return null;
+        }
+
+        const { price, ...ticketWithoutPrice } = ticket;
+        return { ...ticketWithoutPrice, price: Number(price) };
     }
 
     async update(
         id: number,
         updateTicketDto: UpdateTicketDto,
     ): Promise<Ticket> {
-        return this.db.ticket.update({
+        const ticket = await this.db.ticket.update({
             where: { id },
-            data: updateTicketDto,
+            data: {
+                ...updateTicketDto,
+                price: updateTicketDto.price
+                    ? new Prisma.Decimal(updateTicketDto.price)
+                    : undefined,
+            },
         });
+
+        const { price, ...ticketWithoutPrice } = ticket;
+        return { ...ticketWithoutPrice, price: Number(price) };
     }
 
-    async remove(id: number): Promise<Ticket> {
-        return this.db.ticket.delete({
+    async delete(id: number): Promise<void> {
+        this.db.ticket.delete({
             where: { id },
         });
     }

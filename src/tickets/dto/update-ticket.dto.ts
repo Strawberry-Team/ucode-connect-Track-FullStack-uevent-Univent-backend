@@ -1,5 +1,4 @@
 // src/tickets/dto/update-ticket.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
 import { TicketStatus } from '@prisma/client';
 import {
     IsTicketPrice,

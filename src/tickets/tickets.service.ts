@@ -1,15 +1,15 @@
 // src/tickets/tickets.service.ts
 import {
+    ConflictException,
     Injectable,
     NotFoundException,
-    ConflictException,
-    BadRequestException,
 } from '@nestjs/common';
 import { TicketsRepository } from './tickets.repository';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { Ticket } from './entities/ticket.entity';
+import { SERIALIZATION_GROUPS, Ticket } from './entities/ticket.entity';
 import { TicketStatus } from '@prisma/client';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class TicketsService {
@@ -19,27 +19,20 @@ export class TicketsService {
         createTicketDto: CreateTicketDto,
         userId: number,
     ): Promise<Ticket> {
-        // const existingEvent = await this.eventRepository.findById(//TODO: implement this when eventRepository will be done
-        //     createTicketDto.eventId,
-        // );
-        //
-        // if(!existingEvent) {
-        //     throw new NotFoundException(`Event with id ${createTicketDto.eventId} does not exist`);
-        // }
-
         const existingTicket = await this.ticketsRepository.findByNumber(
             createTicketDto.number,
         );
-
         if (existingTicket) {
             throw new ConflictException(
                 `A ticket with the number ${createTicketDto.number} already exists`,
             );
         }
 
-        // createTicketDto.price = new Prisma.Decimal(createTicketDto.price.toString());
+        const ticket = await this.ticketsRepository.create(createTicketDto);
 
-        return this.ticketsRepository.create(createTicketDto);
+        return plainToInstance(Ticket, ticket, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async findAll(params?: {
@@ -52,38 +45,29 @@ export class TicketsService {
     }> {
         const { eventId, title, status } = params || {};
 
-        // const existingEvent = await this.eventRepository.findById(//TODO: implement this when eventRepository will be done
-        //     createTicketDto.eventId,
-        // );
-        //
-        // if(!existingEvent) {
-        //     throw new NotFoundException(`Event with id ${createTicketDto.eventId} does not exist`);
-        // }
-
         const [items, total] = await Promise.all([
-            this.ticketsRepository.findAll({
-                eventId,
-                title,
-                status,
-            }),
+            this.ticketsRepository.findAll({ eventId, title, status }),
             this.ticketsRepository.count({ eventId, title, status }),
         ]);
 
-        if (!items) {
-            throw new NotFoundException('Tickets not found');
-        }
+        const ticketItems = plainToInstance(
+            Ticket,
+            items.map((item) => item),
+            { groups: SERIALIZATION_GROUPS.BASIC },
+        );
 
-        return { items, total };
+        return { items: ticketItems, total };
     }
 
     async findOne(id: number, userId?: number): Promise<Ticket> {
         const ticket = await this.ticketsRepository.findOne(id);
-
         if (!ticket) {
             throw new NotFoundException(`Ticket ID ${id} not found`);
         }
 
-        return ticket;
+        return plainToInstance(Ticket, ticket, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async update(
@@ -97,16 +81,22 @@ export class TicketsService {
             throw new NotFoundException(`Ticket ID ${id} not found`);
         }
 
-        return this.ticketsRepository.update(id, updateTicketDto);
+        const updatedTicket = await this.ticketsRepository.update(
+            id,
+            updateTicketDto,
+        );
+        return plainToInstance(Ticket, updatedTicket, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
-    async remove(id: number, userId: number): Promise<void> {
+    async delete(id: number, userId: number): Promise<void> {
         const ticket = await this.findOne(id);
 
         if (!ticket) {
             throw new NotFoundException(`Ticket ID ${id} not found`);
         }
 
-        await this.ticketsRepository.remove(id);
+        await this.ticketsRepository.delete(ticket.id);
     }
 }

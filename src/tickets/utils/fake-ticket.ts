@@ -1,6 +1,6 @@
 import { Ticket } from '../entities/ticket.entity';
 import { faker } from '@faker-js/faker';
-import { TicketStatus, Prisma } from '@prisma/client';
+import { TicketStatus } from '@prisma/client';
 
 export function generateFakeTicketId(): number {
     return faker.number.int({ min: 1, max: 1000 });
@@ -12,9 +12,7 @@ export function generateFakeTicket(): Ticket {
         eventId: faker.number.int({ min: 1, max: 100 }),
         title: faker.lorem.words(3),
         number: `TICKET-${faker.string.uuid().slice(0, 8)}`,
-        price: new Prisma.Decimal(
-            faker.finance.amount({ min: 5, max: 100, dec: 2 })
-        ),
+        price: faker.number.float({ min: 1, max: 100 }),
         status: faker.helpers.arrayElement(Object.values(TicketStatus)),
         createdAt: new Date(),
         updatedAt: new Date(),
