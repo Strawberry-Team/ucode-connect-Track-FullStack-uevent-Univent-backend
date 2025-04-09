@@ -32,20 +32,6 @@ export class EventsController extends BaseCrudController<Event, CreateEventDto, 
         description: 'List of events',
         type: [Event],
     })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Events not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Events not found',
-                },
-            },
-        },
-    })
     async findAll(): Promise<Event[]> {
         return this.eventsService.findAllEvents();
     }

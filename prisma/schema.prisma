@@ -68,7 +68,7 @@ model Company {
 
   // Relations
   owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
-  // events        Event[]
+  events        Event[]
   // subscriptions Subscription[]
   // news          News[]
 
@@ -77,17 +77,17 @@ model Company {
 }
 
 // // Event Formats model
-// model EventFormat {
-//   id        Int      @id @default(autoincrement())
-//   title     String   @unique @db.VarChar(100)
-//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   events Event[]
-//
-//   @@map("event_formats")
-// }
+model EventFormat {
+  id        Int      @id @default(autoincrement())
+  title     String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  events Event[]
+
+  @@map("event_formats")
+}
 //
 // // Event Themes model
 // model EventTheme {
@@ -123,8 +123,8 @@ model Event {
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  // company        Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
-  // format         EventFormat          @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
+  company              Company            @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
+  format               EventFormat        @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   // attendees      EventAttendee[]
   // tickets        Ticket[]
   // promoCodes     PromoCode[]
@@ -132,8 +132,8 @@ model Event {
   // subscriptions  Subscription[]
   // news           News[]
 
-  // @@index([companyId], map: "events_company_id_fk")
-  // @@index([formatId], map: "events_format_id_fk")
+  @@index([companyId], map: "events_company_id_fk")
+  @@index([formatId], map: "events_format_id_fk")
   @@map("events")
 }
 

@@ -63,16 +63,21 @@ The documentation of all available endpoints can be found [http://localhost:8080
 
 
 ## 🪲 Unit Testing
-Start the server with the command:
-```bash
-npm run start
-```
-Once the dependencies are installed and the backend is running, you can run the tests. To do this, use the command:
 Running all tests:
+
 ```bash
 npm run test
 ```
+
 Run all tests with detailed report:
+
 ```bash
 npm run test:watch
+```
+
+## 🌱 Seeding Data
+Seeds help you fill your database with initial data for a presentation or project launch. To start creating test data, run the command.
+
+```bash
+npm run migrate:seed
 ```
