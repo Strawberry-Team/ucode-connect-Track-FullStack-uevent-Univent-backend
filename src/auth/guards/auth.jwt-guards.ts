@@ -6,7 +6,6 @@ import {
     BadRequestException,
     CanActivate,
     ExecutionContext,
-    ForbiddenException,
     Injectable,
     UnauthorizedException,
 } from '@nestjs/common';
@@ -21,11 +20,13 @@ export class JwtAuthGuard
     extends AuthGuard('jwt-access')
     implements CanActivate
 {
-    constructor(private reflector: Reflector) {
+    constructor(private reflector: Reflector,
+                private readonly usersService: UsersService,
+                ) {
         super();
     }
 
-    canActivate(context: ExecutionContext): boolean {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const isPublic = this.reflector.getAllAndOverride<boolean>(
             IS_PUBLIC_KEY,
             [context.getHandler(), context.getClass()],
@@ -33,7 +34,24 @@ export class JwtAuthGuard
         if (isPublic) {
             return true;
         }
-        return super.canActivate(context) as boolean;
+
+        const result = await super.canActivate(context);
+        if (!result) return false;
+
+        // After successful JWT validation, check if user exists in database
+        const request = context.switchToHttp().getRequest();
+        const { user } = request;
+
+        if (!user || !user.userId) {
+            throw new UnauthorizedException('Invalid token payload');
+        }
+
+        const userExists = await this.usersService.getUserByIdWithoutPassword(user.userId);
+        if (!userExists) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        return true;
     }
 }
 

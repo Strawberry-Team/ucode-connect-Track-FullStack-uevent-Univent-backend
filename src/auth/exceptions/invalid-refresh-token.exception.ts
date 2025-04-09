@@ -5,7 +5,7 @@ export class InvalidRefreshTokenException extends BadRequestException {
     constructor(message = 'Invalid refresh token') {
         super({
             error: 'invalid_grant',
-            error_description: message
+            message: message
         });
     }
 }
