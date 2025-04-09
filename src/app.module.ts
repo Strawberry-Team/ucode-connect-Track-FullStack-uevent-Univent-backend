@@ -13,6 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './db/database.module';
 import { CompaniesModule } from './companies/companies.module';
 import { EventsModule } from './events/events.module';
+import { FormatsModule } from './formats/formats.module';
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { EventsModule } from './events/events.module';
         SchedulerTasksModule,
         CompaniesModule,
         EventsModule,
+        FormatsModule,
     ],
     controllers: [],
     providers: [],

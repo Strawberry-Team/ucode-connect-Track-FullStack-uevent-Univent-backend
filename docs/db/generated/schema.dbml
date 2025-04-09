@@ -34,6 +34,15 @@ Table companies {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [default: `now()`, not null]
   owner users [not null]
+  events events [not null]
+}
+
+Table event_formats {
+  id Int [pk, increment]
+  title String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  events events [not null]
 }
 
 Table events {
@@ -53,6 +62,8 @@ Table events {
   status EventStatus [not null, default: 'DRAFT']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [default: `now()`, not null]
+  company companies [not null]
+  format event_formats [not null]
 }
 
 Enum AttendeeVisibility {
@@ -73,3 +84,7 @@ Enum EventStatus {
 Ref: refresh_token_nonces.userId > users.id [delete: Cascade]
 
 Ref: companies.ownerId - users.id [delete: Restrict]
+
+Ref: events.companyId > companies.id [delete: Restrict]
+
+Ref: events.formatId > event_formats.id [delete: Restrict]
