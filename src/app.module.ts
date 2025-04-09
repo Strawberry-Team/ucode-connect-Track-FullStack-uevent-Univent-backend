@@ -12,6 +12,7 @@ import { SchedulerTasksModule } from './scheduler-tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './db/database.module';
 import { CompaniesModule } from './companies/companies.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { CompaniesModule } from './companies/companies.module';
         RefreshTokenNonceModule,
         SchedulerTasksModule,
         CompaniesModule,
+        EventsModule,
     ],
     controllers: [],
     providers: [],

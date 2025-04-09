@@ -68,9 +68,11 @@ async function bootstrap() {
             transform: true, // automatically convert incoming primitive values into instances of classes specified in the DTO
             transformOptions: {
                 enableImplicitConversion: true, // Enable implicit type conversion
+                exposeDefaultValues: true, // Expose default values in the transformed object
             },
             whitelist: true, // Filters out properties that do not have decorators
             forbidNonWhitelisted: false, // Does not generate an error if there are extra fields
+            validateCustomDecorators: true, // Validate custom decorators
         }),
     );
 
