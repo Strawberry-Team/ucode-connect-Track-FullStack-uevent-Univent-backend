@@ -35,15 +35,19 @@ Before starting, ensure the required technologies are installed.
    ```bash
    npm run setupdb
    ```
-5. Run command to apply necessary migrations:
-   ```bash
+5. Run command to apply necessary migrations.
+   ```shell
    npm run migrate
    ```
-6. Start the server:
+6. Run command to create prisma client:
+   ```shell
+   npm run migrate:generate
+   ```
+7. Start the server:
     ```bash
     npm run start:dev
    ```
-7. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
+8. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
 
 
 ## 📫 Mailing Service

@@ -6,3 +6,11 @@ export function validateEnv(name: string): string {
     }
     return value;
 }
+
+export function getEnvSafe(name: string): string | null {
+    try {
+        return process.env[name] || null;
+    } catch (error) {
+        return null;
+    }
+}

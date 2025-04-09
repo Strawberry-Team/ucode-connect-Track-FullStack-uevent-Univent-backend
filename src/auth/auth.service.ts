@@ -18,6 +18,7 @@ import { convertToSeconds } from '../common/utils/time.utils';
 import { EmailService } from 'src/email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { NonceUtils } from 'src/common/utils/nonce.utils';
+import { User } from '../users/entity/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -39,17 +40,19 @@ export class AuthService {
 
     async register(createUserDto: CreateUserDto) {
         const user = await this.usersService.createUser(createUserDto);
+        this.sendConfirmationEmail(user);
+        return { user: user };
+    }
 
+    async sendConfirmationEmail(user: User) {
         const result = this.jwtUtils.generateToken(
             { sub: user.id },
             'confirmEmail',
         );
-        const link = this.frontUrl + 'api/auth/confirm-email/' + result;
+        const link = this.frontUrl + 'auth/confirm-email/' + result;
         this.emailService.sendConfirmationEmail(user.email, link,
             `${user.firstName}${!user.lastName ? '' : user.lastName}`
         );
-
-        return user;
     }
 
     async login(loginDto: LoginDto) {
@@ -61,7 +64,7 @@ export class AuthService {
         );
 
         if (!passwordValid) {
-            throw new UnauthorizedException('Invalid email or password');
+            throw new UnauthorizedException('Invalid password');
         }
 
         if (!user.isEmailVerified) {
@@ -165,8 +168,8 @@ export class AuthService {
             resetPasswordDto.email,
         );
 
-        if (!user) {
-            throw new NotFoundException('User with this email not found');
+        if (!user || !user.isEmailVerified) {
+            throw new NotFoundException('User with this email not found or you need verify your email');
         }
 
         const passwordResetToken = this.jwtUtils.generateToken(
@@ -175,7 +178,7 @@ export class AuthService {
         );
 
         const link =
-            this.frontUrl + 'api/auth/reset-password/' + passwordResetToken;
+            this.frontUrl + 'auth/reset-password/' + passwordResetToken;
 
         this.emailService.sendResetPasswordEmail(user.email, link,
             `${user.firstName}${!user.lastName ? '' : user.lastName}`

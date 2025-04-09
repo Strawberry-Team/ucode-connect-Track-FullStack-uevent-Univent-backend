@@ -3,13 +3,15 @@ import { AuthGuard } from '@nestjs/passport';
 import { createJwtGuard } from '../../jwt/jwt-guard.factory';
 import { RefreshTokenNonceService } from '../../refresh-token-nonces/refresh-token-nonce.service';
 import {
+    BadRequestException,
     CanActivate,
     ExecutionContext,
-    ForbiddenException,
     Injectable,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
+import { UsersService } from '../../users/users.service';
 
 export const JwtConfirmEmailGuard = createJwtGuard('jwt-confirm-email');
 export const JwtResetPasswordGuard = createJwtGuard('jwt-password-reset');
@@ -19,11 +21,13 @@ export class JwtAuthGuard
     extends AuthGuard('jwt-access')
     implements CanActivate
 {
-    constructor(private reflector: Reflector) {
+    constructor(private reflector: Reflector,
+                private readonly usersService: UsersService,
+                ) {
         super();
     }
 
-    canActivate(context: ExecutionContext): boolean {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const isPublic = this.reflector.getAllAndOverride<boolean>(
             IS_PUBLIC_KEY,
             [context.getHandler(), context.getClass()],
@@ -31,7 +35,24 @@ export class JwtAuthGuard
         if (isPublic) {
             return true;
         }
-        return super.canActivate(context) as boolean;
+
+        const result = await super.canActivate(context);
+        if (!result) return false;
+
+        // After successful JWT validation, check if user exists in database
+        const request = context.switchToHttp().getRequest();
+        const { user } = request;
+
+        if (!user || !user.userId) {
+            throw new UnauthorizedException('Invalid token payload');
+        }
+
+        const userExists = await this.usersService.getUserByIdWithoutPassword(user.userId);
+        if (!userExists) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        return true;
     }
 }
 
@@ -47,27 +68,38 @@ export class JwtRefreshGuard
     }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const canActivate = await super.canActivate(context);
-        if (!canActivate) return false;
+        try {
+            const canActivate = await super.canActivate(context);
+            if (!canActivate) return false;
 
-        const request = context.switchToHttp().getRequest();
+            const request = context.switchToHttp().getRequest();
 
-        const { user } = request;
-        if (!user || !user.nonce) {
-            throw new ForbiddenException(
-                'Refresh token does not contain nonce',
-            );
+            const { user } = request;
+            if (!user || !user.nonce) {
+                throw new BadRequestException(
+                    'Refresh token does not contain nonce',
+                );
+            }
+
+            const nonceRecord =
+                await this.refreshTokenNonceService.getRefreshTokenNonceByNonceAndUserId(
+                    user.userId,
+                    user.nonce,
+                );
+            if (!nonceRecord) {
+                throw new BadRequestException(
+                    'Invalid or expired refresh token',
+                );
+            }
+
+            return true;
+        } catch (error) {
+            if (error instanceof UnauthorizedException) {
+                throw new BadRequestException(
+                    'Invalid or expired refresh token',
+                );
+            }
+            throw error;
         }
-
-        const nonceRecord =
-            await this.refreshTokenNonceService.getRefreshTokenNonceByNonceAndUserId(
-                user.userId,
-                user.nonce,
-            );
-        if (!nonceRecord) {
-            throw new ForbiddenException('Invalid or expired refresh token');
-        }
-
-        return true;
     }
 }
