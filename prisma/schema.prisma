@@ -102,40 +102,41 @@ model Company {
 //   @@map("event_themes")
 // }
 //
-// // Events model
-// model Event {
-//   id                   Int                @id @default(autoincrement())
-//   companyId            Int                @map("company_id")
-//   title                String             @db.VarChar(100)
-//   description          String             @db.Text
-//   venue                String             @db.VarChar(255)
-//   locationCoordinates  String             @map("location_coordinates") // Using String for POINT type
-//   startedAt            DateTime           @map("started_at")
-//   endedAt              DateTime           @map("ended_at")
-//   posterName           String             @default("default-poster.png") @map("poster_name") @db.VarChar(255)
-//   formatId             Int                @map("format_id")
-//   attendeeVisibility   AttendeeVisibility @default(EVERYONE) @map("attendee_visibility")
-//   publishedAt          DateTime           @map("published_at")
-//   ticketsAvailableFrom DateTime           @map("tickets_available_from")
-//   status               EventStatus?
-//   createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   company        Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
-//   format         EventFormat          @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
-//   attendees      EventAttendee[]
-//   tickets        Ticket[]
-//   promoCodes     PromoCode[]
-//   themesRelation EventThemeRelation[]
-//   subscriptions  Subscription[]
-//   news           News[]
-//
-//   @@index([companyId], map: "events_company_id_fk")
-//   @@index([formatId], map: "events_format_id_fk")
-//   @@map("events")
-// }
-//
+
+// Events model
+model Event {
+  id                   Int                @id @default(autoincrement())
+  companyId            Int                @map("company_id")
+  formatId             Int                @map("format_id")
+  title                String             @db.VarChar(100)
+  description          String             @db.Text
+  venue                String             @db.VarChar(255)
+  locationCoordinates  String             @map("location_coordinates") // Using String for POINT type
+  startedAt            DateTime           @map("started_at")
+  endedAt              DateTime           @map("ended_at")
+  publishedAt          DateTime?          @map("published_at")
+  ticketsAvailableFrom DateTime?          @map("tickets_available_from")
+  posterName           String             @default("default-poster.png") @map("poster_name") @db.VarChar(255)
+  attendeeVisibility   AttendeeVisibility @default(EVERYONE) @map("attendee_visibility")
+  status               EventStatus        @default(DRAFT)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  // company        Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
+  // format         EventFormat          @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
+  // attendees      EventAttendee[]
+  // tickets        Ticket[]
+  // promoCodes     PromoCode[]
+  // themesRelation EventThemeRelation[]
+  // subscriptions  Subscription[]
+  // news           News[]
+
+  // @@index([companyId], map: "events_company_id_fk")
+  // @@index([formatId], map: "events_format_id_fk")
+  @@map("events")
+}
+
 // // Event Attendees model
 // model EventAttendee {
 //   id        Int      @id @default(autoincrement())
@@ -316,20 +317,20 @@ model Company {
 // }
 //
 // // Enums
-// enum AttendeeVisibility {
-//   EVERYONE       @map("everyone")
-//   ATTENDEES_ONLY @map("attendees_only")
-//   NOBODY         @map("nobody")
-// }
-//
-// enum EventStatus {
-//   DRAFT         @map("draft")
-//   PUBLISHED     @map("published")
-//   SALES_STARTED @map("sales_started")
-//   ONGOING       @map("ongoing")
-//   FINISHED      @map("finished")
-//   CANCELLED     @map("cancelled")
-// }
+enum AttendeeVisibility {
+  EVERYONE       @map("everyone")
+  ATTENDEES_ONLY @map("attendees_only")
+  NOBODY         @map("nobody")
+}
+
+enum EventStatus {
+  DRAFT         @map("draft")
+  PUBLISHED     @map("published")
+  SALES_STARTED @map("sales_started")
+  ONGOING       @map("ongoing")
+  FINISHED      @map("finished")
+  CANCELLED     @map("cancelled")
+}
 //
 // enum TicketStatus {
 //   SOLD      @map("sold")
