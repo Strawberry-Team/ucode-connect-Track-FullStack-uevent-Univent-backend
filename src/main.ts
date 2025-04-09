@@ -36,7 +36,8 @@ async function bootstrap() {
 
     app.useStaticAssets('public');
 
-    app.enableCors({ //TODO: read more about cors. about Postman.
+    app.enableCors({
+        //TODO: read more about cors. about Postman.
         origin: frontendOrigin,
         methods: corsConfig.methods,
         allowedHeaders: corsConfig.allowedHeaders,

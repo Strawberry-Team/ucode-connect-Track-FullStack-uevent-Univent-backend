@@ -16,7 +16,7 @@ export class RefreshTokenNonceRepository {
                 thresholdDate.getSeconds() - Number(seconds),
             );
             where.createdAt = {
-                lt: thresholdDate
+                lt: thresholdDate,
             };
         }
 
@@ -30,7 +30,7 @@ export class RefreshTokenNonceRepository {
         data: Partial<RefreshTokenNonce>,
     ): Promise<RefreshTokenNonce> {
         return this.db.refreshTokenNonce.create({
-            data: data as any
+            data: data as any,
         });
     }
 
@@ -41,21 +41,21 @@ export class RefreshTokenNonceRepository {
         return this.db.refreshTokenNonce.findFirst({
             where: {
                 nonce,
-                userId
+                userId,
             },
-            include: { user: true }
+            include: { user: true },
         });
     }
 
     async deleteRefreshTokenNoncesByUserId(userId: number): Promise<void> {
         await this.db.refreshTokenNonce.deleteMany({
-            where: { userId }
+            where: { userId },
         });
     }
 
     async deleteRefreshTokenNonceById(nonceId: number): Promise<void> {
         await this.db.refreshTokenNonce.delete({
-            where: { id: nonceId }
+            where: { id: nonceId },
         });
     }
 }

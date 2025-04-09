@@ -271,16 +271,19 @@ export class BaseRepository<T> {
         });
 
         // Get paginated items
-        const items = await (this.db[model] as any).findMany({
+        const items = (await (this.db[model] as any).findMany({
             ...query,
             skip,
             take: limit,
-        }) as T[];
+        })) as T[];
 
         return { items, total };
     }
 
-    async paginateCursor<C extends BaseCursor, Model extends keyof DatabaseService>(
+    async paginateCursor<
+        C extends BaseCursor,
+        Model extends keyof DatabaseService,
+    >(
         model: Model,
         query: any,
         after: C | null,
@@ -290,7 +293,10 @@ export class BaseRepository<T> {
         const { debug = false } = cursorConfig;
 
         if (debug) {
-            console.log('BEFORE CURSOR - Query:', JSON.stringify(query, null, 2));
+            console.log(
+                'BEFORE CURSOR - Query:',
+                JSON.stringify(query, null, 2),
+            );
         }
 
         // Get total count without cursor
@@ -306,19 +312,27 @@ export class BaseRepository<T> {
 
         // Apply cursor conditions if after is provided
         if (after) {
-            const cursorConditions = this.buildPrismaCursorConditions(after, cursorConfig);
+            const cursorConditions = this.buildPrismaCursorConditions(
+                after,
+                cursorConfig,
+            );
 
             // Merge cursor conditions with existing query
             query = this.mergeQueries(query, cursorConditions);
 
             if (debug) {
-                console.log('AFTER CURSOR - Query:', JSON.stringify(query, null, 2));
+                console.log(
+                    'AFTER CURSOR - Query:',
+                    JSON.stringify(query, null, 2),
+                );
 
                 // Check if records with this cursor will be found
                 const checkCount = await (this.db[model] as any).count({
                     where: query.where,
                 });
-                console.log(`Records that match cursor conditions: ${checkCount}`);
+                console.log(
+                    `Records that match cursor conditions: ${checkCount}`,
+                );
             }
 
             // Get the number of remaining records after applying the cursor
@@ -328,16 +342,19 @@ export class BaseRepository<T> {
         }
 
         // Get items with pagination
-        const items = await (this.db[model] as any).findMany({
+        const items = (await (this.db[model] as any).findMany({
             ...query,
             take: limit + 1,
-        }) as T[];
+        })) as T[];
 
         if (debug) {
             console.log(`Actually found ${items.length} items`);
             if (items.length > 0) {
                 console.log('First item:', JSON.stringify(items[0], null, 2));
-                console.log('Last item:', JSON.stringify(items[items.length - 1], null, 2));
+                console.log(
+                    'Last item:',
+                    JSON.stringify(items[items.length - 1], null, 2),
+                );
             }
         }
 
@@ -380,7 +397,8 @@ export class BaseRepository<T> {
         // Build cursor conditions for Prisma
         for (let i = 0; i < fields.length; i++) {
             const currentField = fields[i];
-            const currentDirection = config.sortDirections?.[currentField] || 'ASC';
+            const currentDirection =
+                config.sortDirections?.[currentField] || 'ASC';
             const currentOperator = currentDirection === 'DESC' ? 'lt' : 'gt';
 
             const levelCondition: any = {};
@@ -421,18 +439,12 @@ export class BaseRepository<T> {
             if (result.where.OR) {
                 // If both have OR conditions, we need to AND them
                 result.where = {
-                    AND: [
-                        { OR: result.where.OR },
-                        { OR: cursorQuery.OR }
-                    ]
+                    AND: [{ OR: result.where.OR }, { OR: cursorQuery.OR }],
                 };
             } else {
                 // If only cursor has OR, we need to AND it with existing where
                 result.where = {
-                    AND: [
-                        result.where,
-                        { OR: cursorQuery.OR }
-                    ]
+                    AND: [result.where, { OR: cursorQuery.OR }],
                 };
             }
         }
@@ -494,4 +506,3 @@ export class BaseRepository<T> {
         return nextCursor;
     }
 }
-
