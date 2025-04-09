@@ -22,12 +22,6 @@ export class User implements PrismaUser {
     id: number;
 
     @Expose({ groups: ['confidential'] })
-    @ApiProperty({
-        description: 'Password',
-        nullable: false,
-        type: 'string',
-        example: '$2b$10$CBNslw0CIFUyTa.Z5E0mi.413uM0XyHvQy33f8scK/4Zq5TBmecA6',
-    })
     password: string;
 
     @Expose({ groups: ['basic'] })
@@ -67,12 +61,6 @@ export class User implements PrismaUser {
     profilePictureName: string;
 
     @Expose({ groups: ['confidential'] })
-    @ApiProperty({
-        description: 'User email verification status',
-        nullable: false,
-        type: 'boolean',
-        example: true,
-    })
     isEmailVerified: boolean;
 
     @Expose({ groups: ['basic'] })
@@ -85,33 +73,8 @@ export class User implements PrismaUser {
     createdAt: Date;
 
     @Expose({ groups: ['basic'] })
-    @ApiProperty({
-        description: 'Update date',
-        nullable: false,
-        type: 'string',
-        example: '2025-04-08T05:54:45.000Z',
-    })
     updatedAt: Date;
 
     @Expose({ groups: ['confidential'] })
-    @ApiProperty({
-        description: 'Refresh token nonces',
-        nullable: true,
-        type: 'array',
-        example: [
-            {
-                id: 1,
-                nonce: 'abc123xyz789',
-                userId: 1,
-                createdAt: '2025-04-08T05:54:45.000Z',
-            },
-            {
-                id: 2,
-                nonce: 'def456uvw012',
-                userId: 1,
-                createdAt: '2025-04-08T05:54:45.000Z',
-            },
-        ],
-    })
     refreshTokenNonces?: PrismaRefreshTokenNonce[];
 }

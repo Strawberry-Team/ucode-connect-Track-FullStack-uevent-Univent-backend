@@ -114,8 +114,13 @@ export class UsersController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
                 },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401
+                }
             },
         },
     })
@@ -128,8 +133,18 @@ export class UsersController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'User not found',
+                    example: 'User with this email not found',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404
+                }
             },
         },
     })
@@ -164,8 +179,13 @@ export class UsersController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
                 },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                }
             },
         },
     })
@@ -180,6 +200,16 @@ export class UsersController extends BaseCrudController<
                     description: 'Error message',
                     example: 'User not found',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404
+                }
             },
         },
     })
@@ -284,7 +314,7 @@ export class UsersController extends BaseCrudController<
         return super.delete(id, userId);
     }
 
-    @Post('upload-avatar')
+    @Post(':id/upload-avatar')
     @UseInterceptors(
         createFileUploadInterceptor({
             destination: './public/uploads/avatars',
@@ -336,7 +366,17 @@ export class UsersController extends BaseCrudController<
         schema: {
             type: 'object',
             properties: {
-                message: { type: 'string', example: 'Invalid file format or missing file' },
+                message: { type: 'string', example: 'Only allowed file types are accepted!' },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
+                }
             },
         },
     })
@@ -349,22 +389,37 @@ export class UsersController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
                 },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                }
             },
         },
     })
     @ApiResponse({
-        status: HttpStatus.CONFLICT,
-        description: 'File data conflict',
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Filename already in use',
+                    example: 'You can only access your own account',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
             },
         },
     })

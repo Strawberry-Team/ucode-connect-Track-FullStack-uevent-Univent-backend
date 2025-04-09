@@ -1,4 +1,3 @@
-// src/auth/auth.controller.ts
 import {
     Body,
     Controller,
@@ -33,15 +32,41 @@ import {
     ApiTags,
     ApiBody,
     ApiSecurity,
+    getSchemaPath,
+    ApiBearerAuth,
 } from '@nestjs/swagger';
 import { User } from '../users/entity/user.entity';
+import { registerSchema } from 'class-validator';
+import { classToPlain, plainToInstance } from 'class-transformer';
 
 @Controller('auth')
 @UsePipes(new ValidationPipe({ whitelist: true }))
 @ApiTags('Auth')
 @ApiSecurity('JWT')
+@ApiBearerAuth()
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
+
+    @Get('csrf-token')
+    @ApiOperation({ summary: 'Get CSRF token' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successful CSRF token generation',
+        schema: {
+            type: 'object',
+            properties: {
+                csrfToken: {
+                    type: 'string',
+                    description: 'New CSRF token',
+                    example: 'lYCnPnjT-BUaydlZRpjPycsr_uMBMKtsGQNQ',
+                },
+            },
+        },
+    })
+    getCsrf(@Req() req: ExpressRequest): { csrfToken: string } {
+        const token = req.csrfToken();
+        return { csrfToken: token };
+    }
 
     @Post('register')
     @ApiOperation({ summary: 'User registration' })
@@ -52,8 +77,11 @@ export class AuthController {
     })
     @ApiResponse({
         status: HttpStatus.CREATED,
-        type: User,
         description: 'Successful user registration',
+        schema: {
+            type: 'object',
+            $ref: getSchemaPath(User),
+        },
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
@@ -96,11 +124,11 @@ export class AuthController {
         name: 'confirm_token',
         description: 'Email confirmation token',
         example:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImlzcyI6Ii9hcGkvYXV0aCIsImF1ZCI6Ii9hcGkiLCJpYXQiOjE3NDQxOTE3MDYsImV4cCI6MTc0NDI3ODEwNn0.N6VNvvW7SNw63imiPKlVILhkx9YVdwZ3pss_yKR_TLo',
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Successful email confirmation',
+        description: 'Successful user email confirmation',
         schema: {
             type: 'object',
             properties: {
@@ -108,20 +136,6 @@ export class AuthController {
                     type: 'string',
                     description: 'Success message',
                     example: 'Email confirmed successfully',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid refresh token',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid or expired refresh token',
                 },
             },
         },
@@ -135,7 +149,12 @@ export class AuthController {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
                 },
             },
         },
@@ -154,7 +173,7 @@ export class AuthController {
             },
         },
     })
-    async verifyEmailWithConfirmToken(@UserId() userId: number) {
+    async confirmEmail(@UserId() userId: number) {
         return this.authService.confirmEmail(userId);
     }
 
@@ -168,7 +187,24 @@ export class AuthController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successful login',
-        type: User,
+        schema: {
+            type: 'object',
+            properties: {
+                user: { type: 'object', $ref: getSchemaPath(User) },
+                accessToken: {
+                    type: 'string',
+                    description: 'Access token',
+                    example:
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJpc3MiOiIvYXBpL2F1dGgiLCJhdWQiOiIvYXBpIiwiaWF0IjoxNzQ0MTQ1NzQ0LCJleHAiOjE3NDQxNDY2NDR9.re-eZ9_6rsvPJQuE33o1cJK3UwL1ZCxmpLwn9T4-OJE',
+                },
+                refreshToken: {
+                    type: 'string',
+                    description: 'Refresh token',
+                    example:
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJub25jZSI6IjU4ZTNmNTFhMGI3MmI0ZTFiMWJhZTJlZDQ2MzFmOTU2IiwiaXNzIjoiL2FwaS9hdXRoIiwiYXVkIjoiL2FwaSIsImlhdCI6MTc0NDE0NTc0NCwiZXhwIjoxNzQ0NzUwNTQ0fQ.SPix1i2LRKESDXt3dKBysArWY0xZIxnJJ4tj8_G9ZyA',
+                },
+            },
+        },
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
@@ -177,9 +213,22 @@ export class AuthController {
             type: 'object',
             properties: {
                 message: {
-                    type: 'string',
+                    type: 'array',
                     description: 'Error message',
-                    example: 'Invalid email or password ',
+                    example: [
+                        'email must be an email',
+                        'password is not strong enough',
+                    ],
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
                 },
             },
         },
@@ -195,19 +244,39 @@ export class AuthController {
                     description: 'Error message',
                     example: 'Invalid email or password',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
             },
         },
     })
     @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
-        description: 'Access denied',
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'User email is unverified',
+                    example: 'User with this email not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
                 },
             },
         },
@@ -216,91 +285,42 @@ export class AuthController {
         return this.authService.login(loginDto);
     }
 
-    @Get('csrf-token')
-    @ApiOperation({ summary: 'Get CSRF token' })
+    @Post('/access-token/refresh')
+    @UseGuards(JwtRefreshGuard)
+    @ApiOperation({ summary: 'Refresh access token' })
+    @ApiBody({
+        required: true,
+        description: 'User refresh token',
+        schema: {
+            type: 'object',
+            properties: {
+                refreshToken: {
+                    type: 'string',
+                    description: 'Refresh token',
+                    example:
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsIm5vbmNlIjoiYjBhMzYwYzRlZTZjMTZkMDg3ZTk0NzgzN2Q1MTRlY2YiLCJpc3MiOiIvYXBpL2F1dGgiLCJhdWQiOiIvYXBpIiwiaWF0IjoxNzQ0MTk0Nzk5LCJleHAiOjE3NDQ3OTk1OTl9.nQsdRxjNdPALu16Csut_Z5a_C4-P5SRKic83lhpO3kU',
+                },
+            },
+        },
+    })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'CSRF token generated successfully',
+        description: 'Access token refreshed successfully',
         schema: {
             type: 'object',
             properties: {
-                csrfToken: {
+                accessToken: {
                     type: 'string',
-                    description: 'New CSRF token',
+                    description: 'Access token',
                     example:
-                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid or expired refresh token',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'CSRF token not generated',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'CSRF token not generated',
-                },
-            },
-        },
-    })
-    getCsrf(@Req() req: ExpressRequest): { csrfToken: string } {
-        const token = req.csrfToken();
-        return { csrfToken: token };
-    }
-
-    @Post('logout')
-    @HttpCode(HttpStatus.NO_CONTENT)
-    @UseGuards(JwtRefreshGuard)
-    @ApiOperation({ summary: 'User logout' })
-    @ApiResponse({
-        status: HttpStatus.NO_CONTENT,
-        description: 'Successful logout',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Success message',
-                    example: 'Logged out successfully',
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlzcyI6Ii9hcGkvYXV0aCIsImF1ZCI6Ii9hcGkiLCJpYXQiOjE3NDQyMDAzMDAsImV4cCI6MTc0NDIwMTIwMH0.BhBcUxsL39o-gX2e4QmsbjpRHuu8-knNlq6gm96IhcA',
                 },
             },
         },
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: 'Validation error',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid user data',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
+        description: 'Invalid token',
         schema: {
             type: 'object',
             properties: {
@@ -309,19 +329,118 @@ export class AuthController {
                     description: 'Error message',
                     example: 'Invalid or expired refresh token',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Status Code',
+                    example: 400,
+                },
             },
         },
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Refresh token not found',
+        description: 'Nonce not found',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'User refresh token not found',
+                    example: 'Nonce for user not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
+    async refreshAccessToken(
+        @RefreshTokenPayload('nonce') nonce: string,
+        @RefreshTokenPayload('createdAt') createdAt: number,
+        @UserId() userId: number,
+    ) {
+        return this.authService.refreshToken(userId, createdAt, nonce);
+    }
+
+    @Post('logout')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(JwtRefreshGuard)
+    @ApiOperation({ summary: 'User logout' })
+    @ApiBody({
+        required: true,
+        description: 'User refresh token',
+        schema: {
+            type: 'object',
+            properties: {
+                refreshToken: {
+                    type: 'string',
+                    description: 'Refresh token',
+                    example:
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsIm5vbmNlIjoiYjBhMzYwYzRlZTZjMTZkMDg3ZTk0NzgzN2Q1MTRlY2YiLCJpc3MiOiIvYXBpL2F1dGgiLCJhdWQiOiIvYXBpIiwiaWF0IjoxNzQ0MTk0Nzk5LCJleHAiOjE3NDQ3OTk1OTl9.nQsdRxjNdPALu16Csut_Z5a_C4-P5SRKic83lhpO3kU',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NO_CONTENT,
+        description: 'Successful logout',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Token missed',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Refresh token is missing',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'invalid_grant',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Nonce not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Nonce for user not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
                 },
             },
         },
@@ -333,52 +452,6 @@ export class AuthController {
         return this.authService.logout(userId, nonce);
     }
 
-    @Post('/access-token/refresh')
-    @UseGuards(JwtRefreshGuard)
-    @ApiOperation({ summary: 'Refresh access token' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Access token refreshed successfully',
-        schema: {
-            type: 'object',
-            properties: {
-                accessToken: {
-                    type: 'string',
-                    description: 'Access token',
-                    example:
-                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
-                },
-                refreshToken: {
-                    type: 'string',
-                    description: 'Refresh token',
-                    example:
-                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Invalid or expired refresh token',
-                },
-            },
-        },
-    })
-    async refreshToken(
-        @RefreshTokenPayload('nonce') nonce: string,
-        @RefreshTokenPayload('createdAt') createdAt: number,
-        @UserId() userId: number,
-    ) {
-        return this.authService.refreshToken(userId, createdAt, nonce);
-    }
-
     @Post('reset-password')
     @ApiOperation({ summary: 'Send a password recovery email' })
     @ApiBody({
@@ -387,8 +460,8 @@ export class AuthController {
         description: 'Email for password reset',
     })
     @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Password recovery email sent successfully',
+        status: HttpStatus.CREATED,
+        description: 'Successful password recovery email sent',
         schema: {
             type: 'object',
             properties: {
@@ -432,7 +505,8 @@ export class AuthController {
         return this.authService.resetPassword(resetPasswordDto);
     }
 
-    @Post('reset-password/:confirm_token') //TODO: (not now) add guard for 1 time use(redis)
+    //TODO: (not now) add guard for 1 time use(redis)
+    @Post('reset-password/:confirm_token')
     @UseGuards(JwtResetPasswordGuard)
     @ApiOperation({ summary: 'Confirm password recovery by token' })
     @ApiParam({
@@ -440,7 +514,7 @@ export class AuthController {
         name: 'confirm_token',
         description: 'Password reset confirmation token',
         example:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJhbm4ubmljaG9sc0BleGFtcGxlLmNvbSIsImlhdCI6MTc0MTUyODEzMCwiZXhwIjoxNzQ0MTIwMTMwfQ.bUwcOYxTHTvLix6z08xcKwidtW_Jn66dbiuVmwMqv88',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlzcyI6Ii9hcGkvYXV0aCIsImF1ZCI6Ii9hcGkiLCJpYXQiOjE3NDQyMDQwMzksImV4cCI6MTc0NDIwNzYzOX0.1TJP8A-z_hHyqFXew0199rH3XbsD9qjqXefv4kXhHZU',
     })
     @ApiBody({
         required: true,
@@ -463,14 +537,27 @@ export class AuthController {
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid token',
+        description: 'Invalid data',
         schema: {
             type: 'object',
             properties: {
                 message: {
+                    type: 'array',
+                    description: 'Error message',
+                    example: [
+                        'newPassword is not strong enough',
+                        'newPassword must be shorter than or equal to 32 characters',
+                    ],
+                },
+                error: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid new password',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
                 },
             },
         },
@@ -484,26 +571,17 @@ export class AuthController {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
                 },
             },
         },
     })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'User not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'User with this email not found',
-                },
-            },
-        },
-    })
-    async resetPasswordWithConfirmToken(
+    async confirmPasswordReset(
         @Body() newPasswordDto: NewPasswordDto,
         @UserId() userId: number,
     ) {

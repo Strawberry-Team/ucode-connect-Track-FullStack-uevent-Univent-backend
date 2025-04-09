@@ -5,9 +5,15 @@ import { IsId } from '../../common/validators/id.validator';
 import { IsEmail } from '../../common/validators/email.validator';
 import { IsTitle } from '../../common/validators/title.validator';
 import { IsDescription } from '../../common/validators/description.validator';
+import { User } from '../../users/entity/user.entity';
+
+export const SERIALIZATION_GROUPS = {
+    BASIC: ['basic'],
+    SYSTEMIC: ['basic', 'systemic'],
+};
 
 export class Company implements PrismaCompany {
-    @IsId(false)
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
     @ApiProperty({
         description: 'Company identifier',
         nullable: false,
@@ -16,7 +22,7 @@ export class Company implements PrismaCompany {
     })
     id: number;
 
-    @IsId(false)
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
     @ApiProperty({
         description: 'Company owner identifier',
         nullable: false,
@@ -25,7 +31,7 @@ export class Company implements PrismaCompany {
     })
     ownerId: number;
 
-    @IsEmail(false)
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
     @ApiProperty({
         description: 'Company email',
         nullable: false,
@@ -34,7 +40,7 @@ export class Company implements PrismaCompany {
     })
     email: string;
 
-    @IsTitle(false)
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
     @ApiProperty({
         description: 'Company name',
         nullable: false,
@@ -43,15 +49,16 @@ export class Company implements PrismaCompany {
     })
     title: string;
 
-    @IsDescription(true)
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
     @ApiProperty({
         description: 'Company description',
         nullable: false,
         type: 'string',
-        example: `Google LLC is an American multinational corporation and technology company focusing on online advertising, search engine technology, cloud computing, computer software, quantum computing, e-commerce, consumer electronics, and artificial intelligence (AI). It has been referred to as "the most powerful company in the world" by the BBC and is one of the world's most valuable brands due to its market dominance, data collection, and technological advantages in the field of AI. Alongside Amazon, Apple, Meta, and Microsoft, Google's parent company, Alphabet Inc. is one of the five Big Tech companies.`
+        example: `Google LLC is an American multinational corporation and technology company focusing on online advertising, search engine technology, cloud computing, computer software, quantum computing, e-commerce, consumer electronics, and artificial intelligence (AI). It has been referred to as "the most powerful company in the world" by the BBC and is one of the world's most valuable brands due to its market dominance, data collection, and technological advantages in the field of AI. Alongside Amazon, Apple, Meta, and Microsoft, Google's parent company, Alphabet Inc. is one of the five Big Tech companies.`,
     })
     description: string;
 
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
     @ApiProperty({
         description: 'Company logo name',
         nullable: false,
@@ -60,6 +67,7 @@ export class Company implements PrismaCompany {
     })
     logoName: string;
 
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
     @ApiProperty({
         description: 'Company registration date',
         nullable: false,
@@ -68,11 +76,15 @@ export class Company implements PrismaCompany {
     })
     createdAt: Date;
 
-    @ApiProperty({
-        description: 'Company data update date',
-        nullable: false,
-        type: 'string',
-        example: '2025-04-08T08:54:45.000Z',
-    })
+    @Expose({ groups: SERIALIZATION_GROUPS.SYSTEMIC })
     updatedAt: Date;
+
+    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @ApiProperty({
+        description: 'Company owner data',
+        nullable: false,
+        type: User,
+        example: User,
+    })
+    owner?: User;
 }

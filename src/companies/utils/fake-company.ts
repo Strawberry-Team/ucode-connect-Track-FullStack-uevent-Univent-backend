@@ -1,5 +1,6 @@
 import { Company } from '../entities/company.entity';
 import { faker } from '@faker-js/faker';
+import { generateFakeUser } from './fake-user';
 
 export function generateFakeId(): number {
     return faker.number.int({ min: 1, max: 100 });
@@ -36,6 +37,7 @@ export function generateFakeCompany<K extends keyof Company>(
         logoName: 'default-logo.png',
         createdAt: new Date(),
         updatedAt: new Date(),
+        owner: generateFakeUser()
     };
 
     if (allFields) {

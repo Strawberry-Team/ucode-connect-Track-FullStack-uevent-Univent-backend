@@ -25,7 +25,7 @@ export class RefreshTokenNonceService {
             );
         if (!NonceRes) {
             throw new NotFoundException(
-                `Nonce for user id ${userId} not found`,
+                `Nonce for user not found`,
             );
         }
         return NonceRes;

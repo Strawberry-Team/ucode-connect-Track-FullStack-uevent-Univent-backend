@@ -6,16 +6,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
 
 export class CreateCompanyDto {
-    @IsId(false)
-    @ApiProperty({
-        required: true,
-        description: 'Company identifier',
-        nullable: false,
-        type: 'number',
-        example: 1,
-    })
-    ownerId: number;
-
     @IsEmail(false)
     @ApiProperty({
         required: true,

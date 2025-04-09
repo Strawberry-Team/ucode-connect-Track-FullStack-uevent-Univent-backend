@@ -22,8 +22,6 @@ import { UserId } from '../users/decorators/user.decorator';
 import { createFileUploadInterceptor } from '../common/interceptor/file-upload.interceptor';
 import { AvatarConfig } from '../config/avatar.config';
 import { Express } from 'express';
-import { EmailService } from '../email/email.service';
-import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { CompanyOwnerGuard } from './guards/company-owner.guard';
 import {
@@ -45,36 +43,30 @@ export class CompaniesController extends BaseCrudController<
     CreateCompanyDto,
     UpdateCompanyDto
 > {
-    private frontUrl: string;
-
-    constructor(
-        private readonly companyService: CompaniesService,
-        private readonly userService: UsersService,
-        private readonly emailService: EmailService,
-        private readonly configService: ConfigService,
-    ) {
+    constructor(private readonly companyService: CompaniesService) {
         super();
-        this.frontUrl = String(
-            this.configService.get<string>('app.frontendLink'),
-        );
     }
 
-    protected async findById(id: number): Promise<Company> {
+    protected async findById(id: number, userId: number): Promise<Company> {
         return await this.companyService.findCompanyById(id);
     }
 
-    protected async createEntity(dto: CreateCompanyDto): Promise<Company> {
-        return await this.companyService.createCompany(dto);
+    protected async createEntity(
+        dto: CreateCompanyDto,
+        userId: number,
+    ): Promise<Company> {
+        return await this.companyService.createCompany(dto, userId);
     }
 
     protected async updateEntity(
         id: number,
         dto: UpdateCompanyDto,
+        userId: number,
     ): Promise<Company> {
         return await this.companyService.updateCompany(id, dto);
     }
 
-    protected async deleteEntity(id: number): Promise<void> {
+    protected async deleteEntity(id: number, userId: number): Promise<void> {
         await this.companyService.removeCompany(id);
     }
 
@@ -97,9 +89,23 @@ export class CompaniesController extends BaseCrudController<
             type: 'object',
             properties: {
                 message: {
+                    type: 'array',
+                    description: 'Error message',
+                    example: [
+                        'email must be an email',
+                        'title must be shorter than or equal to 100 characters',
+                        'description must be shorter than or equal to 1000 characters',
+                    ],
+                },
+                error: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company email must be not empty',
+                    example: 'Bad Request',
+                },
+                status: {
+                    type: 'number',
+                    description: 'Error message',
+                    example: 400,
                 },
             },
         },
@@ -113,21 +119,12 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
                 },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Company owner not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Company owner not found',
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
                 },
             },
         },
@@ -143,21 +140,21 @@ export class CompaniesController extends BaseCrudController<
                     description: 'Error message',
                     example: 'User already has a company',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Conflict',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 409,
+                },
             },
         },
     })
     async create(@Body() dto: CreateCompanyDto, @UserId() userId: number) {
-        const company = await super.create(dto, userId);
-        const owner = await this.userService.getUserById(company.ownerId);
-
-        this.emailService.sendWelcomeCompanyEmail(
-            owner.email,
-            `${owner.firstName} ${owner.lastName}`,
-            company.title,
-            this.frontUrl,
-        );
-
-        return company;
+        return super.create(dto, userId);
     }
 
     @Get()
@@ -176,7 +173,12 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
                 },
             },
         },
@@ -192,6 +194,16 @@ export class CompaniesController extends BaseCrudController<
                     description: 'Error message',
                     example: 'Companies not found',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                }
             },
         },
     })
@@ -222,7 +234,12 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid or expired refresh token',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
                 },
             },
         },
@@ -238,6 +255,16 @@ export class CompaniesController extends BaseCrudController<
                     description: 'Error message',
                     example: 'Company not found',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                }
             },
         },
     })
@@ -272,9 +299,22 @@ export class CompaniesController extends BaseCrudController<
             type: 'object',
             properties: {
                 message: {
+                    type: 'array',
+                    description: 'Error message',
+                    example: [
+                        'title must be shorter than or equal to 100 characters',
+                        'description must be shorter than or equal to 1000 characters',
+                    ],
+                },
+                error: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company email must be not empty',
+                    example: 'Bad Request',
+                },
+                status: {
+                    type: 'number',
+                    description: 'Error message',
+                    example: 400,
                 },
             },
         },
@@ -288,7 +328,36 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company data can be updated only by its owner',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Only the company owner has access to it',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
                 },
             },
         },
@@ -304,19 +373,15 @@ export class CompaniesController extends BaseCrudController<
                     description: 'Error message',
                     example: 'Company not found',
                 },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.CONFLICT,
-        description: 'Company data conflict',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
+                error: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company email already in use',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
                 },
             },
         },
@@ -390,7 +455,17 @@ export class CompaniesController extends BaseCrudController<
             properties: {
                 message: {
                     type: 'string',
-                    example: 'Invalid file format or missing file',
+                    example: 'Only allowed file types are accepted!',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
                 },
             },
         },
@@ -404,21 +479,36 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company logo can be updated only by its owner',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
                 },
             },
         },
     })
     @ApiResponse({
-        status: HttpStatus.CONFLICT,
-        description: 'File data conflict',
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Filename already in use',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
                 },
             },
         },

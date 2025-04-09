@@ -44,12 +44,12 @@ export class AuthService {
             { sub: user.id },
             'confirmEmail',
         );
-        const link = this.frontUrl + 'auth/confirm-email/' + result;
+        const link = this.frontUrl + 'api/auth/confirm-email/' + result;
         this.emailService.sendConfirmationEmail(user.email, link,
             `${user.firstName}${!user.lastName ? '' : user.lastName}`
         );
 
-        return { user: user };
+        return user;
     }
 
     async login(loginDto: LoginDto) {
@@ -170,7 +170,7 @@ export class AuthService {
         );
 
         const link =
-            this.frontUrl + 'auth/reset-password/' + passwordResetToken;
+            this.frontUrl + 'api/auth/reset-password/' + passwordResetToken;
 
         this.emailService.sendResetPasswordEmail(user.email, link,
             `${user.firstName}${!user.lastName ? '' : user.lastName}`
