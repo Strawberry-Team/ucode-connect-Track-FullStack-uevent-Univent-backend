@@ -18,7 +18,7 @@ import { Ticket } from './entities/ticket.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { BaseCrudController } from '../common/controller/base-crud.controller';
-import { UserId } from '../user/decorators/user.decorator';
+import { UserId } from '../users/decorators/user.decorator';
 
 @Controller('tickets')
 export class TicketsController extends BaseCrudController<

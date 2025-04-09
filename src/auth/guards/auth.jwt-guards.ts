@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
+import { UsersService } from '../../users/users.service';
 
 export const JwtConfirmEmailGuard = createJwtGuard('jwt-confirm-email');
 export const JwtResetPasswordGuard = createJwtGuard('jwt-password-reset');
