@@ -122,7 +122,7 @@ export class CompaniesService {
         });
     }
 
-    public async findCompanyByTitle(
+    /*public async findCompanyByTitle(
         title: string,
         ownerId: number,
     ): Promise<Company> {
@@ -142,7 +142,7 @@ export class CompaniesService {
         return plainToInstance(Company, company, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
-    }
+    }*/
 
     async updateCompany(id: number, dto: UpdateCompanyDto): Promise<Company> {
         const existingCompany = await this.companyRepository.findById(id);
