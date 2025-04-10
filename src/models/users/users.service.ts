@@ -12,6 +12,7 @@ import { SERIALIZATION_GROUPS, User } from './entities/user.entity';
 import { PasswordService } from './passwords.service';
 import { plainToInstance } from 'class-transformer';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @Injectable()
 export class UsersService {
@@ -41,6 +42,16 @@ export class UsersService {
             }),
         );
     }
+
+    async findAllUsers(getUsersDto: GetUsersDto): Promise<User[]> {
+        const users = await this.usersRepository.findAll(getUsersDto);
+        return users.map((user) =>
+            plainToInstance(User, user, {
+                groups: SERIALIZATION_GROUPS.BASIC,
+            }),
+        );
+    }
+
 
     public async findUserById(id: number): Promise<User> {
         const user = await this.usersRepository.findById(id);
@@ -92,7 +103,7 @@ export class UsersService {
     ): Promise<User> {
         const user = await this.findUserById(id);
         if (!user) {
-            throw new NotFoundException('User with this email not found');
+            throw new NotFoundException('User with this id not found');
         }
         const isMatch = await this.passwordService.compare(
             dto.oldPassword,
