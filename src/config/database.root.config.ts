@@ -1,7 +1,7 @@
 // src/config/database.root.config.ts
 import * as dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.development' });
 
 import { validateEnv } from '../common/utils/env.utils';
 

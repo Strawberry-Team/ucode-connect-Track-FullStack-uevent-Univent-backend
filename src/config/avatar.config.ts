@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import { validateEnv } from '../common/utils/env.utils';
 import { Injectable } from '@nestjs/common';
 
-dotenv.config();
+dotenv.config({ path: '.env.development' });
 
 @Injectable()
 export class AvatarConfig {

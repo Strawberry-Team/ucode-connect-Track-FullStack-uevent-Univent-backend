@@ -1,20 +1,20 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './models/users/users.module';
+import { AuthModule } from './models/auth/auth.module';
 import databaseConfig from './config/database.app.config';
 import jwtConfig from './config/jwt.config';
 import appConfig from './config/app.config';
-import { RefreshTokenNonceModule } from './refresh-token-nonces/refresh-token-nonce.module';
+import { RefreshTokenNoncesModule } from './models/refresh-token-nonces/refresh-token-nonces.module';
 import { JwtConfigModule } from './jwt/jwt.module';
-import { SchedulerTasksModule } from './scheduler-tasks/tasks.module';
+import { JobsModule } from './jobs/jobs.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './db/database.module';
-import { TicketsModule } from './tickets/tickets.module';
-import { CompaniesModule } from './companies/companies.module';
-import { EventsModule } from './events/events.module';
-import { FormatsModule } from './formats/formats.module';
+import { TicketsModule } from './models/tickets/tickets.module';
+import { CompaniesModule } from './models/companies/companies.module';
+import { EventsModule } from './models/events/events.module';
+import { FormatsModule } from './models/formats/formats.module';
 
 @Module({
     imports: [
@@ -30,8 +30,8 @@ import { FormatsModule } from './formats/formats.module';
         JwtConfigModule,
         UsersModule,
         AuthModule,
-        RefreshTokenNonceModule,
-        SchedulerTasksModule,
+        RefreshTokenNoncesModule,
+        JobsModule,
         CompaniesModule,
         EventsModule,
         FormatsModule,

@@ -2,7 +2,7 @@
 import * as dotenv from 'dotenv';
 import { validateEnv } from '../common/utils/env.utils';
 
-dotenv.config();
+dotenv.config({ path: '.env.development' });
 
 export default () => ({
     jwt: {

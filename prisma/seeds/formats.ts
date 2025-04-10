@@ -1,3 +1,4 @@
+// prisma/seeds/formats.ts
 export const initialFormats = [
     {
       title: 'Conference',

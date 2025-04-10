@@ -4,7 +4,7 @@ import * as dotenvExpand from 'dotenv-expand';
 
 import { validateEnv } from '../common/utils/env.utils';
 
-const myEnv = dotenv.config();
+const myEnv = dotenv.config({ path: '.env.development' });
 dotenvExpand.expand(myEnv);
 
 export default () => ({

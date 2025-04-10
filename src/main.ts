@@ -31,31 +31,25 @@ async function bootstrap() {
     const nodeEnv = String(configService.get('app.nodeEnv'));
 
     app.useGlobalFilters(new CsrfExceptionFilter());
-
     app.setGlobalPrefix(globalPrefix);
-
     app.useStaticAssets('public');
-
     app.enableCors({
-        //TODO: read more about cors. about Postman.
         origin: frontendOrigin,
         methods: corsConfig.methods,
         allowedHeaders: corsConfig.allowedHeaders,
-        credentials: corsConfig.credentials, // Required to send cookies cross-origin
+        credentials: corsConfig.credentials,
     });
-
     app.use(
         csurf({
             cookie: {
                 key: csrfConfig.cookie.key,
-                httpOnly: csrfConfig.cookie.httpOnly, //Not available via JS
-                secure: nodeEnv === 'production', //cookies are only transmitted via HTTPS
-                sameSite: csrfConfig.cookie.sameSite, //Cookies will only be sent for requests originating from the same domain (site)
+                httpOnly: csrfConfig.cookie.httpOnly,
+                secure: nodeEnv === 'production',
+                sameSite: csrfConfig.cookie.sameSite,
             },
             ignoreMethods: csrfConfig.ignoreMethods,
         }),
     );
-
     app.use((err: any, req: any, res: any, next: any) => {
         if (err && err.code === 'EBADCSRFTOKEN') {
             next(new CsrfError());
@@ -63,17 +57,16 @@ async function bootstrap() {
             next(err);
         }
     });
-
     app.useGlobalPipes(
         new ValidationPipe({
-            transform: true, // automatically convert incoming primitive values into instances of classes specified in the DTO
+            transform: true,
             transformOptions: {
-                enableImplicitConversion: true, // Enable implicit type conversion
-                exposeDefaultValues: true, // Expose default values in the transformed object
+                enableImplicitConversion: true,
+                exposeDefaultValues: true,
             },
-            whitelist: true, // Filters out properties that do not have decorators
-            forbidNonWhitelisted: false, // Does not generate an error if there are extra fields
-            validateCustomDecorators: true, // Validate custom decorators
+            whitelist: true,
+            forbidNonWhitelisted: false,
+            validateCustomDecorators: true,
         }),
     );
 
@@ -101,11 +94,9 @@ async function bootstrap() {
         .addTag('Tickets')
         .addTag('Promo codes')
         .build();
-
     const document = SwaggerModule.createDocument(app, configAPIDoc);
 
-    SwaggerModule.setup('api', app, document,  {
-        /* Keeps token even after reload */
+    SwaggerModule.setup('api', app, document, {
         swaggerOptions: {
             persistAuthorization: true,
         },

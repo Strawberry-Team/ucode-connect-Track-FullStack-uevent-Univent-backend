@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { validateEnv } from '../common/utils/env.utils';
 
-const envPath = path.resolve(process.cwd(), '.env');
+const envPath = path.resolve(process.cwd(), '.env.development');
 const testEnvPath = path.resolve(process.cwd(), '.env.test');
 let testEnvExists = false;
 

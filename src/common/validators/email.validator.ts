@@ -1,3 +1,4 @@
+// src/common/validators/email.validator.ts
 import { applyDecorators } from '@nestjs/common';
 import { IsEmail as ClassValidatorIsEmail, IsOptional } from 'class-validator';
 

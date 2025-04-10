@@ -1,4 +1,4 @@
-// src/database/database.module.ts
+// src/db/database.module.ts
 import { Global, Module } from '@nestjs/common';
 import { DatabaseService } from './database.service';
 

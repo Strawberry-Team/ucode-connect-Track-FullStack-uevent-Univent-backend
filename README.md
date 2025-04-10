@@ -1,11 +1,16 @@
 ## ⚙️ Requirements and Dependencies
+
 Before starting, ensure the required technologies are installed.
+
 - **Node.JS** >= v22
 - **NPM** >= v10
 - **MySQL** >= 8.0
 
-
 ## 🚀 How to Run the Solution
+
+In the examples of all commands in the text `<env>` is the name of the environment to perform the migration, e.g. `dev`,
+`test` or `prod`.
+
 1. Clone this repository and move to the project directory:
    ```bash
    git clone <repository-url>
@@ -14,7 +19,8 @@ Before starting, ensure the required technologies are installed.
    ```bash
    npm install
    ```
-3. Configure the database connection by copying `.env.example` to new file `.env`. After that put your MySQL credentials of root user:
+3. For development purposes use `dev` environment. Configure the database connection by copying the
+   `.env.development.example` to a new file `.env.development`. After that put your MySQL credentials of root user:
     ```
     # Database Root Configuration
     DB_ROOT_HOST=localhost
@@ -22,7 +28,8 @@ Before starting, ensure the required technologies are installed.
     DB_ROOT_USER=root
     DB_ROOT_PASSWORD=root
     ```
-   Also, new DB user `uevent_sql` will be created after executing the next command. Credentials of `uevent_sql` user can be changed:
+   Also, new DB user `uevent_sql` will be created after executing the next command. Credentials of `uevent_sql` user can
+   be changed:
     ```
     # Database App Configuration
     DB_APP_HOST=localhost
@@ -31,28 +38,41 @@ Before starting, ensure the required technologies are installed.
     DB_APP_PASSWORD=securepass
     DB_APP_DATABASE=uevent
     ```
+   For test purposes use `test` environment: create `.env.test` file by copying the `.env.test.example` file.
 4. Run script for create databases and user:
    ```bash
-   npm run setupdb
+   npm run setup:db
    ```
-5. Run command to apply necessary migrations.
-   ```shell
+5. To create new migration run command:
+    ```bash
+    npm run migrate:create --name <migration_name>
+    ```
+6. Run command to apply necessary migrations.
+   ```bash
    npm run migrate
    ```
-6. Run command to create prisma client:
-   ```shell
+7. Run command to create prisma client:
+   ```bash
    npm run migrate:generate
    ```
-7. Start the server:
+8. Seeds help you fill your database with initial data for a presentation or project launch. To start creating test
+   data, run the command.
+    ```bash
+    npm run migrate:seed
+    ```
+9. Start the server:
     ```bash
     npm run start:dev
    ```
-8. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
-
+10. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
 
 ## 📫 Mailing Service
-[Ethereal](https://ethereal.email/) is a fake SMTP service, mostly aimed at Nodemailer and EmailEngine users (but not limited to). It's a completely free anti-transactional email service where messages never get delivered.
-To view the letter that the user will receive, you need to log in to this service using a test login and password. Default credentials you can find in `.env.example` or:
+
+[Ethereal](https://ethereal.email/) is a fake SMTP service, mostly aimed at Nodemailer and EmailEngine users (but not
+limited to). It's a completely free anti-transactional email service where messages never get delivered.
+To view the letter that the user will receive, you need to log in to this service using a test login and password.
+Default credentials you can find in `.env.development.example` file or:
+
 * login:
     ```text
     ricky43@ethereal.email
@@ -63,25 +83,34 @@ To view the letter that the user will receive, you need to log in to this servic
     ```
 
 ## 🔁 REST API documentation
-The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api). The [Swagger](https://swagger.io/) library is used.
 
+The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api).
+The [Swagger](https://swagger.io/) library is used.
 
-## 🪲 Unit Testing
-Running all tests:
+## 🪲 Testing
 
-```bash
-npm run test
-```
+For all commands in the text below, the environment is a `test` that uses the variables of the `.env.test.example` file.
 
-Run all tests with detailed report:
-
-```bash
-npm run test:watch
-```
-
-## 🌱 Seeding Data
-Seeds help you fill your database with initial data for a presentation or project launch. To start creating test data, run the command.
-
-```bash
-npm run migrate:seed
-```
+1. Unit tests
+    * Run all unit tests with a detailed report:
+    ```bash
+    npm run test:unit
+    ```
+    * Run one specific unit test file with a detailed report:
+    ```bash
+    npm run test:unit -- <file_name>
+    ```
+2. End-to-end (e2e) testing
+    * Run all e2e tests with detailed report:
+    ```bash
+    npm run test:e2e
+    ```
+    * Run one specific e2e test file with a detailed report:
+    ```bash
+    npm run test:e2e -- <file_name>
+    ```
+3. All testing
+    * Run all e2e and unit tests with detailed report:
+   ```bash
+   npm run test
+   ```

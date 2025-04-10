@@ -1,9 +1,9 @@
-import { FormatsService } from '../../src/formats/formats.service';
+// prisma/seeds/index.ts
+import { FormatsService } from '../../src/models/formats/formats.service';
 import { initialFormats } from './formats';
 import { DatabaseService } from '../../src/db/database.service';
-import { FormatsRepository } from '../../src/formats/formats.repository';
+import { FormatsRepository } from '../../src/models/formats/formats.repository';
 
-export const ADMIN_ID = 1_234_567_890;
 class Seeder {
   constructor(private readonly formatService: FormatsService) {}
 
@@ -15,7 +15,7 @@ class Seeder {
 
   async seedFormats() {
     for (const format of initialFormats) {
-      const res = await this.formatService.create(format);
+      const res = await this.formatService.createFormat(format);
       console.log(`#Format created: ${res.id}`);
     }
   }

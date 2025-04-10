@@ -1,4 +1,4 @@
-// src/users/test/users.service.spec.ts
+// test/unit/users/users.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import {
     ConflictException,
@@ -6,11 +6,18 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { UsersService } from '../../../src/users/users.service';
-import { UsersRepository } from '../../../src/users/users.repository';
-import { PasswordService } from '../../../src/users/passwords.service';
-import { UsersTestUtils } from '../utils/users.faker.utils';
-import { SERIALIZATION_GROUPS, User } from '../../../src/users/entity/user.entity';
+import { UsersService } from '../../../src/models/users/users.service';
+import { UsersRepository } from '../../../src/models/users/users.repository';
+import { PasswordService } from '../../../src/models/users/passwords.service';
+import { SERIALIZATION_GROUPS, User } from '../../../src/models/users/entities/user.entity';
+import {
+    generateFakeUser,
+    generateUnactivatedUsers,
+    generateCreateUserDto,
+    generateUpdateUserPasswordDto,
+    generateUpdateUserDto,
+    generateFakeProfilePictureName,
+} from '../../fake-data/fake-users'
 
 describe('UsersService', () => {
     let usersService: UsersService;
@@ -21,7 +28,7 @@ describe('UsersService', () => {
         const usersRepositoryMock = {
             findById: jest.fn(),
             findByEmail: jest.fn(),
-            getAllUnactivatedUsers: jest.fn(),
+            findAllUnactivatedUsers: jest.fn(), // обновлённое имя метода
             create: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
@@ -47,12 +54,12 @@ describe('UsersService', () => {
         ) as jest.Mocked<PasswordService>;
     });
 
-    describe('getUserById', () => {
+    describe('findUserById', () => {
         it('should return a user by id with confidential data', async () => {
-            const testUser = UsersTestUtils.generateFakeUser();
+            const testUser = generateFakeUser();
             usersRepository.findById.mockResolvedValue(testUser);
 
-            const result = await usersService.getUserById(testUser.id);
+            const result = await usersService.findUserById(testUser.id);
 
             expect(usersRepository.findById).toHaveBeenCalledWith(testUser.id);
             expect(result).toEqual(
@@ -67,19 +74,19 @@ describe('UsersService', () => {
             usersRepository.findById.mockResolvedValue(null);
             const userId = 999;
 
-            await expect(usersService.getUserById(userId)).rejects.toThrow(
+            await expect(usersService.findUserById(userId)).rejects.toThrow(
                 NotFoundException
             );
             expect(usersRepository.findById).toHaveBeenCalledWith(userId);
         });
     });
 
-    describe('getUserByIdWithoutPassword', () => {
+    describe('findUserByIdWithoutPassword', () => {
         it('should return a user by id without confidential data', async () => {
-            const testUser = UsersTestUtils.generateFakeUser();
+            const testUser = generateFakeUser();
             usersRepository.findById.mockResolvedValue(testUser);
 
-            const result = await usersService.getUserByIdWithoutPassword(testUser.id);
+            const result = await usersService.findUserByIdWithoutPassword(testUser.id);
 
             expect(usersRepository.findById).toHaveBeenCalledWith(testUser.id);
             expect(result).toEqual(
@@ -95,18 +102,18 @@ describe('UsersService', () => {
             const userId = 999;
 
             await expect(
-                usersService.getUserByIdWithoutPassword(userId)
+                usersService.findUserByIdWithoutPassword(userId)
             ).rejects.toThrow(NotFoundException);
             expect(usersRepository.findById).toHaveBeenCalledWith(userId);
         });
     });
 
-    describe('getUserByEmail', () => {
+    describe('findUserByEmail', () => {
         it('should return a user by email with confidential data', async () => {
-            const testUser = UsersTestUtils.generateFakeUser();
+            const testUser = generateFakeUser();
             usersRepository.findByEmail.mockResolvedValue(testUser);
 
-            const result = await usersService.getUserByEmail(testUser.email);
+            const result = await usersService.findUserByEmail(testUser.email);
 
             expect(usersRepository.findByEmail).toHaveBeenCalledWith(testUser.email);
             expect(result).toEqual(
@@ -121,19 +128,19 @@ describe('UsersService', () => {
             const email = 'nonexistent@example.com';
             usersRepository.findByEmail.mockResolvedValue(null);
 
-            await expect(usersService.getUserByEmail(email)).rejects.toThrow(
+            await expect(usersService.findUserByEmail(email)).rejects.toThrow(
                 NotFoundException
             );
             expect(usersRepository.findByEmail).toHaveBeenCalledWith(email);
         });
     });
 
-    describe('getUserByEmailWithoutPassword', () => {
+    describe('findUserByEmailWithoutPassword', () => {
         it('should return a user by email without confidential data', async () => {
-            const testUser = UsersTestUtils.generateFakeUser();
+            const testUser = generateFakeUser();
             usersRepository.findByEmail.mockResolvedValue(testUser);
 
-            const result = await usersService.getUserByEmailWithoutPassword(
+            const result = await usersService.findUserByEmailWithoutPassword(
                 testUser.email
             );
 
@@ -151,22 +158,22 @@ describe('UsersService', () => {
             usersRepository.findByEmail.mockResolvedValue(null);
 
             await expect(
-                usersService.getUserByEmailWithoutPassword(email)
+                usersService.findUserByEmailWithoutPassword(email)
             ).rejects.toThrow(NotFoundException);
             expect(usersRepository.findByEmail).toHaveBeenCalledWith(email);
         });
     });
 
-    describe('getAllUnactivatedUsers', () => {
+    describe('findAllUnactivatedUsers', () => {
         it('should return all unactivated users', async () => {
             const time = 3600; // 1 hour
             const unactivatedUsers =
-                UsersTestUtils.generateUnactivatedUsers(3, time);
-            usersRepository.getAllUnactivatedUsers.mockResolvedValue(unactivatedUsers);
+                generateUnactivatedUsers(3, time);
+            usersRepository.findAllUnactivatedUsers.mockResolvedValue(unactivatedUsers);
 
-            const result = await usersService.getAllUnactivatedUsers(time);
+            const result = await usersService.findAllUnactivatedUsers(time);
 
-            expect(usersRepository.getAllUnactivatedUsers).toHaveBeenCalledWith(time);
+            expect(usersRepository.findAllUnactivatedUsers).toHaveBeenCalledWith(time);
             expect(result).toHaveLength(unactivatedUsers.length);
             result.forEach((user, index) => {
                 expect(user).toEqual(
@@ -180,21 +187,21 @@ describe('UsersService', () => {
 
         it('should return an empty array if there are no unactivated users', async () => {
             const time = 3600;
-            usersRepository.getAllUnactivatedUsers.mockResolvedValue([]);
+            usersRepository.findAllUnactivatedUsers.mockResolvedValue([]);
 
-            const result = await usersService.getAllUnactivatedUsers(time);
+            const result = await usersService.findAllUnactivatedUsers(time);
 
-            expect(usersRepository.getAllUnactivatedUsers).toHaveBeenCalledWith(time);
+            expect(usersRepository.findAllUnactivatedUsers).toHaveBeenCalledWith(time);
             expect(result).toEqual([]);
         });
     });
 
     describe('createUser', () => {
         it('should create a new user and return it without confidential data', async () => {
-            const createUserDto = UsersTestUtils.generateCreateUserDto();
+            const createUserDto = generateCreateUserDto();
             const hashedPassword = 'hashed_password_example';
             const createdUser = {
-                ...UsersTestUtils.generateFakeUser(),
+                ...generateFakeUser(),
                 ...createUserDto,
                 password: hashedPassword,
             };
@@ -205,7 +212,9 @@ describe('UsersService', () => {
 
             const result = await usersService.createUser(createUserDto);
 
-            expect(usersRepository.findByEmail).toHaveBeenCalledWith(createUserDto.email);
+            expect(usersRepository.findByEmail).toHaveBeenCalledWith(
+                createUserDto.email
+            );
             expect(usersRepository.create).toHaveBeenCalledWith({
                 ...createUserDto,
                 password: hashedPassword,
@@ -219,8 +228,8 @@ describe('UsersService', () => {
         });
 
         it('should throw ConflictException if email is already in use', async () => {
-            const createUserDto = UsersTestUtils.generateCreateUserDto();
-            const existingUser = UsersTestUtils.generateFakeUser();
+            const createUserDto = generateCreateUserDto();
+            const existingUser = generateFakeUser();
             existingUser.email = createUserDto.email;
 
             usersRepository.findByEmail.mockResolvedValue(existingUser);
@@ -237,9 +246,9 @@ describe('UsersService', () => {
     describe('updateUser', () => {
         it('should update a user and return updated data without confidential fields', async () => {
             const userId = 1;
-            const updateUserDto = UsersTestUtils.generateUpdateUserDto();
+            const updateUserDto = generateUpdateUserDto();
             const updatedUser = {
-                ...UsersTestUtils.generateFakeUser(),
+                ...generateFakeUser(),
                 id: userId,
                 ...updateUserDto,
             };
@@ -259,13 +268,13 @@ describe('UsersService', () => {
 
         it('should throw NotFoundException if user is not found during update', async () => {
             const userId = 999;
-            const updateUserDto = UsersTestUtils.generateUpdateUserDto();
+            const updateUserDto = generateUpdateUserDto();
 
             usersRepository.update.mockResolvedValue(null);
 
-            await expect(usersService.updateUser(userId, updateUserDto)).rejects.toThrow(
-                NotFoundException
-            );
+            await expect(
+                usersService.updateUser(userId, updateUserDto)
+            ).rejects.toThrow(NotFoundException);
             expect(usersRepository.update).toHaveBeenCalledWith(userId, updateUserDto);
         });
     });
@@ -283,7 +292,7 @@ describe('UsersService', () => {
             };
 
             const user = {
-                ...UsersTestUtils.generateFakeUser(),
+                ...generateFakeUser(),
                 id: userId,
                 password: 'hashed_old_password',
             };
@@ -320,8 +329,8 @@ describe('UsersService', () => {
         it('should throw UnauthorizedException if old password does not match', async () => {
             const userId = 1;
             const updateUserPasswordDto =
-                UsersTestUtils.generateUpdateUserPasswordDto();
-            const user = UsersTestUtils.generateFakeUser();
+                generateUpdateUserPasswordDto();
+            const user = generateFakeUser();
             user.id = userId;
 
             usersRepository.findById.mockResolvedValue(user);
@@ -342,7 +351,7 @@ describe('UsersService', () => {
         it('should throw NotFoundException if user is not found when updating password', async () => {
             const userId = 999;
             const updateUserPasswordDto =
-                UsersTestUtils.generateUpdateUserPasswordDto();
+                generateUpdateUserPasswordDto();
 
             usersRepository.findById.mockResolvedValue(null);
 
@@ -356,8 +365,8 @@ describe('UsersService', () => {
         it('should throw NotFoundException if update fails after password hash', async () => {
             const userId = 1;
             const updateUserPasswordDto =
-                UsersTestUtils.generateUpdateUserPasswordDto();
-            const user = UsersTestUtils.generateFakeUser();
+                generateUpdateUserPasswordDto();
+            const user = generateFakeUser();
             user.id = userId;
 
             usersRepository.findById.mockResolvedValue(user);
@@ -373,7 +382,9 @@ describe('UsersService', () => {
                 updateUserPasswordDto.oldPassword,
                 user.password
             );
-            expect(passwordService.hash).toHaveBeenCalledWith(updateUserPasswordDto.newPassword);
+            expect(passwordService.hash).toHaveBeenCalledWith(
+                updateUserPasswordDto.newPassword
+            );
             expect(usersRepository.update).toHaveBeenCalledWith(userId, {
                 password: 'hashed_password',
             });
@@ -383,8 +394,9 @@ describe('UsersService', () => {
     describe('updateUserAvatar', () => {
         it('should update user avatar and return updated data', async () => {
             const userId = 1;
-            const profilePictureName = UsersTestUtils.generateFakeProfilePictureName();
-            const user = UsersTestUtils.generateFakeUser();
+            const profilePictureName =
+                generateFakeProfilePictureName();
+            const user = generateFakeUser();
             user.id = userId;
 
             const updatedUser = { ...user, profilePictureName };
@@ -392,7 +404,10 @@ describe('UsersService', () => {
             usersRepository.findById.mockResolvedValue(user);
             usersRepository.update.mockResolvedValue(updatedUser);
 
-            const result = await usersService.updateUserAvatar(userId, profilePictureName);
+            const result = await usersService.updateUserAvatar(
+                userId,
+                profilePictureName
+            );
 
             expect(usersRepository.findById).toHaveBeenCalledWith(userId);
             expect(usersRepository.update).toHaveBeenCalledWith(userId, {
@@ -409,7 +424,8 @@ describe('UsersService', () => {
 
         it('should throw NotFoundException if user not found for avatar update', async () => {
             const userId = 999;
-            const profilePictureName = UsersTestUtils.generateFakeProfilePictureName();
+            const profilePictureName =
+                generateFakeProfilePictureName();
 
             usersRepository.findById.mockResolvedValue(null);
 
@@ -422,8 +438,9 @@ describe('UsersService', () => {
 
         it('should throw NotFoundException if update fails during avatar update', async () => {
             const userId = 1;
-            const profilePictureName = UsersTestUtils.generateFakeProfilePictureName();
-            const user = UsersTestUtils.generateFakeUser();
+            const profilePictureName =
+                generateFakeProfilePictureName();
+            const user = generateFakeUser();
             user.id = userId;
 
             usersRepository.findById.mockResolvedValue(user);
@@ -439,19 +456,19 @@ describe('UsersService', () => {
         });
     });
 
-    describe('updatePassword', () => {
+    describe('resetUserPassword', () => {
         it('should update user password and return updated data', async () => {
             const userId = 1;
             const newPassword = 'new_password';
             const hashedPassword = 'hashed_new_password';
-            const user = UsersTestUtils.generateFakeUser();
+            const user = generateFakeUser();
             user.id = userId;
             const updatedUser = { ...user, password: hashedPassword };
 
             passwordService.hash.mockResolvedValue(hashedPassword);
             usersRepository.update.mockResolvedValue(updatedUser);
 
-            const result = await usersService.updatePassword(userId, newPassword);
+            const result = await usersService.resetUserPassword(userId, newPassword);
 
             expect(passwordService.hash).toHaveBeenCalledWith(newPassword);
             expect(usersRepository.update).toHaveBeenCalledWith(userId, {
@@ -473,9 +490,9 @@ describe('UsersService', () => {
             passwordService.hash.mockResolvedValue(hashedPassword);
             usersRepository.update.mockResolvedValue(null);
 
-            await expect(usersService.updatePassword(userId, newPassword)).rejects.toThrow(
-                NotFoundException
-            );
+            await expect(
+                usersService.resetUserPassword(userId, newPassword)
+            ).rejects.toThrow(NotFoundException);
             expect(passwordService.hash).toHaveBeenCalledWith(newPassword);
             expect(usersRepository.update).toHaveBeenCalledWith(userId, {
                 password: hashedPassword,
@@ -483,17 +500,17 @@ describe('UsersService', () => {
         });
     });
 
-    describe('confirmEmail', () => {
+    describe('confirmUserEmail', () => {
         it('should confirm user email and return updated data', async () => {
             const userId = 1;
-            const user = UsersTestUtils.generateFakeUser();
+            const user = generateFakeUser();
             user.id = userId;
             user.isEmailVerified = false;
             const updatedUser = { ...user, isEmailVerified: true };
 
             usersRepository.update.mockResolvedValue(updatedUser);
 
-            const result = await usersService.confirmEmail(userId);
+            const result = await usersService.confirmUserEmail(userId);
 
             expect(usersRepository.update).toHaveBeenCalledWith(userId, {
                 isEmailVerified: true,

@@ -1,5 +1,6 @@
+// src/common/validators/description.validator.ts
 import { applyDecorators } from '@nestjs/common';
-import { IsOptional, Length, Matches, ValidateIf } from 'class-validator';
+import { IsOptional, Length, IsString, ValidateIf } from 'class-validator';
 
 export function IsDescription(
     isOptional: boolean,
@@ -7,10 +8,7 @@ export function IsDescription(
     minLength: number = 1,
     maxLength: number = 1000,
 ) {
-    const baseDecorators = [
-        Matches(/^[\s\S]*$/u),
-        Length(minLength, maxLength),
-    ];
+    const baseDecorators = [IsString(), Length(minLength, maxLength)];
 
     if (allowNull) {
         return applyDecorators(

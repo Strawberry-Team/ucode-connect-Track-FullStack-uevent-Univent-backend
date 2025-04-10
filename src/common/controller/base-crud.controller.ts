@@ -9,16 +9,16 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/guards/auth.jwt-guards';
-import { UserId } from '../../users/decorators/user.decorator';
+import { JwtAuthGuard } from '../../models/auth/guards/auth.guards';
+import { UserId } from '../decorators/user.decorator';
 import { ApiSecurity } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
 @ApiSecurity('JWT')
 export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
-    protected abstract findById(id: number, userId: number): Promise<T>;
-
     protected abstract createEntity(dto: CreateDto, userId: number): Promise<T>;
+
+    protected abstract findById(id: number, userId: number): Promise<T>;
 
     protected abstract updateEntity(
         id: number,
@@ -28,8 +28,13 @@ export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
 
     protected abstract deleteEntity(id: number, userId: number): Promise<void>;
 
+    @Post()
+    async create(@Body() dto: CreateDto, @UserId() userId: number): Promise<T> {
+        return await this.createEntity(dto, userId);
+    }
+
     @Get(':id')
-    async getById(
+    async findOne(
         @Param('id') id: number,
         @UserId() userId: number,
     ): Promise<T> {
@@ -38,11 +43,6 @@ export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
             throw new NotFoundException('Entity not found');
         }
         return existing;
-    }
-
-    @Post()
-    async create(@Body() dto: CreateDto, @UserId() userId: number): Promise<T> {
-        return await this.createEntity(dto, userId);
     }
 
     @Patch(':id')
@@ -59,7 +59,7 @@ export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
     }
 
     @Delete(':id')
-    async delete(
+    async remove(
         @Param('id') id: number,
         @UserId() userId: number,
     ): Promise<void> {

@@ -4,7 +4,7 @@ import { CronExpression } from '@nestjs/schedule';
 import * as dotenv from 'dotenv';
 import { validateEnv } from '../common/utils/env.utils';
 
-dotenv.config();
+dotenv.config({ path: '.env.development' });
 
 @Injectable()
 export class SchedulerConfig {

@@ -1,13 +1,12 @@
-// src/auth/test/auth.controller.spec.ts
+// test/unit/auth/auth.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from '../../../src/auth/auth.controller';
-import { AuthService } from '../../../src/auth/auth.service';
-import { CreateUserDto } from '../../../src/users/dto/create-user.dto';
-import { LoginDto } from '../../../src/auth/dto/login.dto';
-import { ResetPasswordDto } from '../../../src/auth/dto/reset-password.dto';
-import { newPasswordDto } from '../../../src/auth/dto/new-password.dto';
-import { UsersTestUtils } from '../utils/users.faker.utils';
-import { BadRequestException } from '@nestjs/common';
+import { AuthController } from '../../../src/models/auth/auth.controller';
+import { AuthService } from '../../../src/models/auth/auth.service';
+import { CreateUserDto } from '../../../src/models/users/dto/create-user.dto';
+import { LoginDto } from '../../../src/models/auth/dto/login.dto';
+import { ResetPasswordDto } from '../../../src/models/auth/dto/reset-password.dto';
+import { NewPasswordDto } from '../../../src/models/auth/dto/new-password.dto';
+import { generateCreateUserDto, generateFakeUser } from '../../fake-data/fake-users';
 
 describe('AuthController', () => {
     let authController: AuthController;
@@ -37,8 +36,8 @@ describe('AuthController', () => {
         it('should register a new user and return its result', async () => {
             // Arrange
             const createUserDto: CreateUserDto =
-                UsersTestUtils.generateCreateUserDto();
-            const registerResult = { user: UsersTestUtils.generateFakeUser() };
+                generateCreateUserDto();
+            const registerResult = { user: generateFakeUser() };
             authService.register.mockResolvedValue(registerResult);
 
             // Act
@@ -89,7 +88,7 @@ describe('AuthController', () => {
             } as any;
 
             // Act
-            const result = authController.getCsrf(req);
+            const result = authController.findCsrfToken(req);
 
             // Assert
             expect(result).toEqual({ csrfToken: 'dummyCsrfToken' });
@@ -123,13 +122,13 @@ describe('AuthController', () => {
                 accessToken: 'newAccessToken',
                 newRefreshToken: 'newRefreshToken',
             };
-            authService.refreshToken.mockResolvedValue(refreshResult);
+            authService.refreshAccessToken.mockResolvedValue(refreshResult);
 
             // Act
-            const result = await authController.refreshToken(nonce, createdAt, userId);
+            const result = await authController.refreshAccessToken(nonce, createdAt, userId);
 
             // Assert
-            expect(authService.refreshToken).toHaveBeenCalledWith(
+            expect(authService.refreshAccessToken).toHaveBeenCalledWith(
                 userId,
                 createdAt,
                 nonce,
@@ -142,20 +141,20 @@ describe('AuthController', () => {
         it('should reset the user password with confirm token and return a success message', async () => {
             // Arrange
             const userId = 1;
-            const newPwdDto: newPasswordDto = { newPassword: 'NewPassword123!$' };
+            const newPwdDto: NewPasswordDto = { newPassword: 'NewPassword123!$' };
             const resetResult = {
                 message: 'Password has been reset successfully',
             };
-            authService.resetPasswordWithConfirmToken.mockResolvedValue(resetResult);
+            authService.confirmNewPassword.mockResolvedValue(resetResult);
 
             // Act
-            const result = await authController.resetPasswordWithConfirmToken(
+            const result = await authController.confirmPasswordReset(
                 newPwdDto,
                 userId,
             );
 
             // Assert
-            expect(authService.resetPasswordWithConfirmToken).toHaveBeenCalledWith(
+            expect(authService.confirmNewPassword).toHaveBeenCalledWith(
                 newPwdDto,
                 userId,
             );
@@ -171,7 +170,7 @@ describe('AuthController', () => {
             authService.confirmEmail.mockResolvedValue(confirmResult);
 
             // Act
-            const result = await authController.verifyEmailWithConfirmToken(userId);
+            const result = await authController.confirmEmail(userId);
 
             // Assert
             expect(authService.confirmEmail).toHaveBeenCalledWith(userId);
@@ -184,7 +183,7 @@ describe('AuthController', () => {
             // Arrange
             const resetPasswordDto: ResetPasswordDto = { email: 'test@example.com' };
             // For resetPassword, the service method might not return any data.
-            authService.resetPassword.mockResolvedValue(undefined);
+            authService.resetPassword.mockResolvedValue({message: "Some message"});
 
             // Act
             const result = await authController.resetPassword(resetPasswordDto);

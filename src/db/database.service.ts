@@ -1,4 +1,4 @@
-// src/database/database.service.ts
+// src/db/database.service.ts
 import {
     Injectable,
     OnModuleInit,

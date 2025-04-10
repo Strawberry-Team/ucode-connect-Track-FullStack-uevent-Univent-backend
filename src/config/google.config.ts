@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import { validateEnv } from '../common/utils/env.utils';
 import appConfig from './app.config';
 
-dotenv.config();
+dotenv.config({ path: '.env.development' });
 
 export default () => {
     const appConfiguration = appConfig();
