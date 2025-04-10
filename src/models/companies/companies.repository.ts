@@ -1,5 +1,5 @@
 // src/models/companies/companies.repository.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Company } from './entities/company.entity';
 import { SERIALIZATION_GROUPS, User } from '../users/entities/user.entity';
 import { DatabaseService } from '../../db/database.service';
@@ -9,31 +9,37 @@ import { plainToInstance } from 'class-transformer';
 export class CompaniesRepository {
     constructor(private readonly db: DatabaseService) {}
 
+    private plainUser(companyOwner: User | undefined): User {
+        if (companyOwner) {
+            companyOwner = plainToInstance(User, companyOwner, {
+                groups: SERIALIZATION_GROUPS.BASIC,
+            });
+
+            return companyOwner;
+        }
+
+        throw new NotFoundException(`Company owner not found`);
+    }
+
     async create(data: Partial<Company>): Promise<Company> {
         const company = await this.db.company.create({
             data: data as any,
             include: { owner: true },
         });
 
-        if (company.owner) {
-            company.owner = plainToInstance(User, company.owner, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            });
-        }
+        company.owner = this.plainUser(company.owner);
 
         return company;
     }
 
     async findAll(): Promise<Company[]> {
-        const companies = await this.db.company.findMany({ include: { owner: true } });
+        const companies = await this.db.company.findMany({
+            include: { owner: true },
+        });
 
         companies.map((company: Company) => {
-            if (company.owner) {
-                company.owner = plainToInstance(User, company.owner, {
-                    groups: SERIALIZATION_GROUPS.BASIC,
-                });
-            }
-        })
+            company.owner = this.plainUser(company.owner);
+        });
 
         return companies;
     }
@@ -48,11 +54,7 @@ export class CompaniesRepository {
             return null;
         }
 
-        if (company.owner) {
-            company.owner = plainToInstance(User, company.owner, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            });
-        }
+        company.owner = this.plainUser(company.owner);
 
         return company;
     }
@@ -67,11 +69,7 @@ export class CompaniesRepository {
             return null;
         }
 
-        if (company.owner) {
-            company.owner = plainToInstance(User, company.owner, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            });
-        }
+        company.owner = this.plainUser(company.owner);
 
         return company;
     }
@@ -86,29 +84,27 @@ export class CompaniesRepository {
             return null;
         }
 
-        if (company.owner) {
-            company.owner = plainToInstance(User, company.owner, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            });
-        }
+        company.owner = this.plainUser(company.owner);
 
         return company;
     }
 
-
-    async findUserByOwnerId(ownerId: number): Promise<User | null> {
-        let user = await this.db.user.findUnique({
-            where: { id: ownerId },
+/*
+    async findByTitle(title: string, ownerId: number): Promise<Company | null> {
+        const company = await this.db.company.findUnique({
+            where: { title, ownerId },
+            include: { owner: true },
         });
 
-        if (user) {
-            user = plainToInstance(User, user, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            });
+        if (company == null) {
+            return null;
         }
 
-        return user;
+        company.owner = this.plainUser(company.owner);
+
+        return company;
     }
+*/
 
     async update(id: number, updateData: Partial<Company>): Promise<Company> {
         const company = await this.db.company.update({
@@ -117,11 +113,7 @@ export class CompaniesRepository {
             include: { owner: true },
         });
 
-        if (company.owner) {
-            company.owner = plainToInstance(User, company.owner, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            });
-        }
+        company.owner = this.plainUser(company.owner);
 
         return company;
     }

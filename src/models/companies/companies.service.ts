@@ -65,10 +65,6 @@ export class CompaniesService {
     public async findAllCompanies(): Promise<Company[]> {
         const companies = await this.companyRepository.findAll();
 
-        if (!companies || companies.length === 0) {
-            throw new NotFoundException(`Companies not found`);
-        }
-
         return companies.map((company) =>
             plainToInstance(Company, company, {
                 groups: SERIALIZATION_GROUPS.BASIC,
@@ -116,6 +112,28 @@ export class CompaniesService {
         }
 
         const company = await this.companyRepository.findByEmail(email);
+
+        if (!company) {
+            throw new NotFoundException(`Company not found`);
+        }
+
+        return plainToInstance(Company, company, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
+    }
+
+    public async findCompanyByTitle(
+        title: string,
+        ownerId: number,
+    ): Promise<Company> {
+        if (!title || title.length === 0) {
+            throw new BadRequestException('Company title must be not empty');
+        }
+
+        const company = await this.companyRepository.findByTitle(
+            title,
+            ownerId,
+        );
 
         if (!company) {
             throw new NotFoundException(`Company not found`);

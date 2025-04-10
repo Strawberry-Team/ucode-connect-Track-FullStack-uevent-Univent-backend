@@ -10,7 +10,7 @@ export const SERIALIZATION_GROUPS = {
 };
 
 export class Company implements PrismaCompany {
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company identifier',
         nullable: false,
@@ -19,7 +19,7 @@ export class Company implements PrismaCompany {
     })
     id: number;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company owner identifier',
         nullable: false,
@@ -28,7 +28,7 @@ export class Company implements PrismaCompany {
     })
     ownerId: number;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company email',
         nullable: false,
@@ -37,7 +37,7 @@ export class Company implements PrismaCompany {
     })
     email: string;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company name',
         nullable: false,
@@ -46,7 +46,7 @@ export class Company implements PrismaCompany {
     })
     title: string;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company description',
         nullable: false,
@@ -55,16 +55,17 @@ export class Company implements PrismaCompany {
     })
     description: string;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company logo name',
         nullable: false,
         type: 'string',
         example: 'google-logo.png',
+        default: 'default-logo.png',
     })
     logoName: string;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company registration date',
         nullable: false,
@@ -73,10 +74,10 @@ export class Company implements PrismaCompany {
     })
     createdAt: Date;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.SYSTEMIC })
+    @Expose({ groups: ['systemic'] })
     updatedAt: Date;
 
-    @Expose({ groups: SERIALIZATION_GROUPS.BASIC })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company owner data',
         nullable: false,

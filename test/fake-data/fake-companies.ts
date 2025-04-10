@@ -24,21 +24,26 @@ function generateFakeCompanyDescription(): string {
     return faker.company.catchPhrase();
 }
 
+export function generateFakeLogoName(): string {
+    return `profile-${faker.string.uuid()}.jpg`;
+}
+
 export function generateFakeCompany<K extends keyof Company>(
-    allFields = true,
+    ownerId: number,
+    allFields: boolean = true,
     fields: K[] = [],
 ): Pick<Company, K> {
     const title = generateFakeCompanyTitle();
     const fakeCompany: Company = {
         id: generateFakeId(),
-        ownerId: generateFakeId(),
+        ownerId: ownerId,
         email: generateFakeCompanyEmail(title),
         title: title,
         description: generateFakeCompanyDescription(),
-        logoName: 'default-logo.png',
+        logoName: generateFakeLogoName(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        owner: generateFakeUser()
+        owner: generateFakeUser(),
     };
 
     if (allFields) {

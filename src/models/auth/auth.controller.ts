@@ -241,7 +241,7 @@ export class AuthController {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid email or password',
+                    example: 'Invalid password',
                 },
                 error: {
                     type: 'string',

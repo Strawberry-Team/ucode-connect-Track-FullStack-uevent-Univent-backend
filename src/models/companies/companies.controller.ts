@@ -13,6 +13,7 @@ import {
     BadRequestException,
     UseGuards,
     HttpStatus,
+    Query,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { Company } from './entities/company.entity';
@@ -30,6 +31,7 @@ import {
     ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
+    ApiQuery,
     ApiResponse,
     ApiSecurity,
     ApiTags,
@@ -183,39 +185,15 @@ export class CompaniesController extends BaseCrudController<
             },
         },
     })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Companies not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Companies not found',
-                },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Not Found',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 404,
-                },
-            },
-        },
-    })
     async findAll() {
         return this.companyService.findAllCompanies();
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get company data' })
+    @ApiOperation({ summary: 'Get company data by id' })
     @ApiParam({
-        required: false,
         name: 'id',
+        required: true,
         type: 'number',
         description: 'Company ID',
         example: 1,
@@ -271,6 +249,70 @@ export class CompaniesController extends BaseCrudController<
     async findOne(@Param('id') id: number, @UserId() userId: number) {
         return super.findOne(id, userId);
     }
+
+    /*@Get()
+    @ApiOperation({ summary: 'Get company data by title' })
+    @ApiQuery({
+        name: 'title',
+        required: true,
+        type: 'string',
+        description: 'Company title',
+        example: 'Google',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully retrieve',
+        type: Company,
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Company not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Company not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
+    async findOneByTitle(
+        @Query('title') title: string,
+        @UserId() userId: number,
+    ) {
+        return this.companyService.findCompanyByTitle(title, userId);
+    }*/
 
     @Patch(':id')
     @UseGuards(CompanyOwnerGuard)
@@ -392,13 +434,6 @@ export class CompaniesController extends BaseCrudController<
         @UserId() userId: number,
     ) {
         return super.update(id, dto, userId);
-    }
-
-    @Delete(':id')
-    @UseGuards(CompanyOwnerGuard)
-    @ApiExcludeEndpoint()
-    async remove(@Param('id') id: number, @UserId() userId: number) {
-        throw new NotImplementedException();
     }
 
     @Post(':id/upload-logo')
@@ -526,5 +561,12 @@ export class CompaniesController extends BaseCrudController<
         await this.companyService.updateCompanyLogo(id, file.filename);
 
         return { server_filename: file.filename };
+    }
+
+    @Delete(':id')
+    @UseGuards(CompanyOwnerGuard)
+    @ApiExcludeEndpoint()
+    async remove(@Param('id') id: number, @UserId() userId: number) {
+        throw new NotImplementedException();
     }
 }
