@@ -158,16 +158,16 @@ export class CompaniesService {
         });
     }
 
-    async updateCompanyLogo(id: number, logo: string): Promise<Company> {
+    async updateCompanyLogo(id: number, logoName: string): Promise<Company> {
         let company = await this.companyRepository.findById(id);
 
         if (!company) {
             throw new NotFoundException(`Company not found`);
         }
-        company.logoName = logo;
-        company = await this.companyRepository.update(id, company);
 
-        return plainToInstance(Company, company, {
+        const result = await this.companyRepository.update(id, { logoName });
+
+        return plainToInstance(Company, result, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
     }

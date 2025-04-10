@@ -5,7 +5,7 @@ const config: Config = {
     ...baseConfig,
     displayName: 'unit',
     testMatch: ['<rootDir>/test/unit/**/*.spec.ts'],
-    setupFilesAfterEnv: ['<rootDir>/test/unit.setup.ts'],
+    setupFilesAfterEnv: ['<rootDir>/test/setup/unit.setup.ts'],
     globalSetup: '<rootDir>/test/setup/unit.global.setup.ts',
     maxWorkers: 1,
 };

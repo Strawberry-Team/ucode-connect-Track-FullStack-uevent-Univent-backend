@@ -477,7 +477,7 @@ export class CompaniesController extends BaseCrudController<
                 server_filename: {
                     type: 'string',
                     description: 'Filename for the uploaded logo',
-                    example: 'google-logo.png',
+                    example: '885dac20-7f0c-42c7-aa7d-e820a9315418.jpg',
                 },
             },
         },
@@ -490,7 +490,7 @@ export class CompaniesController extends BaseCrudController<
             properties: {
                 message: {
                     type: 'string',
-                    example: 'Only allowed file types are accepted!',
+                    example: 'Invalid file format or missing file',
                 },
                 error: {
                     type: 'string',
@@ -544,6 +544,30 @@ export class CompaniesController extends BaseCrudController<
                     type: 'number',
                     description: 'Error code',
                     example: 403,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Company not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Company not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
                 },
             },
         },

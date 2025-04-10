@@ -137,6 +137,7 @@ Table companies {
   "title" VARCHAR(100) [not null]
   "email" VARCHAR(255) [unique, not null]
   "description" TEXT [not null]
+  "logoName" VARCHAR(255) [not null, default: 'default-logo.png']
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
   "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
 
