@@ -1,6 +1,6 @@
-// src/models/formats/formats.repository.ts
+// src/models/events/formats/formats.repository.ts
 import { Injectable } from "@nestjs/common";
-import { DatabaseService } from "../../db/database.service";
+import { DatabaseService } from "../../../db/database.service";
 import { Format } from "./entities/format.entity";
 
 

@@ -1,4 +1,4 @@
-// src/models/formats/entities/format.entity.ts
+// src/models/events/formats/entities/format.entity.ts
 import { EventFormat as PrismaFormat } from "@prisma/client";
 import { Expose } from "class-transformer";
 import { ApiProperty } from '@nestjs/swagger';

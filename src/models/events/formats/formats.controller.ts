@@ -1,9 +1,9 @@
-// src/models/formats/formats.controller.ts
+// src/models/events/formats/formats.controller.ts
 import { Controller, Get, Param, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags, ApiParam } from '@nestjs/swagger';
 import { FormatsService } from './formats.service';
 import { Format } from './entities/format.entity';
-import { Public } from '../../common/decorators/public.decorator';
+import { Public } from '../../../common/decorators/public.decorator';
 
 @Controller('formats')
 @ApiTags('Formats')
@@ -19,7 +19,7 @@ export class FormatsController {
         type: [Format],
     })
     async findAll(): Promise<Format[]> {
-        return this.formatsService.findAllFormats();
+        return this.formatsService.findAll();
     }
 
     @Public()
@@ -52,6 +52,6 @@ export class FormatsController {
         },
     })
     async findOne(@Param('id') id: number): Promise<Format> {
-        return this.formatsService.findFormatById(id);
+        return this.formatsService.findById(id);
     }
 }

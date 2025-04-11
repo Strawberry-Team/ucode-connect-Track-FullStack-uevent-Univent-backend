@@ -1,10 +1,10 @@
 // test/unit/formats/formats.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { FormatsService } from '../../../src/models/formats/formats.service';
-import { FormatsRepository } from '../../../src/models/formats/formats.repository';
-import { Format } from '../../../src/models/formats/entities/format.entity';
+import { FormatsService } from '../../../../src/models/events/formats/formats.service';
+import { FormatsRepository } from '../../../../src/models/events/formats/formats.repository';
+import { Format } from '../../../../src/models/events/formats/entities/format.entity';
 import { NotFoundException } from '@nestjs/common';
-import { CreateFormatDto } from '../../../src/models/formats/dto/create-format.dto';
+import { CreateFormatDto } from '../../../../src/models/events/formats/dto/create-format.dto';
 
 describe('FormatsService', () => {
   let service: FormatsService;
@@ -37,9 +37,9 @@ describe('FormatsService', () => {
   describe('findAll', () => {
     it('should return all formats', async () => {
         const allFormats = [mockFormat];
-        jest.spyOn(repository, 'findAll').mockResolvedValue(allFormats);
+        jest.spyOn(repository, 'findAll').mockResolvedValue(allFormats as Format[]);
 
-        const result = await service.findAllFormats();
+        const result = await service.findAll();
 
         expect(result).toEqual(allFormats);
         expect(repository.findAll).toHaveBeenCalled();
@@ -51,7 +51,7 @@ describe('FormatsService', () => {
       const format = { ...mockFormat, id: 1 };
       jest.spyOn(repository, 'findById').mockResolvedValue(format);
 
-      const result = await service.findFormatById(1);
+      const result = await service.findById(1);
 
       expect(result).toEqual(format);
       expect(repository.findById).toHaveBeenCalledWith(1);
@@ -60,7 +60,7 @@ describe('FormatsService', () => {
     it('should throw NotFoundException when format is not found', async () => {
       jest.spyOn(repository, 'findById').mockResolvedValue(null);
 
-      await expect(service.findFormatById(1)).rejects.toThrow(NotFoundException);
+      await expect(service.findById(1)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -69,7 +69,7 @@ describe('FormatsService', () => {
       const createFormatDto: CreateFormatDto = { title: 'Conference' };
       jest.spyOn(repository, 'create').mockResolvedValue(mockFormat);
 
-      const result = await service.createFormat(createFormatDto);
+      const result = await service.create(createFormatDto);
 
       expect(result).toEqual(mockFormat);
       expect(repository.create).toHaveBeenCalledWith(createFormatDto);

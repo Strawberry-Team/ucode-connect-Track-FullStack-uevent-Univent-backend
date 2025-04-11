@@ -1,4 +1,4 @@
-// src/models/formats/formats.service.ts
+// src/models/events/formats/formats.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FormatsRepository } from './formats.repository';
 import { Format, SERIALIZATION_GROUPS } from './entities/format.entity';
@@ -9,7 +9,7 @@ import { CreateFormatDto } from './dto/create-format.dto';
 export class FormatsService {
     constructor(private readonly formatsRepository: FormatsRepository) {}
 
-    async createFormat(format: CreateFormatDto): Promise<Format> {
+    async create(format: CreateFormatDto): Promise<Format> {
         return plainToInstance(
             Format,
             await this.formatsRepository.create(format),
@@ -19,13 +19,13 @@ export class FormatsService {
         );
     }
 
-    async findAllFormats(): Promise<Format[]> {
+    async findAll(): Promise<Format[]> {
         return plainToInstance(Format, await this.formatsRepository.findAll(), {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
     }
 
-    async findFormatById(id: number): Promise<Format> {
+    async findById(id: number): Promise<Format> {
         const format = await this.formatsRepository.findById(id);
         if (!format) {
             throw new NotFoundException('Format not found');

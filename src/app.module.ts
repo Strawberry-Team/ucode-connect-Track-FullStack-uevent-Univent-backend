@@ -14,7 +14,8 @@ import { DatabaseModule } from './db/database.module';
 import { TicketsModule } from './models/tickets/tickets.module';
 import { CompaniesModule } from './models/companies/companies.module';
 import { EventsModule } from './models/events/events.module';
-import { FormatsModule } from './models/formats/formats.module';
+import { FormatsModule } from './models/events/formats/formats.module';
+import { ThemesModule } from './models/events/themes/themes.module';
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import { FormatsModule } from './models/formats/formats.module';
         EventsModule,
         FormatsModule,
         TicketsModule,
+        ThemesModule,
     ],
     controllers: [],
     providers: [],
