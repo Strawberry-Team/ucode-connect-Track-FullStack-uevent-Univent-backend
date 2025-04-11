@@ -18,7 +18,6 @@ describe('TicketsService', () => {
     const fakeCreateTicketDto: CreateTicketDto = {
         eventId: fakeTicket.eventId,
         title: fakeTicket.title,
-        number: fakeTicket.number,
         price: fakeTicket.price,
         status: fakeTicket.status,
     };
@@ -46,6 +45,7 @@ describe('TicketsService', () => {
                         findByNumber: jest.fn().mockResolvedValue(null),
                         update: jest.fn().mockResolvedValue(fakeUpdatedTicket),
                         delete: jest.fn().mockResolvedValue(undefined),
+                        findOneByNumber: jest.fn().mockResolvedValue(fakeTicket),
                     },
                 },
             ],
@@ -61,14 +61,20 @@ describe('TicketsService', () => {
 
     describe('Create Ticket', () => {
         it('Should create a Ticket', async () => {
+            jest.spyOn(service, 'generateTicketNumber').mockReturnValue(fakeTicket.number);
+
             jest.spyOn(repository, 'findOneByNumber').mockResolvedValue(null);
             jest.spyOn(repository, 'create').mockResolvedValue(fakeTicket);
 
             const result = await service.createTicket(fakeCreateTicketDto, 1);
-            expect(repository.findOneByNumber).toHaveBeenCalledWith(
-                fakeTicket.number,
-            );
-            expect(repository.create).toHaveBeenCalledWith(fakeCreateTicketDto);
+
+            expect(repository.findOneByNumber).toHaveBeenCalledWith(fakeTicket.number);
+
+            expect(repository.create).toHaveBeenCalledWith({
+                ...fakeCreateTicketDto,
+                number: fakeTicket.number,
+            });
+
             expect(result).toEqual(
                 plainToInstance(Ticket, fakeTicket, {
                     groups: SERIALIZATION_GROUPS.BASIC,

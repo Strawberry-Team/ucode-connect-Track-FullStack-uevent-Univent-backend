@@ -1,7 +1,6 @@
 // src/models/tickets/dto/create-ticket.dto.ts
 import { TicketStatus } from '@prisma/client';
 import {
-    IsTicketNumber,
     IsTicketPrice,
     IsTicketStatus,
 } from '../validators/tickets.validator';
@@ -12,28 +11,31 @@ import { IsName } from '../../../common/validators/name.validator';
 export class CreateTicketDto {
     @IsId(false)
     @ApiProperty({
+        required: true,
         description: 'Event ID associated with the ticket',
+        nullable: false,
+        type: 'number',
         example: 1,
     })
     eventId: number;
 
+
     @IsName(false)
     @ApiProperty({
+        required: true,
         description: 'Ticket title',
+        nullable: false,
+        type: 'string',
         example: 'VIP Ticket',
     })
     title: string;
 
-    @IsTicketNumber(true)
-    @ApiProperty({
-        description: 'Unique ticket number',
-        example: 'TICKET-123-456',
-    })
-    number: string;
-
     @IsTicketPrice(false)
     @ApiProperty({
         description: 'Ticket price',
+        required: true,
+        nullable: false,
+        type: 'number',
         example: 99.99,
     })
     price: number;
@@ -41,8 +43,12 @@ export class CreateTicketDto {
     @IsTicketStatus(true)
     @ApiProperty({
         description: 'Ticket status',
+        required: true,
+        nullable: false,
+        type: 'string',
+        example: TicketStatus.SOLD,
         enum: TicketStatus,
-        default: TicketStatus.AVAILABLE,
+        default: TicketStatus.AVAILABLE
     })
     status?: TicketStatus = TicketStatus.AVAILABLE;
 }

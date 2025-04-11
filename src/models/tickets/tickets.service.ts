@@ -19,16 +19,22 @@ export class TicketsService {
         createTicketDto: CreateTicketDto,
         userId: number,
     ): Promise<Ticket> {
+        const ticketNumber = this.generateTicketNumber(createTicketDto.eventId);
         const existingTicket = await this.ticketsRepository.findOneByNumber(
-            createTicketDto.number,
+            ticketNumber
         );
         if (existingTicket) {
             throw new ConflictException(
-                `A ticket with the number ${createTicketDto.number} already exists`,
+                `A ticket with the number ${ticketNumber} already exists`,
             );
         }
 
-        const ticket = await this.ticketsRepository.create(createTicketDto);
+        const ticketData = {
+            ...createTicketDto,
+            number: ticketNumber,
+        };
+
+        const ticket = await this.ticketsRepository.create(ticketData);
 
         return plainToInstance(Ticket, ticket, {
             groups: SERIALIZATION_GROUPS.BASIC,
@@ -98,5 +104,9 @@ export class TicketsService {
         }
 
         await this.ticketsRepository.delete(ticket.id);
+    }
+
+    generateTicketNumber(eventId: number): string {//TODO: Then decide how to properly generate the yicket number
+        return `TICKET-${eventId}-${new Date().getTime()}`;
     }
 }
