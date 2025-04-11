@@ -39,6 +39,7 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 import { GetUsersDto } from './dto/get-users.dto';
+import { Company } from '../companies/entities/company.entity';
 
 @Controller('users')
 @SerializeOptions({
@@ -91,6 +92,36 @@ export class UsersController extends BaseCrudController<
     }
 
     // TODO create get user events route
+
+    @Get('me')
+    @ApiOperation({ summary: 'Get current user data' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: User,
+        description: 'Successfully retrieved current user profile',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                }
+            },
+        },
+    })
+    async findMe(@UserId() userId: number): Promise<User> {
+        return await this.usersService.findUserByIdWithConfidential(userId);
+    }
 
     @Get(':id')
     @ApiOperation({ summary: 'Get user data' })
@@ -161,6 +192,7 @@ export class UsersController extends BaseCrudController<
     @ApiResponse({
         status: HttpStatus.OK,
         type: User,
+        isArray: true,
         description: 'Successfully retrieve',
     })
     @ApiResponse({
@@ -184,6 +216,73 @@ export class UsersController extends BaseCrudController<
     })
     async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
         return await this.usersService.findAllUsers(getUsersDto);
+    }
+
+    //TODO: стоит ли me везде сделать?
+
+    @Get(':id/companies')
+    @UseGuards(AccountOwnerGuard)
+    @ApiOperation({ summary: 'Get user companies' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User ID',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: Company,
+        isArray: true,
+        description: 'Successfully retrieve',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401
+                }
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
+            },
+        },
+    })
+    async findUserCompanies(
+        @Param('id') id: number,
+    ): Promise<Company[]> {
+        return await this.usersService.findUserCompanies(id);
     }
 
     @Patch(':id')
@@ -227,6 +326,30 @@ export class UsersController extends BaseCrudController<
                     description: 'Error message',
                     example: 'Unauthorized',
                 },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
             },
         },
     })
@@ -280,6 +403,30 @@ export class UsersController extends BaseCrudController<
                     description: 'Error message',
                     example: 'Old password does not match',
                 },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
             },
         },
     })

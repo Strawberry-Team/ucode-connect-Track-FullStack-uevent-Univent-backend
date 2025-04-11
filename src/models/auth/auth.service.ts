@@ -94,13 +94,7 @@ export class AuthService {
             nonce: newNonce,
         } as CreateRefreshTokenNonceDto);
 
-        const {
-            password,
-            isEmailVerified,
-            refreshTokenNonces,
-            ...userWithoutSensitiveInfo
-        } = user;
-        return { user: userWithoutSensitiveInfo, accessToken, refreshToken };
+        return { user: await this.usersService.findUserByIdWithConfidential(user.id), accessToken, refreshToken };
     }
 
     async refreshAccessToken(
