@@ -18,6 +18,7 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { BaseCrudController } from '../../common/controller/base-crud.controller';
 import { UserId } from '../../common/decorators/user.decorator';
+import {ApiExcludeEndpoint} from "@nestjs/swagger";
 
 @Controller('tickets')
 export class TicketsController extends BaseCrudController<
@@ -29,12 +30,14 @@ export class TicketsController extends BaseCrudController<
         super();
     }
 
+
     protected async createEntity(
         dto: CreateTicketDto,
         userId: number,
     ): Promise<Ticket> {
         return this.ticketsService.createTicket(dto, userId);
     }
+
 
     protected async findById(id: number, userId: number): Promise<Ticket> {
         return this.ticketsService.findOneTicket(id, userId);
@@ -52,17 +55,21 @@ export class TicketsController extends BaseCrudController<
         await this.ticketsService.deleteTicket(id, userId);
     }
 
+
     @Post()
+    @ApiExcludeEndpoint()
     // @UseGuards(EventCreatorGuard)//TODO: EventCreatorGuard
     async create(
         @Body() dto: CreateTicketDto,
         @UserId() userId: number,
     ): Promise<Ticket> {
-        throw new NotImplementedException('create tickets is not implemented');
-        // return super.create(dto, userId);
+        // throw new NotImplementedException('create tickets is not implemented');
+        return super.create(dto, userId);
     }
 
+
     @Get()
+    @ApiExcludeEndpoint()
     async findAll(
         @Query('page') page?: number,
         @Query('limit') limit?: number,
@@ -77,7 +84,9 @@ export class TicketsController extends BaseCrudController<
         // });
     }
 
+
     @Get(':id')
+    @ApiExcludeEndpoint()
     async findOne(
         @Param('id') id: number,
         @UserId() userId: number,
@@ -86,7 +95,9 @@ export class TicketsController extends BaseCrudController<
         // return super.getById(id, userId);
     }
 
+
     @Patch(':id')
+    @ApiExcludeEndpoint()
     // @UseGuards(EventCreatorGuard)
     async update(
         @Param('id') id: number,
@@ -97,7 +108,9 @@ export class TicketsController extends BaseCrudController<
         // return super.update(id, dto, userId);
     }
 
+
     @Delete(':id')
+    @ApiExcludeEndpoint()
     // @UseGuards(EventCreatorGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     async remove(

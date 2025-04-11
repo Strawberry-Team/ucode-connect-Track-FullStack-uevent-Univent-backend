@@ -74,7 +74,7 @@ Table tickets {
   "title" VARCHAR(100) [not null]
   "number" VARCHAR(255) [unique, not null]
   "price" DECIMAL(10, 2) [default: 0.00, not null]
-  "status" ENUM('sold', 'reserved', 'available') [default: 'available']
+  "status" ENUM('sold', 'reserved', 'available', 'unavailable') [default: 'unavailable']
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
   "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
 

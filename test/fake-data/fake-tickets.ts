@@ -12,7 +12,7 @@ export function generateFakeTicket(): Ticket {
         id: generateFakeTicketId(),
         eventId: faker.number.int({ min: 1, max: 100 }),
         title: faker.lorem.words(3),
-        number: `TICKET-${faker.string.uuid().slice(0, 8)}`,
+        number: `TICKET-${faker.number.int({ min: 1, max: 100 })}-${faker.date.anytime()}`,
         price: faker.number.float({ min: 1, max: 100 }),
         status: faker.helpers.arrayElement(Object.values(TicketStatus)),
         createdAt: new Date(),

@@ -10,7 +10,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 export class TicketsRepository {
     constructor(private db: DatabaseService) {}
 
-    async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
+    async create(createTicketDto: CreateTicketDto & { number: string }): Promise<Ticket> {
         console.log('TicketsRepository createTicketDto:', createTicketDto);
         console.log('Price before conversion:', createTicketDto.price);
 

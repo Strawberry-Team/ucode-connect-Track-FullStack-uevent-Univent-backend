@@ -1,5 +1,6 @@
 // src/models/tickets/tickets.service.ts
 import {
+    BadRequestException,
     ConflictException,
     Injectable,
     NotFoundException,
@@ -19,16 +20,26 @@ export class TicketsService {
         createTicketDto: CreateTicketDto,
         userId: number,
     ): Promise<Ticket> {
+        const ticketNumber = this.generateTicketNumber(createTicketDto.eventId);
         const existingTicket = await this.ticketsRepository.findOneByNumber(
-            createTicketDto.number,
+            ticketNumber
         );
         if (existingTicket) {
             throw new ConflictException(
-                `A ticket with the number ${createTicketDto.number} already exists`,
+                `A ticket with the number ${ticketNumber} already exists`,
             );
         }
 
-        const ticket = await this.ticketsRepository.create(createTicketDto);
+        if(!createTicketDto.status){
+            createTicketDto.status = TicketStatus.UNAVAILABLE;
+        }
+
+        const ticketData = {
+            ...createTicketDto,
+            number: ticketNumber,
+        };
+
+        const ticket = await this.ticketsRepository.create(ticketData);
 
         return plainToInstance(Ticket, ticket, {
             groups: SERIALIZATION_GROUPS.BASIC,
@@ -81,6 +92,10 @@ export class TicketsService {
             throw new NotFoundException(`Ticket ID ${id} not found`);
         }
 
+        if (ticket.status == TicketStatus.SOLD || ticket.status == TicketStatus.RESERVED) {
+            throw new BadRequestException(`Sold or reserved tickets cannot be updated`);
+        }
+
         const updatedTicket = await this.ticketsRepository.update(
             id,
             updateTicketDto,
@@ -98,5 +113,9 @@ export class TicketsService {
         }
 
         await this.ticketsRepository.delete(ticket.id);
+    }
+
+    generateTicketNumber(eventId: number): string {//TODO: Then decide how to properly generate the yicket number
+        return `TICKET-${eventId}-${new Date().getTime()}`;
     }
 }
