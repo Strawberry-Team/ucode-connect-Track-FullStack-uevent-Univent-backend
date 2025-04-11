@@ -16,7 +16,7 @@ export class CompanyOwnerGuard implements CanActivate {
         const userId = request.user?.userId;
         const companyId: number = +request.params?.id;
 
-        const company = await this.companyService.findCompanyById(companyId);
+        const company = await this.companyService.findById(companyId);
 
         if (!company) {
             throw new ForbiddenException(
