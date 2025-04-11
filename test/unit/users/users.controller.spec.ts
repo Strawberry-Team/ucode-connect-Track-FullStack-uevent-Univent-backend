@@ -36,7 +36,7 @@ describe('UsersController', () => {
 
     describe('findOneByEmail (GET /users?email=...)', () => {
         it('should throw BadRequestException if email is not provided', async () => {
-            await expect(usersController.findOneByEmail('')).rejects.toThrow(
+            await expect(usersController.findAll('')).rejects.toThrow(
                 BadRequestException,
             );
         });
@@ -45,7 +45,7 @@ describe('UsersController', () => {
             const testUser: User = UsersFaker.generateFakeUser();
             usersService.findUserByEmailWithoutPassword.mockResolvedValue(testUser);
 
-            const result = await usersController.findOneByEmail(testUser.email);
+            const result = await usersController.findAll(testUser.email);
             expect(usersService.findUserByEmailWithoutPassword).toHaveBeenCalledWith(
                 testUser.email,
             );

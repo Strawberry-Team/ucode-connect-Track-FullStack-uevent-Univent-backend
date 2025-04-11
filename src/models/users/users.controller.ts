@@ -15,7 +15,6 @@ import {
     SerializeOptions,
     Query,
     HttpStatus,
-    NotFoundException,
 } from '@nestjs/common';
 import { BaseCrudController } from '../../common/controller/base-crud.controller';
 import { SERIALIZATION_GROUPS, User } from './entities/user.entity';
@@ -39,6 +38,7 @@ import {
     ApiSecurity,
     ApiTags,
 } from '@nestjs/swagger';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @Controller('users')
 @SerializeOptions({
@@ -153,22 +153,11 @@ export class UsersController extends BaseCrudController<
         @Param('id') id: number,
         @UserId() userId: number,
     ): Promise<User> {
-        const existing = await this.usersService.findUserByIdWithoutPassword(id);
-        if (!existing) {
-            throw new NotFoundException('User not found');
-        }
-        return existing;
+        return super.findOne(id, userId);
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get user data' })
-    @ApiQuery({
-        name: 'email',
-        required: true,
-        type: 'string',
-        description: 'Email address of the user to retrieve',
-        example: 'ann.nichols@gmail.ua',
-    })
+    @ApiOperation({ summary: 'Get all users' })
     @ApiResponse({
         status: HttpStatus.OK,
         type: User,
@@ -193,36 +182,8 @@ export class UsersController extends BaseCrudController<
             },
         },
     })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'User not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'User with this email not found',
-                },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Not Found',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 404
-                }
-            },
-        },
-    })
-    async findOneByEmail(@Query('email') email: string): Promise<User> {
-        if (!email) {
-            throw new BadRequestException('Email parameter is required');
-        }
-
-        return await this.usersService.findUserByEmailWithoutPassword(email);
+    async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
+        return await this.usersService.findAllUsers(getUsersDto);
     }
 
     @Patch(':id')
@@ -250,7 +211,60 @@ export class UsersController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Email update is temporarily unavailable',
+                    example: ['firstName must match /^[a-zA-Z-]+$/ regular expression'],
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+            },
+        },
+    })
+    async update(
+        @Param('id') id: number,
+        @Body() dto: UpdateUserDto,
+        @UserId() userId: number,
+    ): Promise<User> {
+        return super.update(id, dto, userId);
+    }
+
+    @Patch(':id/password')
+    @UseGuards(AccountOwnerGuard)
+    @ApiOperation({ summary: 'Update user password data' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User ID',
+        example: 1,
+    })
+    @ApiBody({ required: true, type: UpdateUserPasswordDto, description: 'User password update data' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: User,
+        description: 'Successfully update',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: ['oldPassword is not strong enough',
+                        'newPassword is not strong enough'],
                 },
             },
         },
@@ -269,44 +283,6 @@ export class UsersController extends BaseCrudController<
             },
         },
     })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'User not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'User not found',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.CONFLICT,
-        description: 'User data conflict',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'User email already in use',
-                },
-            },
-        },
-    })
-    async update(
-        @Param('id') id: number,
-        @Body() dto: UpdateUserDto,
-        @UserId() userId: number,
-    ): Promise<User> {
-        return super.update(id, dto, userId);
-    }
-
-    @Patch(':id/password')
-    @UseGuards(AccountOwnerGuard)
     async updatePassword(
         @Param('id') id: number,
         @Body() dto: UpdateUserPasswordDto,

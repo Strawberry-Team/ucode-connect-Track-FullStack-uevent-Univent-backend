@@ -4,8 +4,6 @@ import {
     Controller,
     Post,
     UseGuards,
-    UsePipes,
-    ValidationPipe,
     HttpCode,
     Get,
     Req,
@@ -37,7 +35,6 @@ import {
 import { User } from '../users/entities/user.entity';
 
 @Controller('auth')
-@UsePipes(new ValidationPipe({ whitelist: true }))
 @ApiTags('Auth')
 @ApiSecurity('JWT')
 @ApiBearerAuth()
