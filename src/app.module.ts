@@ -15,6 +15,7 @@ import { TicketsModule } from './models/tickets/tickets.module';
 import { CompaniesModule } from './models/companies/companies.module';
 import { EventsModule } from './models/events/events.module';
 import { FormatsModule } from './models/formats/formats.module';
+import { NewsModule } from './models/news/news.module';
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import { FormatsModule } from './models/formats/formats.module';
         EventsModule,
         FormatsModule,
         TicketsModule,
+        NewsModule,
     ],
     controllers: [],
     providers: [],

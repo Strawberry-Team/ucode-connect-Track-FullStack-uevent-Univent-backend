@@ -12,6 +12,7 @@ import { Company, SERIALIZATION_GROUPS } from './entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { EmailService } from '../../email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class CompaniesService {
@@ -20,6 +21,7 @@ export class CompaniesService {
     constructor(
         private readonly companyRepository: CompaniesRepository,
         private readonly emailService: EmailService,
+        private readonly usersService: UsersService,
         private readonly configService: ConfigService,
     ) {
         this.frontUrl = String(
@@ -27,7 +29,7 @@ export class CompaniesService {
         );
     }
 
-    async createCompany(dto: CreateCompanyDto, userId: number) {
+    async create(dto: CreateCompanyDto, userId: number) {
         let existingCompany =
             await this.companyRepository.findByOwnerId(userId);
 
@@ -62,7 +64,7 @@ export class CompaniesService {
         });
     }
 
-    public async findAllCompanies(): Promise<Company[]> {
+    public async findAll(): Promise<Company[]> {
         const companies = await this.companyRepository.findAll();
 
         return companies.map((company) =>
@@ -72,9 +74,9 @@ export class CompaniesService {
         );
     }
 
-    public async findCompanyById(id: number): Promise<Company> {
+    public async findById(id: number): Promise<Company> {
         if (!id || id < 0) {
-            throw new BadRequestException('Company ID must be greater than 0');
+            throw new BadRequestException('Company id must be greater than 0');
         }
 
         const company = await this.companyRepository.findById(id);
@@ -88,10 +90,10 @@ export class CompaniesService {
         });
     }
 
-    public async findCompanyByOwnerId(ownerId: number): Promise<Company> {
+    public async findByOwnerId(ownerId: number): Promise<Company> {
         if (!ownerId || ownerId < 0) {
             throw new BadRequestException(
-                'Company ownerId must be greater than 0',
+                'Company owner id must be greater than 0',
             );
         }
 
@@ -106,7 +108,7 @@ export class CompaniesService {
         });
     }
 
-    public async findCompanyByEmail(email: string): Promise<Company> {
+    public async findByEmail(email: string): Promise<Company> {
         if (!email || email.length === 0) {
             throw new BadRequestException('Company email must be not empty');
         }
@@ -122,7 +124,7 @@ export class CompaniesService {
         });
     }
 
-    /*public async findCompanyByTitle(
+    /*public async findByTitle(
         title: string,
         ownerId: number,
     ): Promise<Company> {
@@ -144,7 +146,7 @@ export class CompaniesService {
         });
     }*/
 
-    async updateCompany(id: number, dto: UpdateCompanyDto): Promise<Company> {
+    async update(id: number, dto: UpdateCompanyDto): Promise<Company> {
         const existingCompany = await this.companyRepository.findById(id);
 
         if (!existingCompany) {
@@ -158,7 +160,7 @@ export class CompaniesService {
         });
     }
 
-    async updateCompanyLogo(id: number, logoName: string): Promise<Company> {
+    async updateLogo(id: number, logoName: string): Promise<Company> {
         let company = await this.companyRepository.findById(id);
 
         if (!company) {
@@ -172,9 +174,9 @@ export class CompaniesService {
         });
     }
 
-    async removeCompany(id: number): Promise<void> {
+    async delete(id: number): Promise<void> {
         if (!id || id < 0) {
-            throw new BadRequestException('Company Id must be greater than 0');
+            throw new BadRequestException('Company id must be greater than 0');
         }
 
         let existingCompany = await this.companyRepository.findById(id);

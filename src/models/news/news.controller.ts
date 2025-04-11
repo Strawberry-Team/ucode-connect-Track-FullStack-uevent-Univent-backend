@@ -1,4 +1,4 @@
-// src/models/companies/companies.controller.ts
+// src/models/news/news.controller.ts
 import {
     Controller,
     Get,
@@ -7,81 +7,70 @@ import {
     Patch,
     Param,
     Delete,
-    NotImplementedException,
-    UseInterceptors,
-    UploadedFile,
-    BadRequestException,
-    UseGuards,
     HttpStatus,
-    Query,
+    UseGuards,
 } from '@nestjs/common';
-import { CompaniesService } from './companies.service';
-import { Company } from './entities/company.entity';
-import { CreateCompanyDto } from './dto/create-company.dto';
-import { UpdateCompanyDto } from './dto/update-company.dto';
+import { NewsService } from './news.service';
+import { CreateNewsDto } from './dto/create-news.dto';
+import { UpdateNewsDto } from './dto/update-news.dto';
 import { BaseCrudController } from '../../common/controller/base-crud.controller';
-import { UserId } from '../../common/decorators/user.decorator';
-import { createFileUploadInterceptor } from '../../common/interceptor/file-upload.interceptor';
-import { AvatarConfig } from '../../config/avatar.config';
-import { Express } from 'express';
-import { CompanyOwnerGuard } from './guards/company-owner.guard';
+import { News } from './entities/news.entity';
+import { CreateCompanyDto } from '../companies/dto/create-company.dto';
+import { Company } from '../companies/entities/company.entity';
+import { UpdateCompanyDto } from '../companies/dto/update-company.dto';
 import {
     ApiBody,
-    ApiConsumes,
     ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
-    ApiQuery,
     ApiResponse,
-    ApiSecurity,
-    ApiTags,
 } from '@nestjs/swagger';
+import { UserId } from '../../common/decorators/user.decorator';
+import { CompanyOwnerGuard } from '../companies/guards/company-owner.guard';
 
-@Controller('companies')
-@ApiTags('Companies')
-@ApiSecurity('JWT')
-export class CompaniesController extends BaseCrudController<
-    Company,
-    CreateCompanyDto,
-    UpdateCompanyDto
+@Controller('news')
+export class NewsController extends BaseCrudController<
+    News,
+    CreateNewsDto,
+    UpdateNewsDto
 > {
-    constructor(private readonly companyService: CompaniesService) {
+    constructor(private readonly newsService: NewsService) {
         super();
     }
 
     protected async createEntity(
-        dto: CreateCompanyDto,
+        dto: CreateNewsDto,
         userId: number,
-    ): Promise<Company> {
-        return await this.companyService.create(dto, userId);
+    ): Promise<News> {
+        return await this.newsService.create(dto, userId);
     }
 
-    protected async findById(id: number, userId: number): Promise<Company> {
-        return await this.companyService.findById(id);
+    protected async findById(id: number, userId: number): Promise<News> {
+        return await this.newsService.findById(id);
     }
 
     protected async updateEntity(
         id: number,
-        dto: UpdateCompanyDto,
+        dto: UpdateNewsDto,
         userId: number,
-    ): Promise<Company> {
-        return await this.companyService.update(id, dto);
+    ): Promise<News> {
+        return await this.newsService.update(id, dto);
     }
 
     protected async deleteEntity(id: number, userId: number): Promise<void> {
-        await this.companyService.delete(id);
+        await this.newsService.delete(id);
     }
 
     @Post()
     @ApiOperation({ summary: 'Company creation' })
     @ApiBody({
         required: true,
-        type: CreateCompanyDto,
-        description: 'Company registration data',
+        type: CreateNewsDto,
+        description: 'News creation data',
     })
     @ApiResponse({
         status: HttpStatus.CREATED,
-        description: 'Successful company registration',
+        description: 'Successful news creation',
         type: Company,
     })
     @ApiResponse({
@@ -94,7 +83,6 @@ export class CompaniesController extends BaseCrudController<
                     type: 'array',
                     description: 'Error message',
                     example: [
-                        'email must be an email',
                         'title must be shorter than or equal to 100 characters',
                         'description must be shorter than or equal to 1000 characters',
                     ],
@@ -155,15 +143,15 @@ export class CompaniesController extends BaseCrudController<
             },
         },
     })
-    async create(@Body() dto: CreateCompanyDto, @UserId() userId: number) {
+    async create(@Body() dto: CreateNewsDto, @UserId() userId: number) {
         return super.create(dto, userId);
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all companies data' })
+    @ApiOperation({ summary: 'Get all news data' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'List of companies',
+        description: 'List of news',
         type: [Company],
     })
     @ApiResponse({
@@ -186,22 +174,22 @@ export class CompaniesController extends BaseCrudController<
         },
     })
     async findAll() {
-        return this.companyService.findAll();
+        return this.newsService.findAll();
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get company data by id' })
+    @ApiOperation({ summary: 'Get news data by id' })
     @ApiParam({
         name: 'id',
         required: true,
         type: 'number',
-        description: 'Company ID',
+        description: 'News ID',
         example: 1,
     })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successfully retrieve',
-        type: Company,
+        type: News,
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,
@@ -224,14 +212,14 @@ export class CompaniesController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Company not found',
+        description: 'News not found',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company not found',
+                    example: 'News not found',
                 },
                 error: {
                     type: 'string',
@@ -250,88 +238,24 @@ export class CompaniesController extends BaseCrudController<
         return super.findOne(id, userId);
     }
 
-    /*@Get()
-    @ApiOperation({ summary: 'Get company data by title' })
-    @ApiQuery({
-        name: 'title',
-        required: true,
-        type: 'string',
-        description: 'Company title',
-        example: 'Google',
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Successfully retrieve',
-        type: Company,
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Unauthorized',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 401,
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Company not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Company not found',
-                },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Not Found',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 404,
-                },
-            },
-        },
-    })
-    async findOneByTitle(
-        @Query('title') title: string,
-        @UserId() userId: number,
-    ) {
-        return this.companyService.findByTitle(title, userId);
-    }*/
-
     @Patch(':id')
     @UseGuards(CompanyOwnerGuard)
-    @ApiOperation({ summary: 'Update company data' })
+    @ApiOperation({ summary: 'Update news data' })
     @ApiParam({
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Company ID',
+        description: 'News ID',
         example: 1,
     })
     @ApiBody({
         required: true,
-        type: UpdateCompanyDto,
-        description: 'Company update data',
+        type: UpdateNewsDto,
+        description: 'News update data',
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: Company,
+        type: News,
         description: 'Successfully update',
     })
     @ApiResponse({
@@ -389,7 +313,7 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Only the company owner has access to it',
+                    example: 'Only the news owner has access to it',
                 },
                 error: {
                     type: 'string',
@@ -406,14 +330,14 @@ export class CompaniesController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Company not found',
+        description: 'News not found',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company not found',
+                    example: 'News not found',
                 },
                 error: {
                     type: 'string',
@@ -430,57 +354,26 @@ export class CompaniesController extends BaseCrudController<
     })
     async update(
         @Param('id') id: number,
-        @Body() dto: UpdateCompanyDto,
+        @Body() dto: UpdateNewsDto,
         @UserId() userId: number,
     ) {
         return super.update(id, dto, userId);
     }
 
-    @Post(':id/upload-logo')
+    @Delete(':id')
     @UseGuards(CompanyOwnerGuard)
-    @UseInterceptors(
-        createFileUploadInterceptor({
-            destination: './public/uploads/company-logos',
-            allowedTypes: AvatarConfig.prototype.allowedTypesForInterceptor,
-            maxSize: 5 * 1024 * 1024,
-        }),
-    )
-    @ApiOperation({ summary: 'Upload company logo' })
-    @ApiConsumes('multipart/form-data')
+    @ApiOperation({ summary: 'Delete news data' })
     @ApiParam({
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Company ID',
+        description: 'News ID',
         example: 1,
-    })
-    @ApiBody({
-        required: true,
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                    description:
-                        'Logo image file (e.g., PNG, JPEG). Example: "google-logo.png" (max size: 5MB)',
-                },
-            },
-        },
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Logo successfully uploaded',
-        schema: {
-            type: 'object',
-            properties: {
-                server_filename: {
-                    type: 'string',
-                    description: 'Filename for the uploaded logo',
-                    example: '885dac20-7f0c-42c7-aa7d-e820a9315418.jpg',
-                },
-            },
-        },
+        type: News,
+        description: 'Successfully remove',
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
@@ -489,17 +382,21 @@ export class CompaniesController extends BaseCrudController<
             type: 'object',
             properties: {
                 message: {
-                    type: 'string',
-                    example: 'Invalid file format or missing file',
+                    type: 'array',
+                    description: 'Error message',
+                    example: [
+                        'title must be shorter than or equal to 100 characters',
+                        'description must be shorter than or equal to 1000 characters',
+                    ],
                 },
                 error: {
                     type: 'string',
                     description: 'Error message',
                     example: 'Bad Request',
                 },
-                statusCode: {
+                status: {
                     type: 'number',
-                    description: 'Error code',
+                    description: 'Error message',
                     example: 400,
                 },
             },
@@ -526,14 +423,14 @@ export class CompaniesController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.FORBIDDEN,
-        description: 'Forbidden access',
+        description: 'Forbidden',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'You can only access your own account',
+                    example: 'Only the news owner has access to it',
                 },
                 error: {
                     type: 'string',
@@ -550,14 +447,14 @@ export class CompaniesController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Company not found',
+        description: 'News not found',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Company not found',
+                    example: 'News not found',
                 },
                 error: {
                     type: 'string',
@@ -572,25 +469,7 @@ export class CompaniesController extends BaseCrudController<
             },
         },
     })
-    async uploadLogo(
-        @Param('id') id: number,
-        @UploadedFile() file: Express.Multer.File,
-    ): Promise<{ server_filename: string }> {
-        if (!file) {
-            throw new BadRequestException(
-                'Invalid file format or missing file',
-            );
-        }
-
-        await this.companyService.updateLogo(id, file.filename);
-
-        return { server_filename: file.filename };
-    }
-
-    @Delete(':id')
-    @UseGuards(CompanyOwnerGuard)
-    @ApiExcludeEndpoint()
     async remove(@Param('id') id: number, @UserId() userId: number) {
-        throw new NotImplementedException();
+        return super.remove(id, userId);
     }
 }
