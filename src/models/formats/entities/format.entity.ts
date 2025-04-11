@@ -27,10 +27,10 @@ export class Format implements PrismaFormat {
     })
     title: string;
 
-    @Expose({ groups: ['confidential'] })
+    @Expose({ groups: ['systemic'] })
     createdAt: Date;
 
-    @Expose({ groups: ['confidential'] })
+    @Expose({ groups: ['systemic'] })
     updatedAt: Date;
 
     @Expose({ groups: ['systemic'] })

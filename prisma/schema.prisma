@@ -7,6 +7,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 // generator dbml {
@@ -21,10 +22,12 @@ model User {
   firstName          String   @map("first_name") @db.VarChar(100)
   lastName           String?  @map("last_name") @db.VarChar(100)
   email              String   @unique(map: "users_email_uq") @db.VarChar(255)
+  role               UserRole @default(USER)
   profilePictureName String   @default("default-avatar.png") @map("profile_picture_name") @db.VarChar(255)
-  isEmailVerified    Boolean  @default(false) @map("is_email_verified")
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  isEmailVerified Boolean  @default(false) @map("is_email_verified")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   refreshTokenNonces RefreshTokenNonce[] // Add this line
@@ -322,6 +325,11 @@ model News {
 
 //
 // // Enums
+enum UserRole {
+  USER  @map("user")
+  ADMIN @map("admin")
+}
+
 enum AttendeeVisibility {
   EVERYONE       @map("everyone")
   ATTENDEES_ONLY @map("attendees_only")

@@ -10,6 +10,7 @@ import { EmailService } from '../../email/email.service';
 import { GoogleOAuthService } from '../../google/google-oauth.service';
 import { GoogleModule } from '../../google/google.module';
 import { CompaniesModule } from '../companies/companies.module';
+import { CompaniesService } from '../companies/companies.service';
 import { DatabaseModule } from '../../db/database.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { DatabaseModule } from '../../db/database.module';
         AccountOwnerGuard,
         GoogleOAuthService,
         EmailService,
+        CompaniesService,
     ],
     exports: [UsersService, UsersRepository, PasswordService],
 })
