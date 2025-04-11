@@ -1,24 +1,25 @@
 // test/unit/formats/formats.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { FormatsController } from '../../../src/models/formats/formats.controller';
-import { FormatsService } from '../../../src/models/formats/formats.service';
-import { Format } from '../../../src/models/formats/entities/format.entity';
+import { EventFormatsController } from '../../../../src/models/events/formats/event-formats.controller';
+import { EventFormatsService } from '../../../../src/models/events/formats/event-formats.service';
+import { EventFormat } from '../../../../src/models/events/formats/entities/event-format.entity';
 import { NotFoundException } from '@nestjs/common';
-describe('FormatsController', () => {
-  let controller: FormatsController;
-  let formatsService: FormatsService;
 
-  const mockFormat: Partial<Format> = {
+describe('FormatsController', () => {
+  let controller: EventFormatsController;
+  let service: EventFormatsService;
+
+  const mockFormat: Partial<EventFormat> = {
     id: 1,
     title: 'Conference',
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [FormatsController],
+      controllers: [EventFormatsController],
       providers: [
         {
-          provide: FormatsService,
+          provide: EventFormatsService,
           useValue: {
             findAll: jest.fn().mockResolvedValue([mockFormat]),
             findById: jest.fn().mockResolvedValue(mockFormat),
@@ -27,8 +28,8 @@ describe('FormatsController', () => {
       ],
     }).compile();
 
-    controller = module.get<FormatsController>(FormatsController);
-    formatsService = module.get<FormatsService>(FormatsService);
+    controller = module.get<EventFormatsController>(EventFormatsController);
+    service = module.get<EventFormatsService>(EventFormatsService);
   });
 
   afterEach(() => {
@@ -40,7 +41,7 @@ describe('FormatsController', () => {
       const result = await controller.findAll();
 
       expect(result).toEqual([mockFormat]);
-      expect(formatsService.findAllFormats).toHaveBeenCalled();
+      expect(service.findAll).toHaveBeenCalled();
     });
   });
 
@@ -49,14 +50,14 @@ describe('FormatsController', () => {
       const result = await controller.findOne(1);
 
       expect(result).toEqual(mockFormat);
-      expect(formatsService.findFormatById).toHaveBeenCalledWith(1);
+      expect(service.findById).toHaveBeenCalledWith(1);
     });
 
     it('should throw NotFoundException when format is not found', async () => {
-      jest.spyOn(formatsService, 'findFormatById').mockRejectedValue(new NotFoundException('Format not found'));
+      jest.spyOn(service, 'findById').mockRejectedValue(new NotFoundException('Format not found'));
 
       await expect(controller.findOne(999)).rejects.toThrow(NotFoundException);
-      expect(formatsService.findFormatById).toHaveBeenCalledWith(999);
+      expect(service.findById).toHaveBeenCalledWith(999);
     });
   });
 });

@@ -14,7 +14,8 @@ import { DatabaseModule } from './db/database.module';
 import { TicketsModule } from './models/tickets/tickets.module';
 import { CompaniesModule } from './models/companies/companies.module';
 import { EventsModule } from './models/events/events.module';
-import { FormatsModule } from './models/formats/formats.module';
+import { EventFormatsModule } from './models/events/formats/event-formats.module';
+import { EventThemesModule } from './models/events/themes/event-themes.module';
 import { NewsModule } from './models/news/news.module';
 
 @Module({
@@ -34,8 +35,9 @@ import { NewsModule } from './models/news/news.module';
         RefreshTokenNoncesModule,
         JobsModule,
         CompaniesModule,
-        FormatsModule,
         EventsModule,
+        EventFormatsModule,
+        EventThemesModule,
         TicketsModule,
         NewsModule,
     ],

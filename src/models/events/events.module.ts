@@ -5,14 +5,16 @@ import { EventsController } from './events.controller';
 import { EventsRepository } from './events.repository';
 import { DatabaseModule } from '../../db/database.module';
 import { UsersModule } from '../users/users.module';
+import { EventThemesModule } from './themes/event-themes.module';
+import { EventFormatsModule } from './formats/event-formats.module';
 import { NewsModule } from '../news/news.module';
 import { CompaniesModule } from '../companies/companies.module';
-import { FormatsModule } from '../formats/formats.module';
 
 @Module({
     imports: [
         DatabaseModule,
-        forwardRef(() => FormatsModule),
+        forwardRef(() => EventThemesModule),
+        forwardRef(() => EventFormatsModule),
         forwardRef(() => UsersModule),
         forwardRef(() => NewsModule),
         forwardRef(() => CompaniesModule),
