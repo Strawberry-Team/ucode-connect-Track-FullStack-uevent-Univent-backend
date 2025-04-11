@@ -1,13 +1,13 @@
 // test/unit/events/themes/themes.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { ThemesController } from '../../../../src/models/events/themes/themes.controller';
-import { ThemesService } from 'src/models/events/themes/themes.service';
-import { EventTheme } from 'src/models/events/themes/entities/theme.entity';
+import { EventThemesController } from '../../../../src/models/events/themes/event-themes.controller';
+import { EventThemesService } from 'src/models/events/themes/event-themes.service';
+import { EventTheme } from 'src/models/events/themes/entities/event-theme.entity';
 import { NotFoundException } from '@nestjs/common';
 
 describe('ThemesController', () => {
-  let controller: ThemesController;
-  let service: ThemesService;
+  let controller: EventThemesController;
+  let service: EventThemesService;
 
   const mockTheme: Partial<EventTheme> = {
     id: 1,
@@ -16,10 +16,10 @@ describe('ThemesController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [ThemesController],
+      controllers: [EventThemesController],
       providers: [
         {
-          provide: ThemesService,
+          provide: EventThemesService,
           useValue: {
             findAll: jest.fn().mockResolvedValue([mockTheme]),
             findById: jest.fn().mockResolvedValue(mockTheme),
@@ -28,8 +28,8 @@ describe('ThemesController', () => {
       ],
     }).compile();
 
-    controller = module.get<ThemesController>(ThemesController);
-    service = module.get<ThemesService>(ThemesService);
+    controller = module.get<EventThemesController>(EventThemesController);
+    service = module.get<EventThemesService>(EventThemesService);
   });
 
   afterEach(() => {

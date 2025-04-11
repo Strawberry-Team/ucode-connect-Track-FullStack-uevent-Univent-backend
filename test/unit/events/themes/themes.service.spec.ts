@@ -1,11 +1,11 @@
 // test/unit/events/themes/themes.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { ThemesService } from '../../../../src/models/events/themes/themes.service';
-import { EventThemesRepository } from '../../../../src/models/events/themes/themes.repository';
-import { EventTheme } from 'src/models/events/themes/entities/theme.entity';
+import { EventThemesService } from '../../../../src/models/events/themes/event-themes.service';
+import { EventThemesRepository } from '../../../../src/models/events/themes/event-themes.repository';
+import { EventTheme } from 'src/models/events/themes/entities/event-theme.entity';
 
 describe('ThemesService', () => {
-  let service: ThemesService;
+  let service: EventThemesService;
   let repository: EventThemesRepository;
 
   const mockTheme: Partial<EventTheme> = {
@@ -16,7 +16,7 @@ describe('ThemesService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ThemesService,
+        EventThemesService,
         {
           provide: EventThemesRepository,
           useValue: {
@@ -28,7 +28,7 @@ describe('ThemesService', () => {
       ],
     }).compile();
 
-    service = module.get<ThemesService>(ThemesService);
+    service = module.get<EventThemesService>(EventThemesService);
     repository = module.get<EventThemesRepository>(EventThemesRepository);
   });
 

@@ -1,14 +1,14 @@
 // src/models/events/themes/themes.controller.ts
 import { Controller, Get, HttpStatus, Param } from '@nestjs/common';
-import { ThemesService } from './themes.service';
-import { EventTheme } from './entities/theme.entity';
+import { EventThemesService } from './event-themes.service';
+import { EventTheme } from './entities/event-theme.entity';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '../../../common/decorators/public.decorator';
 
 @Controller('themes')
 @ApiTags('Themes')
-export class ThemesController {
-    constructor(private readonly themesService: ThemesService) {}
+export class EventThemesController {
+    constructor(private readonly themesService: EventThemesService) {}
 
     @Public()
     @Get()

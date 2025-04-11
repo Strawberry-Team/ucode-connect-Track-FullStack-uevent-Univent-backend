@@ -1,14 +1,14 @@
 // prisma/seeds/index.ts
-import { FormatsService } from '../../src/models/events/formats/formats.service';
+import { EventFormatsService } from '../../src/models/events/formats/event-formats.service';
 import { initialFormats } from './formats';
 import { DatabaseService } from '../../src/db/database.service';
-import { FormatsRepository } from '../../src/models/events/formats/formats.repository';
-import { ThemesService } from '../../src/models/events/themes/themes.service';  
+import { EventFormatsRepository } from '../../src/models/events/formats/event-formats.repository';
+import { EventThemesService } from '../../src/models/events/themes/event-themes.service';  
 import { initialThemes } from './themes';
-import { EventThemesRepository } from '../../src/models/events/themes/themes.repository';
+import { EventThemesRepository } from '../../src/models/events/themes/event-themes.repository';
 
 class Seeder {
-  constructor(private readonly formatService: FormatsService, private readonly themeService: ThemesService) {}
+  constructor(private readonly formatService: EventFormatsService, private readonly themeService: EventThemesService) {}
 
   async start() {
     await this.seedFormats();
@@ -37,8 +37,8 @@ function start() {
   try {
     console.log('Seeding started 🌱');
     const seeder = new Seeder(
-      new FormatsService(new FormatsRepository(new DatabaseService())), 
-      new ThemesService(new EventThemesRepository(new DatabaseService())),
+      new EventFormatsService(new EventFormatsRepository(new DatabaseService())), 
+      new EventThemesService(new EventThemesRepository(new DatabaseService())),
     );
     seeder.start();
   } catch (e) {

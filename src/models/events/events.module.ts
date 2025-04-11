@@ -5,11 +5,11 @@ import { EventsController } from './events.controller';
 import { EventsRepository } from './events.repository';
 import { DatabaseModule } from '../../db/database.module';
 import { UsersModule } from '../users/users.module';
-import { ThemesModule } from './themes/themes.module';
-import { FormatsModule } from './formats/formats.module';
+import { EventThemesModule } from './themes/event-themes.module';
+import { EventFormatsModule } from './formats/event-formats.module';
 
 @Module({
-    imports: [DatabaseModule, UsersModule, ThemesModule, FormatsModule],
+    imports: [DatabaseModule, UsersModule, EventThemesModule, EventFormatsModule],
     providers: [EventsService, EventsRepository],
     controllers: [EventsController],
     exports: [EventsService, EventsRepository],

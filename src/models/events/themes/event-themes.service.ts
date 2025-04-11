@@ -1,14 +1,14 @@
 // src/models/events/themes/themes.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { EventThemesRepository } from './themes.repository';
-import { EventTheme, SERIALIZATION_GROUPS } from './entities/theme.entity';
+import { EventThemesRepository } from './event-themes.repository';
+import { EventTheme, SERIALIZATION_GROUPS } from './entities/event-theme.entity';
 import { plainToInstance } from 'class-transformer';
-import { CreateThemeDto } from './dto/create-theme.dto';
+import { CreateEventThemeDto } from './dto/create-event-theme.dto';
 @Injectable()
-export class ThemesService {
+export class EventThemesService {
     constructor(private readonly eventThemesRepository: EventThemesRepository) {}
 
-    async create(theme: CreateThemeDto): Promise<EventTheme> {
+    async create(theme: CreateEventThemeDto): Promise<EventTheme> {
         return this.eventThemesRepository.create(theme);
     }
 

@@ -1,25 +1,25 @@
 // test/unit/formats/formats.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { FormatsController } from '../../../../src/models/events/formats/formats.controller';
-import { FormatsService } from '../../../../src/models/events/formats/formats.service';
-import { Format } from '../../../../src/models/events/formats/entities/format.entity';
+import { EventFormatsController } from '../../../../src/models/events/formats/event-formats.controller';
+import { EventFormatsService } from '../../../../src/models/events/formats/event-formats.service';
+import { EventFormat } from '../../../../src/models/events/formats/entities/event-format.entity';
 import { NotFoundException } from '@nestjs/common';
 
 describe('FormatsController', () => {
-  let controller: FormatsController;
-  let service: FormatsService;
+  let controller: EventFormatsController;
+  let service: EventFormatsService;
 
-  const mockFormat: Partial<Format> = {
+  const mockFormat: Partial<EventFormat> = {
     id: 1,
     title: 'Conference',
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [FormatsController],
+      controllers: [EventFormatsController],
       providers: [
         {
-          provide: FormatsService,
+          provide: EventFormatsService,
           useValue: {
             findAll: jest.fn().mockResolvedValue([mockFormat]),
             findById: jest.fn().mockResolvedValue(mockFormat),
@@ -28,8 +28,8 @@ describe('FormatsController', () => {
       ],
     }).compile();
 
-    controller = module.get<FormatsController>(FormatsController);
-    service = module.get<FormatsService>(FormatsService);
+    controller = module.get<EventFormatsController>(EventFormatsController);
+    service = module.get<EventFormatsService>(EventFormatsService);
   });
 
   afterEach(() => {

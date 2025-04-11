@@ -1,7 +1,7 @@
 // src/models/companies/companies.repository.ts
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../db/database.service';
-import { EventTheme } from './entities/theme.entity';
+import { EventTheme } from './entities/event-theme.entity';
 
 @Injectable()
 export class EventThemesRepository {
