@@ -1,5 +1,6 @@
 // src/models/tickets/tickets.service.ts
 import {
+    BadRequestException,
     ConflictException,
     Injectable,
     NotFoundException,
@@ -27,6 +28,10 @@ export class TicketsService {
             throw new ConflictException(
                 `A ticket with the number ${ticketNumber} already exists`,
             );
+        }
+
+        if(!createTicketDto.status){
+            createTicketDto.status = TicketStatus.UNAVAILABLE;
         }
 
         const ticketData = {
@@ -85,6 +90,10 @@ export class TicketsService {
 
         if (!ticket) {
             throw new NotFoundException(`Ticket ID ${id} not found`);
+        }
+
+        if (ticket.status == TicketStatus.SOLD || ticket.status == TicketStatus.RESERVED) {
+            throw new BadRequestException(`Sold or reserved tickets cannot be updated`);
         }
 
         const updatedTicket = await this.ticketsRepository.update(

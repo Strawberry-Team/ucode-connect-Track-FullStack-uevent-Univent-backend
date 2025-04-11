@@ -48,7 +48,6 @@ export class CreateTicketDto {
         type: 'string',
         example: TicketStatus.SOLD,
         enum: TicketStatus,
-        default: TicketStatus.AVAILABLE
     })
-    status?: TicketStatus = TicketStatus.AVAILABLE;
+    status?: TicketStatus;
 }

@@ -163,7 +163,7 @@ model Ticket {
   title     String       @db.VarChar(100)
   number    String       @unique @db.VarChar(255)
   price     Decimal      @default(0.00) @db.Decimal(10, 2)
-  status    TicketStatus @default(AVAILABLE)
+  status    TicketStatus @default(UNAVAILABLE)
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -336,6 +336,7 @@ enum TicketStatus {
   SOLD      @map("sold")
   RESERVED  @map("reserved")
   AVAILABLE @map("available")
+  UNAVAILABLE @map("unavailable")
 }
 //
 // enum PaymentStatus {
