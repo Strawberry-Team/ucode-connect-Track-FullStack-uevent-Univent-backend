@@ -2,6 +2,7 @@
 import {
     User as PrismaUser,
     RefreshTokenNonce as PrismaRefreshTokenNonce,
+    UserRole,
 } from '@prisma/client';
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -9,7 +10,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
     CONFIDENTIAL: ['basic', 'confidential'],
-    SYSTEMIC: ['basic','confidential','systemic'],
+    PRIVATE: ['basic', 'confidential', 'private'],
 };
 
 export class User implements PrismaUser {
@@ -22,7 +23,7 @@ export class User implements PrismaUser {
     })
     id: number;
 
-    @Expose({ groups: ['confidential'] })
+    @Expose({ groups: ['private'] })
     password: string;
 
     @Expose({ groups: ['basic'] })
@@ -62,6 +63,15 @@ export class User implements PrismaUser {
     profilePictureName: string;
 
     @Expose({ groups: ['confidential'] })
+    @ApiProperty({
+        description: 'User role',
+        nullable: false,
+        enum: UserRole,
+        example: UserRole.USER,
+    })
+    role: UserRole;
+
+    @Expose({ groups: ['private'] })
     isEmailVerified: boolean;
 
     @Expose({ groups: ['basic'] })
@@ -73,9 +83,9 @@ export class User implements PrismaUser {
     })
     createdAt: Date;
 
-    @Expose({ groups: ['systemic'] })
+    @Expose({ groups: ['private'] })
     updatedAt: Date;
 
-    @Expose({ groups: ['confidential'] })
+    @Expose({ groups: ['private'] })
     refreshTokenNonces?: PrismaRefreshTokenNonce[];
 }

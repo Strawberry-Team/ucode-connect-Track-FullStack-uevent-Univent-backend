@@ -43,17 +43,17 @@ In the examples of all commands in the text `<env>` is the name of the environme
    ```bash
    npm run setup:db
    ```
-5. To create new migration run command:
-    ```bash
-    npm run migrate:create --name <migration_name>
-    ```
-6. Run command to apply necessary migrations.
+5. Run command to apply necessary migrations.
    ```bash
    npm run migrate
    ```
-7. Run command to create prisma client:
+6. Run command to create prisma client:
    ```bash
    npm run migrate:generate
+   ```
+7. Run command to build the project:
+   ```bash
+   npm run build
    ```
 8. Seeds help you fill your database with initial data for a presentation or project launch. To start creating test
    data, run the command.
@@ -63,7 +63,7 @@ In the examples of all commands in the text `<env>` is the name of the environme
 9. Start the server:
     ```bash
     npm run start:dev
-   ```
+    ```
 10. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
 
 ## 📫 Mailing Service
@@ -86,6 +86,13 @@ Default credentials you can find in `.env.development.example` file or:
 
 The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api).
 The [Swagger](https://swagger.io/) library is used.
+
+## Migrations
+
+1. To create new migration run command:
+    ```bash
+    npm run migrate:create --name <migration_name>
+    ```
 
 ## 🪲 Testing
 

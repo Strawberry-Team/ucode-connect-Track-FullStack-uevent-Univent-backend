@@ -9,8 +9,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
-    CONFIDENTIAL: ['basic', 'confidential'],
-    SYSTEMIC: ['basic', 'confidential', 'systemic'],
+    PRIVATE: ['basic', 'private'],
+    SYSTEMIC: ['basic', 'private', 'systemic'],
 };
 
 export class Event implements PrismaEvent {
