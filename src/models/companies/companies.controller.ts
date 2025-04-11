@@ -202,6 +202,19 @@ export class CompaniesController {
             },
         },
     })
+    async findAll() {
+        return this.companyService.findAllCompanies();
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get company data by id' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: 'number',
+        description: 'Company ID',
+        example: 1,
+    })
     @ApiResponse({
         status: HttpStatus.FORBIDDEN,
         description: 'Forbidden',
@@ -379,15 +392,12 @@ export class CompaniesController {
             },
         },
     })
-    async findOneNews(@Param('id') id: number) {
-        const company = await this.companyService.findById(id);
-
-        if (!company) {
-            throw new NotFoundException('Company not found');
-        }
-
-        return await this.newsService.findById(id);
-    }
+    async findOneByTitle(
+        @Query('title') title: string,
+        @UserId() userId: number,
+    ) {
+        return this.companyService.findCompanyByTitle(title, userId);
+    }*/
 
     @Patch(':id')
     @UseGuards(CompanyOwnerGuard)
