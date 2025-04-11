@@ -1,16 +1,17 @@
-// src/models/formats/entities/format.entity.ts
-import { EventFormat as PrismaFormat } from "@prisma/client";
-import { Expose } from "class-transformer";
+// scr/models/companies/entities/company.entity.ts
+import { EventTheme as PrismaEventTheme } from '@prisma/client';
+import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export const SERIALIZATION_GROUPS = {
-    BASIC: ['basic']
+    BASIC: ['basic'],
+    SYSTEMIC: ['basic', 'systemic'],
 };
 
-export class Format implements PrismaFormat {
+export class EventTheme implements PrismaEventTheme {
     @Expose({ groups: ['basic'] })
     @ApiProperty({
-        description: 'Event identifier',
+        description: 'Theme identifier',
         nullable: false,
         type: 'number',
         example: 1,
@@ -19,10 +20,10 @@ export class Format implements PrismaFormat {
 
     @Expose({ groups: ['basic'] })
     @ApiProperty({
-        description: 'Format title',
+        description: 'Theme title',
         nullable: false,
         type: 'string',
-        example: 'Conference',
+        example: 'Computer science',
     })
     title: string;
 
