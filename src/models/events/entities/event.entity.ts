@@ -13,7 +13,6 @@ import { News } from '../../news/entities/news.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
-    NEWS: ['news'],
     CONFIDENTIAL: ['basic', 'confidential'],
     SYSTEMIC: ['basic', 'confidential', 'systemic'],
 };
@@ -37,7 +36,7 @@ export class Event implements PrismaEvent {
     })
     companyId: number;
 
-    @Expose({ groups: ['basic', 'news'] })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Event format identifier',
         nullable: false,
@@ -46,7 +45,7 @@ export class Event implements PrismaEvent {
     })
     formatId: number;
 
-    @Expose({ groups: ['basic', 'news'] })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Event title',
         nullable: false,
@@ -119,7 +118,7 @@ export class Event implements PrismaEvent {
     })
     ticketsAvailableFrom: Date | null;
 
-    @Expose({ groups: ['basic', 'news'] })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Event poster image name',
         nullable: false,
@@ -138,7 +137,7 @@ export class Event implements PrismaEvent {
     })
     attendeeVisibility: AttendeeVisibility;
 
-    @Expose({ groups: ['basic', 'news'] })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Event status',
         nullable: false,

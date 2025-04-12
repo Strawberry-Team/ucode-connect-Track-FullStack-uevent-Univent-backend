@@ -12,7 +12,6 @@ import { Company, SERIALIZATION_GROUPS } from './entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { EmailService } from '../../email/email.service';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class CompaniesService {
@@ -21,7 +20,6 @@ export class CompaniesService {
     constructor(
         private readonly companyRepository: CompaniesRepository,
         private readonly emailService: EmailService,
-        private readonly usersService: UsersService,
         private readonly configService: ConfigService,
     ) {
         this.frontUrl = String(
