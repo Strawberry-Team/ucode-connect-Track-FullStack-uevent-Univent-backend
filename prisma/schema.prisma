@@ -72,7 +72,7 @@ model Company {
 
   // Relations
   owner  User    @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
-  events Event[]
+  events Event[] @relation(map: "events_company_id_fk")
   news   News[]  @relation(map: "news_company_id_fk")
   // subscriptions Subscription[]
 
@@ -88,7 +88,7 @@ model EventFormat {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  events Event[]
+  events Event[] @relation(map: "events_formats_id_fk")
 
   @@map("event_formats")
 }
@@ -131,7 +131,7 @@ model Event {
   format  EventFormat @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   news    News[]      @relation(map: "news_event_id_fk")
   // attendees      EventAttendee[]
-  tickets        Ticket[]
+  tickets Ticket[]    @relation(map: "tickets_event_id_fk")
   // promoCodes     PromoCode[]
   themesRelation EventThemeRelation[]
   // subscriptions  Subscription[]
@@ -174,6 +174,7 @@ model Ticket {
   // // Relations
   event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
   // orderItems OrderItem[]
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
 
   @@index([eventId], map: "tickets_event_id_fk")
   @@map("tickets")
@@ -345,9 +346,9 @@ enum EventStatus {
 
 //
 enum TicketStatus {
-  SOLD      @map("sold")
-  RESERVED  @map("reserved")
-  AVAILABLE @map("available")
+  SOLD        @map("sold")
+  RESERVED    @map("reserved")
+  AVAILABLE   @map("available")
   UNAVAILABLE @map("unavailable")
 }
 

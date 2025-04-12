@@ -2,6 +2,7 @@
 import { EventFormat as PrismaEventFormat } from "@prisma/client";
 import { Expose } from "class-transformer";
 import { ApiProperty } from '@nestjs/swagger';
+import { Event } from '../../events/entities/event.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic']
@@ -31,4 +32,7 @@ export class EventFormat implements PrismaEventFormat {
 
     @Expose({ groups: ['systemic'] })
     updatedAt: Date;
+
+    @Expose({ groups: ['systemic'] })
+    events?: Event[];
 }

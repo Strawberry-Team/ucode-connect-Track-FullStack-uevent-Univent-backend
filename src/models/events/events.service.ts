@@ -1,5 +1,8 @@
 // src/models/events/events.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { EventsRepository } from './events.repository';
 import { Event, EventWithRelations, SERIALIZATION_GROUPS } from './entities/event.entity';
 import { plainToInstance } from 'class-transformer';
@@ -27,9 +30,11 @@ export class EventsService {
 
     async findById(id: number): Promise<EventWithRelations> {
         const event = await this.eventsRepository.findById(id);
+
         if (!event) {
             throw new NotFoundException('Event not found');
         }
+
         return plainToInstance(Event, event, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
@@ -56,11 +61,26 @@ export class EventsService {
 
     async delete(id: number): Promise<void> {
         const event = await this.eventsRepository.findById(id);
+
         if (!event) {
             throw new NotFoundException('Event not found');
         }
 
         return this.eventsRepository.delete(id);
+    }
+
+    async updatePoster(id: number, posterName: string): Promise<Event> {
+        let existingEvent = await this.eventsRepository.findById(id);
+
+        if (!existingEvent) {
+            throw new NotFoundException(`Event not found`);
+        }
+
+        const event = await this.eventsRepository.update(id, { posterName });
+
+        return plainToInstance(Event, event, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
     async syncThemes(eventId: number, eventThemesDto: CreateEventThemesDto): Promise<void> {

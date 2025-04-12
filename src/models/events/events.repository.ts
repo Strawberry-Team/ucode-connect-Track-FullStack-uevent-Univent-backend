@@ -98,8 +98,8 @@ export class EventsRepository {
 
     async syncThemes(eventId: number, themesIds: number[]): Promise<void> {
         await this.db.eventThemeRelation.deleteMany({ where: { eventId } });
-        await this.db.eventThemeRelation.createMany({ 
-            data: themesIds.map(themeId => ({ eventId, themeId })) 
+        await this.db.eventThemeRelation.createMany({
+            data: themesIds.map(themeId => ({ eventId, themeId }))
         });
     }
 

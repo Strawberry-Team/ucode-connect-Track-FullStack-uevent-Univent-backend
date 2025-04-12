@@ -9,11 +9,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { EventTheme } from '../themes/entities/event-theme.entity';
 import { Company } from '../../companies/entities/company.entity';
 import { EventFormat } from '../formats/entities/event-format.entity';
+import { Ticket } from '../../tickets/entities/ticket.entity';
+import { News } from '../../news/entities/news.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
-    PRIVATE: ['basic', 'private'],
-    SYSTEMIC: ['basic', 'private', 'systemic'],
+    PRIVATE: ['basic', 'confidential'],
+    SYSTEMIC: ['basic', 'confidential', 'systemic'],
 };
 
 type EventThemeBase = Pick<EventTheme, 'id' | 'title'>;
@@ -161,4 +163,16 @@ export class Event implements PrismaEvent {
 
     @Expose({ groups: ['systemic'] })
     updatedAt: Date;
+
+    @Expose({ groups: ['systemic'] })
+    format?: EventFormat;
+
+    @Expose({ groups: ['systemic'] })
+    company?: Company;
+
+    @Expose({ groups: ['systemic'] })
+    tickets?: Ticket[];
+
+    @Expose({ groups: ['systemic'] })
+    news?: News[];
 }

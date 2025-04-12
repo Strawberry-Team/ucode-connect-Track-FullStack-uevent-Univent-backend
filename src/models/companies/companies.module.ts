@@ -6,9 +6,17 @@ import { CompaniesRepository } from './companies.repository';
 import { EmailModule } from '../../email/email.module';
 import { DatabaseModule } from '../../db/database.module';
 import { UsersModule } from '../users/users.module';
+import { NewsModule } from '../news/news.module';
+import { EventsModule } from '../events/events.module';
 
 @Module({
-    imports: [EmailModule, DatabaseModule, forwardRef(() => UsersModule)],
+    imports: [
+        DatabaseModule,
+        forwardRef(() => UsersModule),
+        EmailModule,
+        forwardRef(() => NewsModule),
+        forwardRef(() => EventsModule),
+    ],
     controllers: [CompaniesController],
     providers: [CompaniesService, CompaniesRepository],
     exports: [CompaniesService, CompaniesRepository],

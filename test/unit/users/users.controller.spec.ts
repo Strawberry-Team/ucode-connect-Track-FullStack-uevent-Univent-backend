@@ -159,9 +159,9 @@ describe('UsersController', () => {
                 encoding: '7bit',
                 mimetype: 'image/jpeg',
                 size: 1024,
-                destination: './public/uploads/avatars',
+                destination: './public/uploads/user-avatars',
                 filename: 'avatar-uuid.jpg',
-                path: './public/uploads/avatars/avatar-uuid.jpg',
+                path: './public/uploads/user-avatars/avatar-uuid.jpg',
                 buffer: Buffer.from('test'),
                 stream: jest.fn() as any
             } as Express.Multer.File;

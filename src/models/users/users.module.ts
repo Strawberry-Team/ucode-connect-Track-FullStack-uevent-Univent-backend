@@ -9,11 +9,12 @@ import { EmailModule } from '../../email/email.module';
 import { EmailService } from '../../email/email.service';
 import { GoogleOAuthService } from '../../google/google-oauth.service';
 import { GoogleModule } from '../../google/google.module';
+import { DatabaseModule } from '../../db/database.module';
 import { CompaniesModule } from '../companies/companies.module';
 import { CompaniesService } from '../companies/companies.service';
 
 @Module({
-    imports: [EmailModule, GoogleModule, forwardRef(() => CompaniesModule)],
+    imports: [DatabaseModule, EmailModule, GoogleModule, forwardRef(() => CompaniesModule)],
     controllers: [UsersController],
     providers: [
         UsersService,

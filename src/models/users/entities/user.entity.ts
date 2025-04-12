@@ -6,6 +6,7 @@ import {
 } from '@prisma/client';
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Company } from '../../companies/entities/company.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
@@ -88,4 +89,7 @@ export class User implements PrismaUser {
 
     @Expose({ groups: ['private'] })
     refreshTokenNonces?: PrismaRefreshTokenNonce[];
+
+    @Expose({ groups: ['systemic'] })
+    ownedCompany?: Company;
 }
