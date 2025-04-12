@@ -36,7 +36,7 @@ import {
     ApiQuery,
     ApiResponse,
     ApiSecurity,
-    ApiTags,
+    ApiTags, OmitType,
 } from '@nestjs/swagger';
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
@@ -134,7 +134,7 @@ export class UsersController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: User,
+        type: () => OmitType(User, ['role']),
         description: 'Successfully retrieve',
     })
     @ApiResponse({
@@ -191,7 +191,7 @@ export class UsersController extends BaseCrudController<
     @ApiOperation({ summary: 'Get all users' })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: User,
+        type: () => OmitType(User, ['role']),
         isArray: true,
         description: 'Successfully retrieve',
     })
@@ -217,8 +217,6 @@ export class UsersController extends BaseCrudController<
     async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
         return await this.usersService.findAllUsers(getUsersDto);
     }
-
-    //TODO: стоит ли me везде сделать?
 
     @Get(':id/companies')
     @UseGuards(AccountOwnerGuard)

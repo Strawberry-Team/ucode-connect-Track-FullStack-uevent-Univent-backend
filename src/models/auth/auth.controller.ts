@@ -30,7 +30,7 @@ import {
     ApiBody,
     ApiSecurity,
     getSchemaPath,
-    ApiBearerAuth,
+    ApiBearerAuth, OmitType,
 } from '@nestjs/swagger';
 import { User } from '../users/entities/user.entity';
 
@@ -73,6 +73,7 @@ export class AuthController {
     })
     @ApiResponse({
         status: HttpStatus.CREATED,
+        type: User,
         description: 'Successful user registration',
         schema: {
             type: 'object',
@@ -183,6 +184,7 @@ export class AuthController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successful login',
+        type: User,
         schema: {
             type: 'object',
             properties: {
