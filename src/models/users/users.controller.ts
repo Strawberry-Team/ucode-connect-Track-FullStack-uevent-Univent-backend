@@ -6,19 +6,14 @@ import {
     BadRequestException,
     Post,
     Body,
-    NotImplementedException,
     Param,
     Patch,
-    Delete,
     UseGuards,
     Get,
-    SerializeOptions,
     Query,
     HttpStatus,
 } from '@nestjs/common';
-import { BaseCrudController } from '../../common/controller/base-crud.controller';
-import { SERIALIZATION_GROUPS, User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { Express } from 'express';
@@ -30,69 +25,24 @@ import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import {
     ApiBody,
     ApiConsumes,
-    ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
-    ApiQuery,
     ApiResponse,
-    ApiSecurity,
     ApiTags,
 } from '@nestjs/swagger';
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
+import { JwtAuthGuard } from '../auth/guards/auth.guards';
 
+// TODO create get user events route
 @Controller('users')
-@SerializeOptions({
-    groups: SERIALIZATION_GROUPS.BASIC,
-})
 @ApiTags('Users')
-@ApiSecurity('JWT')
-export class UsersController extends BaseCrudController<
-    User,
-    CreateUserDto,
-    UpdateUserDto
-> {
+@UseGuards(JwtAuthGuard)
+export class UsersController {
     constructor(private readonly usersService: UsersService) {
-        super();
     }
 
-    protected async createEntity(
-        dto: CreateUserDto,
-        userId: number,
-    ): Promise<User> {
-        return await this.usersService.createUser(dto);
-    }
-
-    protected async findById(id: number, userId: number): Promise<User> {
-        return await this.usersService.findUserByIdWithoutPassword(id);
-    }
-
-    protected async updateEntity(
-        id: number,
-        dto: UpdateUserDto,
-        userId: number,
-    ): Promise<User> {
-        return await this.usersService.updateUser(id, dto);
-    }
-
-    protected async deleteEntity(id: number, userId: number): Promise<void> {
-        return await this.usersService.deleteUser(id);
-    }
-
-    @Post()
-    @ApiExcludeEndpoint()
-    async create(
-        @Body() dto: CreateUserDto,
-        @UserId() userId: number,
-    ): Promise<User> {
-        throw new NotImplementedException();
-        // const user: User = await super.create(dto, userId);
-        // this.authService.sendConfirmationEmailAndNewPassword(user);
-        // return user;
-    }
-
-    // TODO create get user events route
-
+    @UseGuards(JwtAuthGuard)
     @Get('me')
     @ApiOperation({ summary: 'Get current user data' })
     @ApiResponse({
@@ -182,9 +132,8 @@ export class UsersController extends BaseCrudController<
     })
     async findOne(
         @Param('id') id: number,
-        @UserId() userId: number,
     ): Promise<User> {
-        return super.findOne(id, userId);
+        return await this.usersService.findUserByIdWithoutPassword(id);
     }
 
     @Get()
@@ -217,8 +166,6 @@ export class UsersController extends BaseCrudController<
     async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
         return await this.usersService.findAllUsers(getUsersDto);
     }
-
-    //TODO: стоит ли me везде сделать?
 
     @Get(':id/companies')
     @UseGuards(AccountOwnerGuard)
@@ -358,7 +305,7 @@ export class UsersController extends BaseCrudController<
         @Body() dto: UpdateUserDto,
         @UserId() userId: number,
     ): Promise<User> {
-        return super.update(id, dto, userId);
+        return await this.usersService.updateUser(id, dto);
     }
 
     @Patch(':id/password')
@@ -560,16 +507,5 @@ export class UsersController extends BaseCrudController<
         this.usersService.updateUserAvatar(id, file.filename);
 
         return { server_filename: file.filename };
-    }
-
-    @Delete(':id')
-    @UseGuards(AccountOwnerGuard)
-    @ApiExcludeEndpoint()
-    async remove(
-        @Param('id') id: number,
-        @UserId() userId: number,
-    ): Promise<void> {
-        throw new NotImplementedException();
-        // return super.delete(id, userId);
     }
 }
