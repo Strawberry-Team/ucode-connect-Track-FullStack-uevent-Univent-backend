@@ -88,12 +88,13 @@ async function bootstrap() {
         .addTag('Auth')
         .addTag('Users')
         .addTag('Companies')
-        .addTag('Companies')
         .addTag('Events')
+        .addTag('News')
         .addTag('Orders')
         .addTag('Tickets')
         .addTag('Promo codes')
         .build();
+
     const document = SwaggerModule.createDocument(app, configAPIDoc);
 
     SwaggerModule.setup('api', app, document, {

@@ -294,7 +294,7 @@ export class UsersController extends BaseCrudController<
     @UseGuards(AccountOwnerGuard)
     @UseInterceptors(
         createFileUploadInterceptor({
-            destination: './public/uploads/avatars',
+            destination: './public/uploads/user-avatars',
             allowedTypes: AvatarConfig.prototype.allowedTypesForInterceptor,
             maxSize: 5 * 1024 * 1024,
         }),

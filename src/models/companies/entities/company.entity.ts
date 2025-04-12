@@ -1,12 +1,13 @@
 // scr/models/companies/entities/company.entity.ts
 import { Company as PrismaCompany } from '@prisma/client';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
+import { Event } from '../../events/entities/event.entity';
+import { News } from '../../news/entities/news.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
-    NEWS: ['news'],
     SYSTEMIC: ['basic', 'systemic'],
 };
 
@@ -41,7 +42,7 @@ export class Company implements PrismaCompany {
     })
     email: string;
 
-    @Expose({ groups: ['basic', 'news'] })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company name',
         required: true,
@@ -61,7 +62,7 @@ export class Company implements PrismaCompany {
     })
     description: string;
 
-    @Expose({ groups: ['basic', 'news'] })
+    @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Company logo name',
         required: true,
@@ -86,12 +87,11 @@ export class Company implements PrismaCompany {
     updatedAt: Date;
 
     @Expose({ groups: ['basic'] })
-    @ApiProperty({
-        description: 'Company owner data',
-        required: false,
-        nullable: false,
-        type: User,
-        example: User,
-    })
     owner?: User;
+
+    @Expose({ groups: ['systemic'] })
+    events?: Event[];
+
+    @Expose({ groups: ['systemic'] })
+    news?: News[];
 }

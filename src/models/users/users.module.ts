@@ -1,5 +1,5 @@
 // src/models/users/users.module.ts
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
@@ -9,9 +9,11 @@ import { EmailModule } from '../../email/email.module';
 import { EmailService } from '../../email/email.service';
 import { GoogleOAuthService } from '../../google/google-oauth.service';
 import { GoogleModule } from '../../google/google.module';
+import { CompaniesModule } from '../companies/companies.module';
+import { DatabaseModule } from '../../db/database.module';
 
 @Module({
-    imports: [EmailModule, GoogleModule],
+    imports: [DatabaseModule, EmailModule, GoogleModule, forwardRef(() => CompaniesModule)],
     controllers: [UsersController],
     providers: [
         UsersService,

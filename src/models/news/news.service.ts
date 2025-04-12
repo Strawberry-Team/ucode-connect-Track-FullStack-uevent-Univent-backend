@@ -1,10 +1,8 @@
 // src/models/news/news.service.ts
 import {
-    BadRequestException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
-import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
 import { UsersService } from '../users/users.service';
 import { CompaniesService } from '../companies/companies.service';
@@ -13,7 +11,7 @@ import { News } from './entities/news.entity';
 import { NewsRepository } from './news.repository';
 import { plainToInstance } from 'class-transformer';
 import { SERIALIZATION_GROUPS } from './entities/news.entity';
-import { Company } from '../companies/entities/company.entity';
+import { CreateNewsDto } from './dto/create-news.dto';
 
 @Injectable()
 export class NewsService {
@@ -24,21 +22,27 @@ export class NewsService {
         private readonly eventsService: EventsService,
     ) {}
 
-    async create(dto: CreateNewsDto, userId: number) {
-        if (dto.companyId) {
-            const existingCompany = await this.companiesService.findById(
-                dto.companyId,
-            );
+    async create(
+        dto: CreateNewsDto,
+        userId: number,
+        companyId: number | undefined,
+        eventId: number | undefined,
+    ) {
+        if (!companyId && !eventId) {
+            throw new NotFoundException('The news item must be related to the company or event');
+        }
+
+        if (companyId) {
+            const existingCompany =
+                await this.companiesService.findById(companyId);
 
             if (!existingCompany) {
                 throw new NotFoundException('Company not found');
             }
         }
 
-        if (dto.eventId) {
-            const existingEvent = await this.eventsService.findEventById(
-                dto.eventId,
-            );
+        if (eventId) {
+            const existingEvent = await this.eventsService.findById(eventId);
 
             if (!existingEvent) {
                 throw new NotFoundException('Event not found');
@@ -48,6 +52,8 @@ export class NewsService {
         const news = await this.newsRepository.create({
             ...dto,
             authorId: userId,
+            companyId: companyId,
+            eventId: eventId,
         });
 
         return plainToInstance(News, news, {
@@ -66,10 +72,6 @@ export class NewsService {
     }
 
     public async findById(id: number): Promise<News> {
-        if (!id || id < 0) {
-            throw new BadRequestException('News id must be greater than 0');
-        }
-
         const news = await this.newsRepository.findById(id);
 
         if (!news) {
@@ -82,10 +84,10 @@ export class NewsService {
     }
 
     public async findByAuthorId(authorId: number): Promise<News[]> {
-        if (!authorId || authorId < 0) {
-            throw new BadRequestException(
-                'News author id must be greater than 0',
-            );
+        const existingUser = await this.usersService.findUserById(authorId);
+
+        if (!existingUser) {
+            throw new NotFoundException('User not found');
         }
 
         const news = await this.newsRepository.findByAuthorId(authorId);
@@ -96,10 +98,10 @@ export class NewsService {
     }
 
     public async findByCompanyId(companyId: number): Promise<News[]> {
-        if (!companyId || companyId < 0) {
-            throw new BadRequestException(
-                'News company id must be greater than 0',
-            );
+        const existingCompany = await this.companiesService.findById(companyId);
+
+        if (!existingCompany) {
+            throw new NotFoundException('Company not found');
         }
 
         const news = await this.newsRepository.findByCompanyId(companyId);
@@ -110,10 +112,10 @@ export class NewsService {
     }
 
     public async findByEventId(eventId: number): Promise<News[]> {
-        if (!eventId || eventId < 0) {
-            throw new BadRequestException(
-                'News event id must be greater than 0',
-            );
+        const existingEvent = await this.eventsService.findById(eventId);
+
+        if (!existingEvent) {
+            throw new NotFoundException('Event not found');
         }
 
         const news = await this.newsRepository.findByEventId(eventId);
@@ -123,34 +125,14 @@ export class NewsService {
         });
     }
 
-    async update(id: number, dto: UpdateNewsDto): Promise<News> {
-        const existingNews = await this.newsRepository.findById(id);
+    async update(newsId: number, dto: UpdateNewsDto): Promise<News> {
+        const existingNews = await this.newsRepository.findById(newsId);
 
         if (!existingNews) {
             throw new NotFoundException(`News not found`);
         }
 
-        if (dto.companyId) {
-            const existingCompany = await this.companiesService.findById(
-                dto.companyId,
-            );
-
-            if (!existingCompany) {
-                throw new NotFoundException('Company not found');
-            }
-        }
-
-        if (dto.eventId) {
-            const existingEvent = await this.eventsService.findEventById(
-                dto.eventId,
-            );
-
-            if (!existingEvent) {
-                throw new NotFoundException('Event not found');
-            }
-        }
-
-        const news = await this.newsRepository.update(id, dto);
+        const news = await this.newsRepository.update(newsId, dto);
 
         return plainToInstance(News, news, {
             groups: SERIALIZATION_GROUPS.BASIC,
@@ -158,10 +140,6 @@ export class NewsService {
     }
 
     async delete(id: number): Promise<void> {
-        if (!id || id < 0) {
-            throw new BadRequestException('News id must be greater than 0');
-        }
-
         let existingNews = await this.newsRepository.findById(id);
 
         if (!existingNews) {

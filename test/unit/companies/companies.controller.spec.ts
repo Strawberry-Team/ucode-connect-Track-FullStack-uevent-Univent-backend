@@ -128,7 +128,6 @@ describe('CompaniesController', () => {
 
             const result = await controller.findOne(
                 fakeCompany.id,
-                fakeUser.id,
             );
             expect(result).toEqual(fakeCompany);
             expect(companiesService.findById).toHaveBeenCalledWith(
@@ -165,7 +164,6 @@ describe('CompaniesController', () => {
             const result = await controller.update(
                 fakeCompany.id,
                 fakeUpdateCompanyDto,
-                fakeUser.id,
             );
             expect(result).toEqual(fakeUpdatedCompany);
             expect(companiesService.update).toHaveBeenCalledWith(
@@ -186,7 +184,7 @@ describe('CompaniesController', () => {
                 },
             );
 
-            const result = await controller.uploadLogo(
+            const result = await controller.updateLogo(
                 fakeCompany.id,
                 mockFile,
             );
@@ -203,7 +201,7 @@ describe('CompaniesController', () => {
             jest.spyOn(companiesService, 'delete');
 
             await expect(
-                controller.remove(fakeCompany.id, fakeUser.id),
+                controller.delete(fakeCompany.id),
             ).rejects.toThrow(NotImplementedException);
             expect(companiesService.delete).not.toHaveBeenCalled();
         });
