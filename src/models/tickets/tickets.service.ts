@@ -18,9 +18,9 @@ export class TicketsService {
 
     async createTicket(
         createTicketDto: CreateTicketDto,
-        userId: number,
+        eventId: number,
     ): Promise<Ticket> {
-        const ticketNumber = this.generateTicketNumber(createTicketDto.eventId);
+        const ticketNumber = this.generateTicketNumber(eventId);
         const existingTicket = await this.ticketsRepository.findOneByNumber(
             ticketNumber
         );
@@ -37,6 +37,7 @@ export class TicketsService {
         const ticketData = {
             ...createTicketDto,
             number: ticketNumber,
+            eventId: eventId,
         };
 
         const ticket = await this.ticketsRepository.create(ticketData);
@@ -45,6 +46,24 @@ export class TicketsService {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
     }
+
+    async createTickets(
+        createTicketDto: CreateTicketDto,
+        eventId?: number,
+    ): Promise<Ticket[]> {
+        const tickets: Ticket[] = [];
+
+        if(!createTicketDto.quantity) createTicketDto.quantity = 1;
+
+        if(!eventId) throw new ConflictException('You must provide an eventId');
+
+        for (let i = 0; i < Number(createTicketDto.quantity); i++) {
+            tickets.push(await this.createTicket(createTicketDto, eventId));
+        }
+
+        return tickets;
+    }
+
 
     async findAllTickets(params?: {
         eventId?: number;
@@ -70,8 +89,13 @@ export class TicketsService {
         return { items: ticketItems, total };
     }
 
-    async findOneTicket(id: number, userId?: number): Promise<Ticket> {
+    async findOneTicket(id: number, eventId?: number): Promise<Ticket> {
         const ticket = await this.ticketsRepository.findOne(id);
+
+        if(eventId && ticket?.eventId && ticket?.eventId !== eventId) {
+            throw new NotFoundException(`Ticket ID ${id} not found`);
+        }
+
         if (!ticket) {
             throw new NotFoundException(`Ticket ID ${id} not found`);
         }
@@ -83,8 +107,7 @@ export class TicketsService {
 
     async updateTicket(
         id: number,
-        updateTicketDto: UpdateTicketDto,
-        userId: number,
+        updateTicketDto: UpdateTicketDto
     ): Promise<Ticket> {
         const ticket = await this.findOneTicket(id);
 
@@ -105,7 +128,7 @@ export class TicketsService {
         });
     }
 
-    async deleteTicket(id: number, userId: number): Promise<void> {
+    async deleteTicket(id: number): Promise<void> {
         const ticket = await this.findOneTicket(id);
 
         if (!ticket) {

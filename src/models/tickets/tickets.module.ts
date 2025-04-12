@@ -5,9 +5,10 @@ import { TicketsRepository } from './tickets.repository';
 import { DatabaseModule } from '../../db/database.module';
 import { TicketsController } from './tickets.controller';
 import { UsersModule } from '../users/users.module';
+import {CompaniesModule} from "../companies/companies.module";
 
 @Module({
-    imports: [DatabaseModule, UsersModule],
+    imports: [DatabaseModule, UsersModule, CompaniesModule],
     controllers: [TicketsController],
     providers: [TicketsService, TicketsRepository, TicketsController],
     exports: [TicketsService],

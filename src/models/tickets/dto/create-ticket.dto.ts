@@ -1,25 +1,16 @@
 // src/models/tickets/dto/create-ticket.dto.ts
 import { TicketStatus } from '@prisma/client';
 import {
+    IsQuantity,
     IsTicketPrice,
     IsTicketStatus,
 } from '../validators/tickets.validator';
 import { IsId } from '../../../common/validators/id.validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsName } from '../../../common/validators/name.validator';
+import {IsNumber, IsPositive} from "class-validator";
 
 export class CreateTicketDto {
-    @IsId(false)
-    @ApiProperty({
-        required: true,
-        description: 'Event ID associated with the ticket',
-        nullable: false,
-        type: 'number',
-        example: 1,
-    })
-    eventId: number;
-
-
     @IsName(false)
     @ApiProperty({
         required: true,
@@ -50,4 +41,14 @@ export class CreateTicketDto {
         enum: TicketStatus,
     })
     status?: TicketStatus;
+
+    @IsQuantity(true)
+    @ApiProperty({
+        description: 'Quantity of tickets',
+        required: true,
+        nullable: false,
+        type: 'number',
+        example: 100,
+    })
+    quantity?: number;
 }

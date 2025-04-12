@@ -7,16 +7,17 @@ import {
     Body,
     Patch,
     Delete,
-    HttpStatus,
+    HttpStatus, Query, NotImplementedException,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
+import { TicketsService } from '../tickets/tickets.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { BaseCrudController } from '../../common/controller/base-crud.controller';
 import { Event } from './entities/event.entity';
 import { Public } from '../../common/decorators/public.decorator';
 import {
-    ApiBody,
+    ApiBody, ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
     ApiResponse,
@@ -24,6 +25,10 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 import { UserId } from '../../common/decorators/user.decorator';
+import {CreateTicketDto} from "../tickets/dto/create-ticket.dto";
+import {Ticket} from "../tickets/entities/ticket.entity";
+import {TicketStatus} from "@prisma/client";
+import {FindAllTicketsQueryDto} from "../tickets/dto/find-all-tickets-query.dto";
 
 @Controller('events')
 @ApiTags('Events')
@@ -33,7 +38,8 @@ export class EventsController extends BaseCrudController<
     CreateEventDto,
     UpdateEventDto
 > {
-    constructor(private readonly eventsService: EventsService) {
+    constructor(private readonly eventsService: EventsService,
+                private readonly ticketsService: TicketsService, ) {
         super();
     }
 
@@ -135,6 +141,17 @@ export class EventsController extends BaseCrudController<
         return await super.create(dto, userId);
     }
 
+    @Post(':id/tickets')
+    @ApiExcludeEndpoint()
+    // @UseGuards(EventCreatorGuard)//TODO: EventCreatorGuard
+    async createTicket(
+        @Body() dto: CreateTicketDto,
+        @Param('id') id: string,
+    ): Promise<Ticket[]> {
+        const eventIdParsed = id ? parseInt(id, 10) : undefined;
+        return this.ticketsService.createTickets(dto, eventIdParsed);
+    }
+
     @Public()
     @Get()
     @ApiOperation({ summary: 'Get all events data' })
@@ -145,6 +162,21 @@ export class EventsController extends BaseCrudController<
     })
     async findAll(): Promise<Event[]> {
         return this.eventsService.findAllEvents();
+    }
+
+    @Public()
+    @Get(':id/tickets')
+    @ApiOperation({ summary: 'Get all event tickets data' })
+    async findAllTickets(
+        @Param('id') id: string,
+        @Query() query: FindAllTicketsQueryDto,
+    ): Promise<{ items: Ticket[]; total: number }> {
+        const eventIdParsed = id ? parseInt(id, 10) : undefined;
+
+        return this.ticketsService.findAllTickets({
+            eventId: eventIdParsed,
+            ...query,
+        });
     }
 
     @Public()
@@ -182,6 +214,15 @@ export class EventsController extends BaseCrudController<
     ): Promise<Event> {
         // TODO: Треба зробити по нормальному userId
         return await super.findOne(id, 0);
+    }
+
+    @Get(':id/tickets/:ticketId')
+    @ApiExcludeEndpoint()
+    async findOneTicket(
+        @Param('id') id: number,
+        @Param('ticketId') ticketId: number,
+    ): Promise<Ticket> {
+        return this.ticketsService.findOneTicket(ticketId, id);
     }
 
     @Patch(':id')

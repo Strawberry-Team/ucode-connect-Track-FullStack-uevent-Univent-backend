@@ -28,3 +28,11 @@ export function IsTicketStatus(isOptional: boolean): PropertyDecorator {
         ...decorators,
     );
 }
+
+export function IsQuantity(isOptional: boolean): PropertyDecorator {
+    const decorators = [IsPositive()]
+    return applyDecorators(
+        ...(isOptional ? [IsOptional()] : []),
+        ...decorators,
+    );
+}
