@@ -1,4 +1,3 @@
-// src/models/events/events.controller.ts
 import {
     Controller,
     Get,
@@ -7,7 +6,9 @@ import {
     Body,
     Patch,
     Delete,
-    HttpStatus, Query, NotImplementedException,
+    HttpStatus,
+    Query,
+    NotImplementedException,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { TicketsService } from '../tickets/tickets.service';
@@ -17,18 +18,20 @@ import { BaseCrudController } from '../../common/controller/base-crud.controller
 import { Event } from './entities/event.entity';
 import { Public } from '../../common/decorators/public.decorator';
 import {
-    ApiBody, ApiExcludeEndpoint,
+    ApiBody,
+    ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
     ApiResponse,
     ApiSecurity,
     ApiTags,
+    ApiQuery,
 } from '@nestjs/swagger';
 import { UserId } from '../../common/decorators/user.decorator';
-import {CreateTicketDto} from "../tickets/dto/create-ticket.dto";
-import {Ticket} from "../tickets/entities/ticket.entity";
-import {TicketStatus} from "@prisma/client";
-import {FindAllTicketsQueryDto} from "../tickets/dto/find-all-tickets-query.dto";
+import { CreateTicketDto } from '../tickets/dto/create-ticket.dto';
+import { Ticket } from '../tickets/entities/ticket.entity';
+import { TicketStatus } from '@prisma/client';
+import { FindAllTicketsQueryDto } from '../tickets/dto/find-all-tickets-query.dto';
 
 @Controller('events')
 @ApiTags('Events')
@@ -38,8 +41,10 @@ export class EventsController extends BaseCrudController<
     CreateEventDto,
     UpdateEventDto
 > {
-    constructor(private readonly eventsService: EventsService,
-                private readonly ticketsService: TicketsService, ) {
+    constructor(
+        private readonly eventsService: EventsService,
+        private readonly ticketsService: TicketsService,
+    ) {
         super();
     }
 
@@ -142,8 +147,24 @@ export class EventsController extends BaseCrudController<
     }
 
     @Post(':id/tickets')
-    @ApiExcludeEndpoint()
-    // @UseGuards(EventCreatorGuard)//TODO: EventCreatorGuard
+    @ApiOperation({ summary: 'Create tickets for an event' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: Number,
+        description: 'Event ID',
+        example: 1,
+    })
+    @ApiBody({
+        type: CreateTicketDto,
+        description: 'Ticket creation data',
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Tickets successfully created',
+        isArray: true,
+        type: Ticket,
+    })
     async createTicket(
         @Body() dto: CreateTicketDto,
         @Param('id') id: string,
@@ -166,13 +187,44 @@ export class EventsController extends BaseCrudController<
 
     @Public()
     @Get(':id/tickets')
-    @ApiOperation({ summary: 'Get all event tickets data' })
+    @ApiOperation({ summary: 'Get all tickets for an event' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: Number,
+        description: 'Event ID',
+        example: 1,
+    })
+    @ApiQuery({
+        name: 'title',
+        required: false,
+        description: 'Filter tickets by title',
+        type: String,
+        example: 'VIP Ticket',
+    })
+    @ApiQuery({
+        name: 'status',
+        required: false,
+        description: 'Filter tickets by status',
+        enum: TicketStatus,
+        example: TicketStatus.AVAILABLE,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Tickets retrieved successfully',
+        schema: {
+            type: 'object',
+            properties: {
+                items: { type: 'array', items: { $ref: '#/components/schemas/Ticket' } },
+                total: { type: 'number', example: 10 },
+            },
+        },
+    })
     async findAllTickets(
         @Param('id') id: string,
         @Query() query: FindAllTicketsQueryDto,
     ): Promise<{ items: Ticket[]; total: number }> {
         const eventIdParsed = id ? parseInt(id, 10) : undefined;
-
         return this.ticketsService.findAllTickets({
             eventId: eventIdParsed,
             ...query,
@@ -180,44 +232,31 @@ export class EventsController extends BaseCrudController<
     }
 
     @Public()
-    @Get(':id')
-    @ApiOperation({ summary: 'Get event data' })
+    @Get(':id/tickets/:ticketId')
+    @ApiOperation({ summary: 'Get data of a specific ticket for an event' })
     @ApiParam({
-        required: true,
         name: 'id',
-        type: 'number',
+        required: true,
+        type: Number,
         description: 'Event ID',
         example: 1,
     })
+    @ApiParam({
+        name: 'ticketId',
+        required: true,
+        type: Number,
+        description: 'Ticket ID',
+        example: 123,
+    })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Successfully retrieve',
-        type: Event,
+        description: 'Ticket retrieved successfully',
+        type: Ticket,
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Event not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event not found',
-                },
-            },
-        },
+        description: 'Ticket not found',
     })
-    async findOne(
-        @Param('id') id: number,
-        @UserId() userId: number,
-    ): Promise<Event> {
-        // TODO: Треба зробити по нормальному userId
-        return await super.findOne(id, 0);
-    }
-
-    @Get(':id/tickets/:ticketId')
-    @ApiExcludeEndpoint()
     async findOneTicket(
         @Param('id') id: number,
         @Param('ticketId') ticketId: number,
@@ -228,9 +267,9 @@ export class EventsController extends BaseCrudController<
     @Patch(':id')
     @ApiOperation({ summary: 'Update event data' })
     @ApiParam({
-        required: true,
         name: 'id',
-        type: 'number',
+        required: true,
+        type: Number,
         description: 'Event ID',
         example: 1,
     })
@@ -241,64 +280,12 @@ export class EventsController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.OK,
+        description: 'Event successfully updated',
         type: Event,
-        description: 'Successfully update',
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
         description: 'Validation error',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event title must be not empty',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event data can be updated only by its owner',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Event not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event not found',
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.CONFLICT,
-        description: 'Event data conflict',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event with this title already exists',
-                },
-            },
-        },
     })
     async update(
         @Param('id') id: number,
@@ -311,29 +298,15 @@ export class EventsController extends BaseCrudController<
     @Delete(':id')
     @ApiOperation({ summary: 'Delete event' })
     @ApiParam({
-        required: true,
         name: 'id',
-        type: 'number',
+        required: true,
+        type: Number,
         description: 'Event ID',
         example: 1,
     })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Event successfully deleted',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event can be deleted only by its owner',
-                },
-            },
-        },
     })
     async remove(
         @Param('id') id: number,
