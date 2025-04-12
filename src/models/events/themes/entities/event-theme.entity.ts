@@ -23,7 +23,7 @@ export class EventTheme implements PrismaEventTheme {
         description: 'Theme title',
         nullable: false,
         type: 'string',
-        example: 'Computer science',
+        example: 'Web Development',
     })
     title: string;
 

@@ -4,13 +4,26 @@ import {
     EventStatus,
     Event as PrismaEvent,
 } from '@prisma/client';
-import { Expose } from 'class-transformer';
+import { Expose, Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { EventTheme } from '../themes/entities/event-theme.entity';
+import { Company } from '../../companies/entities/company.entity';
+import { EventFormat } from '../formats/entities/event-format.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
     PRIVATE: ['basic', 'private'],
     SYSTEMIC: ['basic', 'private', 'systemic'],
+};
+
+type EventThemeBase = Pick<EventTheme, 'id' | 'title'>;
+type CompanyBase = Pick<Company, 'id' | 'title' | 'logoName'>;
+type EventFormatBase = Pick<EventFormat, 'id' | 'title'>;
+
+export type EventWithRelations = Omit<Event, 'themesRelation'> & {
+    themes?: EventThemeBase[];
+    company?: CompanyBase;
+    format?: EventFormatBase;
 };
 
 export class Event implements PrismaEvent {
