@@ -81,7 +81,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'create').mockResolvedValue(fakeCompany);
             jest.spyOn(emailService, 'sendWelcomeCompanyEmail');
 
-            const result = await service.createCompany(
+            const result = await service.create(
                 fakeCreateCompanyDto,
                 fakeUser.id,
             );
@@ -105,7 +105,7 @@ describe('CompaniesService', () => {
             jest.spyOn(emailService, 'sendWelcomeCompanyEmail');
 
             await expect(
-                service.createCompany(fakeCreateCompanyDto, fakeUser.id),
+                service.create(fakeCreateCompanyDto, fakeUser.id),
             ).rejects.toThrow(ConflictException);
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
             expect(repository.findByEmail).not.toHaveBeenCalled();
@@ -126,7 +126,7 @@ describe('CompaniesService', () => {
             jest.spyOn(emailService, 'sendWelcomeCompanyEmail');
 
             await expect(
-                service.createCompany(fakeCreateCompanyDto, fakeUser.id),
+                service.create(fakeCreateCompanyDto, fakeUser.id),
             ).rejects.toThrow(ConflictException);
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
             expect(repository.findByEmail).toHaveBeenCalledWith(
@@ -142,7 +142,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'create');
 
             await expect(
-                service.createCompany(fakeCreateCompanyDto, fakeUser.id),
+                service.create(fakeCreateCompanyDto, fakeUser.id),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeCompany.ownerId);
             expect(repository.findByEmail).toHaveBeenCalledWith(fakeCompany.email);
@@ -154,7 +154,7 @@ describe('CompaniesService', () => {
         it('Should return all Companies', async () => {
             jest.spyOn(repository, 'findAll').mockResolvedValue([fakeCompany]);
 
-            const result = await service.findAllCompanies();
+            const result = await service.findAll();
             expect(result).toEqual([fakeCompany]);
             expect(repository.findAll).toHaveBeenCalled();
         });
@@ -164,7 +164,7 @@ describe('CompaniesService', () => {
         it('Should return Company when found', async () => {
             jest.spyOn(repository, 'findById').mockResolvedValue(fakeCompany);
 
-            const result = await service.findCompanyById(fakeCompany.id);
+            const result = await service.findById(fakeCompany.id);
             expect(result).toEqual(fakeCompany);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
         });
@@ -172,7 +172,7 @@ describe('CompaniesService', () => {
         it('Should throw BadRequestException when invalid ID passed', async () => {
             jest.spyOn(repository, 'findById');
 
-            await expect(service.findCompanyById(-1)).rejects.toThrow(
+            await expect(service.findById(-1)).rejects.toThrow(
                 BadRequestException,
             );
             expect(repository.findById).not.toHaveBeenCalled();
@@ -182,7 +182,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'findById');
 
             await expect(
-                service.findCompanyById(fakeCompany.id),
+                service.findById(fakeCompany.id),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
         });
@@ -194,7 +194,7 @@ describe('CompaniesService', () => {
                 fakeCompany,
             );
 
-            const result = await service.findCompanyByOwnerId(
+            const result = await service.findByOwnerId(
                 fakeCompany.ownerId,
             );
             expect(result).toEqual(fakeCompany);
@@ -206,7 +206,7 @@ describe('CompaniesService', () => {
         it('Should throw BadRequestException when invalid owner ID passed', async () => {
             jest.spyOn(repository, 'findByOwnerId');
 
-            await expect(service.findCompanyByOwnerId(-1)).rejects.toThrow(
+            await expect(service.findByOwnerId(-1)).rejects.toThrow(
                 BadRequestException,
             );
             expect(repository.findByOwnerId).not.toHaveBeenCalled();
@@ -216,7 +216,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'findByOwnerId');
 
             await expect(
-                service.findCompanyByOwnerId(fakeCompany.ownerId),
+                service.findByOwnerId(fakeCompany.ownerId),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findByOwnerId).toHaveBeenCalledWith(
                 fakeCompany.ownerId,
@@ -230,7 +230,7 @@ describe('CompaniesService', () => {
                 fakeCompany,
             );
 
-            const result = await service.findCompanyByEmail(fakeCompany.email);
+            const result = await service.findByEmail(fakeCompany.email);
             expect(result).toEqual(fakeCompany);
             expect(repository.findByEmail).toHaveBeenCalledWith(
                 fakeCompany.email,
@@ -240,7 +240,7 @@ describe('CompaniesService', () => {
         it('Should throw BadRequestException when invalid email passed', async () => {
             jest.spyOn(repository, 'findByEmail');
 
-            await expect(service.findCompanyByEmail('')).rejects.toThrow(
+            await expect(service.findByEmail('')).rejects.toThrow(
                 BadRequestException,
             );
             expect(repository.findByEmail).not.toHaveBeenCalled();
@@ -250,7 +250,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'findByEmail').mockResolvedValue(null);
 
             await expect(
-                service.findCompanyByEmail(fakeCompany.email),
+                service.findByEmail(fakeCompany.email),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findByEmail).toHaveBeenCalledWith(
                 fakeCompany.email,
@@ -267,7 +267,7 @@ describe('CompaniesService', () => {
                 fakeUpdatedCompany,
             );
 
-            const result = await service.updateCompany(
+            const result = await service.update(
                 fakeCompany.id,
                 fakeUpdateCompanyDto,
             );
@@ -288,7 +288,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'update');
 
             await expect(
-                service.updateCompany(-1, fakeUpdateCompanyDto),
+                service.update(-1, fakeUpdateCompanyDto),
             ).rejects.toThrow(BadRequestException);
             expect(repository.findById).not.toHaveBeenCalled();
             expect(repository.findByOwnerId).not.toHaveBeenCalled();
@@ -303,7 +303,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'update');
 
             await expect(
-                service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
+                service.update(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
             expect(repository.findByOwnerId).not.toHaveBeenCalled();
@@ -318,7 +318,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'update');
 
             await expect(
-                service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
+                service.update(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
             expect(repository.findByOwnerId).not.toHaveBeenCalled();
@@ -339,7 +339,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'update');
 
             await expect(
-                service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
+                service.update(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(ConflictException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
@@ -360,7 +360,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'update');
 
             await expect(
-                service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
+                service.update(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(ConflictException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
@@ -376,7 +376,7 @@ describe('CompaniesService', () => {
             );
             jest.spyOn(repository, 'delete');
 
-            await service.removeCompany(fakeUpdatedCompany.id);
+            await service.delete(fakeUpdatedCompany.id);
             expect(repository.delete).toHaveBeenCalledWith(
                 fakeUpdatedCompany.id,
             );
@@ -386,7 +386,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'findById');
             jest.spyOn(repository, 'delete');
 
-            await expect(service.removeCompany(-1)).rejects.toThrow(
+            await expect(service.delete(-1)).rejects.toThrow(
                 BadRequestException,
             );
             expect(repository.findById).not.toHaveBeenCalled();
@@ -398,7 +398,7 @@ describe('CompaniesService', () => {
             jest.spyOn(repository, 'delete');
 
             await expect(
-                service.removeCompany(fakeUpdatedCompany.id),
+                service.delete(fakeUpdatedCompany.id),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findById).toHaveBeenCalledWith(
                 fakeUpdatedCompany.id,

@@ -2,38 +2,39 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../db/database.service';
 import { Event, EventWithRelations } from './entities/event.entity';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class EventsRepository {
     constructor(private readonly db: DatabaseService) {}
 
     async create(event: Partial<Event>): Promise<Event> {
-        return this.db.event.create({ data: event as any });
+        return this.db.event.create({ data: event as Prisma.EventCreateInput });
     }
 
     async findAll(): Promise<EventWithRelations[]> {
         const events = await this.db.event.findMany({
             include: {
                 themesRelation: {
-                    include: { theme: true }
+                    include: { theme: true },
                 },
                 company: {
                     select: {
                         id: true,
                         title: true,
-                        logoName: true
-                    }
+                        logoName: true,
+                    },
                 },
                 format: {
                     select: {
                         id: true,
-                        title: true
-                    }
-                }
-            }
+                        title: true,
+                    },
+                },
+            },
         });
 
-        return events.map(event => this.transformEventData(event));
+        return events.map((event) => this.transformEventData(event));
     }
 
     async findById(id: number): Promise<EventWithRelations | null> {
@@ -41,22 +42,29 @@ export class EventsRepository {
             where: { id },
             include: {
                 themesRelation: {
-                    include: { theme: true }
+                    include: { theme: true },
                 },
                 company: {
                     select: {
                         id: true,
                         title: true,
-                        logoName: true
-                    }
+                        logoName: true,
+                    },
                 },
                 format: {
                     select: {
                         id: true,
-                        title: true
-                    }
-                }
-            }
+                        title: true,
+                    },
+                },
+                tickets: {
+                    select: {
+                        id: true,
+                        title: true,
+                        status: true,
+                    },
+                },
+            },
         });
 
         return event ? this.transformEventData(event) : null;
@@ -67,29 +75,32 @@ export class EventsRepository {
             where: { companyId },
             include: {
                 themesRelation: {
-                    include: { theme: true }
+                    include: { theme: true },
                 },
                 company: {
                     select: {
                         id: true,
                         title: true,
-                        logoName: true
-                    }
+                        logoName: true,
+                    },
                 },
                 format: {
                     select: {
                         id: true,
-                        title: true
-                    }
-                }
-            }
+                        title: true,
+                    },
+                },
+            },
         });
 
-        return events.map(event => this.transformEventData(event));
+        return events.map((event) => this.transformEventData(event));
     }
 
-    async update(id: number, event: Event): Promise<Event> {
-        return this.db.event.update({ where: { id }, data: event as any });
+    async update(id: number, event: Partial<Event>): Promise<Event> {
+        return this.db.event.update({
+            where: { id },
+            data: event as Prisma.EventUpdateInput,
+        });
     }
 
     async delete(id: number): Promise<void> {
@@ -98,21 +109,22 @@ export class EventsRepository {
 
     async syncThemes(eventId: number, themesIds: number[]): Promise<void> {
         await this.db.eventThemeRelation.deleteMany({ where: { eventId } });
-        await this.db.eventThemeRelation.createMany({ 
-            data: themesIds.map(themeId => ({ eventId, themeId })) 
+        await this.db.eventThemeRelation.createMany({
+            data: themesIds.map((themeId) => ({ eventId, themeId })),
         });
     }
 
     private transformEventData(event: any): EventWithRelations {
         return {
             ...event,
-            themes: event.themesRelation
-                ?.filter(relation => relation.theme)
-                .map(relation => ({
-                    id: relation.theme.id,
-                    title: relation.theme.title
-                })) || [],
-            themesRelation: undefined
+            themes:
+                event.themesRelation
+                    ?.filter((relation) => relation.theme)
+                    .map((relation) => ({
+                        id: relation.theme.id,
+                        title: relation.theme.title,
+                    })) || [],
+            themesRelation: undefined,
         };
     }
 }

@@ -29,7 +29,7 @@ export class EventThemesController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Theme ID',
+        description: 'Theme identifier',
         example: 1,
     })
     @ApiResponse({

@@ -15,7 +15,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CompaniesService {
-    private frontUrl: string;
+    private readonly frontUrl: string;
 
     constructor(
         private readonly companyRepository: CompaniesRepository,
@@ -27,7 +27,7 @@ export class CompaniesService {
         );
     }
 
-    async createCompany(dto: CreateCompanyDto, userId: number) {
+    async create(dto: CreateCompanyDto, userId: number) {
         let existingCompany =
             await this.companyRepository.findByOwnerId(userId);
 
@@ -41,10 +41,13 @@ export class CompaniesService {
             throw new ConflictException('Company email already in use');
         }
 
-        const company = await this.companyRepository.create({
-            ...dto,
-            ownerId: userId,
-        });
+        const company = await this.companyRepository.create(
+            {
+                ...dto,
+                ownerId: userId,
+            },
+            { owner: true },
+        );
 
         if (!company.owner) {
             throw new NotFoundException('User not found');
@@ -62,7 +65,7 @@ export class CompaniesService {
         });
     }
 
-    public async findAllCompanies(): Promise<Company[]> {
+    public async findAll(): Promise<Company[]> {
         const companies = await this.companyRepository.findAll();
 
         return companies.map((company) =>
@@ -72,11 +75,7 @@ export class CompaniesService {
         );
     }
 
-    public async findCompanyById(id: number): Promise<Company> {
-        if (!id || id < 0) {
-            throw new BadRequestException('Company ID must be greater than 0');
-        }
-
+    public async findById(id: number): Promise<Company> {
         const company = await this.companyRepository.findById(id);
 
         if (!company) {
@@ -88,13 +87,7 @@ export class CompaniesService {
         });
     }
 
-    public async findCompanyByOwnerId(ownerId: number): Promise<Company> {
-        if (!ownerId || ownerId < 0) {
-            throw new BadRequestException(
-                'Company ownerId must be greater than 0',
-            );
-        }
-
+    public async findByOwnerId(ownerId: number): Promise<Company> {
         const company = await this.companyRepository.findByOwnerId(ownerId);
 
         if (!company) {
@@ -106,9 +99,9 @@ export class CompaniesService {
         });
     }
 
-    public async findCompanyByEmail(email: string): Promise<Company> {
-        if (!email || email.length === 0) {
-            throw new BadRequestException('Company email must be not empty');
+    public async findByEmail(email: string): Promise<Company> {
+        if (!email || email.length < 5 || !email.includes('@')) {
+            throw new BadRequestException('Invalid company email');
         }
 
         const company = await this.companyRepository.findByEmail(email);
@@ -122,29 +115,7 @@ export class CompaniesService {
         });
     }
 
-    /*public async findCompanyByTitle(
-        title: string,
-        ownerId: number,
-    ): Promise<Company> {
-        if (!title || title.length === 0) {
-            throw new BadRequestException('Company title must be not empty');
-        }
-
-        const company = await this.companyRepository.findByTitle(
-            title,
-            ownerId,
-        );
-
-        if (!company) {
-            throw new NotFoundException(`Company not found`);
-        }
-
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
-    }*/
-
-    async updateCompany(id: number, dto: UpdateCompanyDto): Promise<Company> {
+    async update(id: number, dto: UpdateCompanyDto): Promise<Company> {
         const existingCompany = await this.companyRepository.findById(id);
 
         if (!existingCompany) {
@@ -158,29 +129,33 @@ export class CompaniesService {
         });
     }
 
-    async updateCompanyLogo(id: number, logoName: string): Promise<Company> {
-        let company = await this.companyRepository.findById(id);
-
-        if (!company) {
-            throw new NotFoundException(`Company not found`);
-        }
-
-        const result = await this.companyRepository.update(id, { logoName });
-
-        return plainToInstance(Company, result, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
-    }
-
-    async removeCompany(id: number): Promise<void> {
-        if (!id || id < 0) {
-            throw new BadRequestException('Company Id must be greater than 0');
-        }
-
+    async updateLogo(id: number, logoName: string): Promise<Company> {
         let existingCompany = await this.companyRepository.findById(id);
 
         if (!existingCompany) {
             throw new NotFoundException(`Company not found`);
+        }
+
+        const company = await this.companyRepository.update(id, { logoName });
+
+        return plainToInstance(Company, company, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
+    }
+
+    async delete(id: number): Promise<void> {
+        let existingCompany = await this.companyRepository.findById(id, {
+            events: true,
+        });
+
+        if (!existingCompany) {
+            throw new NotFoundException(`Company not found`);
+        }
+
+        if (existingCompany.events) {
+            throw new BadRequestException(
+                `Unable to delete a company with existing events`,
+            );
         }
 
         await this.companyRepository.delete(id);

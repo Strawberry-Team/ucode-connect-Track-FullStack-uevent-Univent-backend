@@ -29,7 +29,7 @@ export class EventFormatsController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Format ID',
+        description: 'Format identifier',
         example: 1,
     })
     @ApiResponse({

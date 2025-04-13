@@ -15,7 +15,6 @@ generator client {
 //   output   = "../docs/db/generated"
 // }
 
-// Users model
 model User {
   id                 Int      @id @default(autoincrement())
   password           String   @db.VarChar(255)
@@ -29,28 +28,23 @@ model User {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Relations
-  refreshTokenNonces RefreshTokenNonce[] // Add this line
-
+  refreshTokenNonces RefreshTokenNonce[]
+  ownedCompany       Company?            @relation(map: "companies_user_id_fk")
+  news               News[]              @relation(map: "news_user_id_fk")
   // eventAttendees EventAttendee[]
-  // ownedCompany Company[]
-  ownedCompany Company?
-
   // orders         Order[]
   // subscriptions  Subscription[]
   // notifications  Notification[]
-  // news           News[]
+
   @@map("users")
 }
 
-// Refresh Token Nonces model
 model RefreshTokenNonce {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
   nonce     String   @db.Char(32)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
-  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "refresh_token_nonces_user_id_fk")
 
   @@index([userId], map: "idx_refresh_token_nonces_user_id")
@@ -58,7 +52,6 @@ model RefreshTokenNonce {
   @@map("refresh_token_nonces")
 }
 
-// Companies model
 model Company {
   id          Int      @id @default(autoincrement())
   ownerId     Int      @unique @map("owner_id")
@@ -69,44 +62,37 @@ model Company {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Relations
   owner  User    @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
-  events Event[]
+  events Event[] @relation(map: "events_company_id_fk")
+  news   News[]  @relation(map: "news_company_id_fk")
   // subscriptions Subscription[]
-  // news          News[]
 
   @@index([ownerId], map: "companies_owner_id_fk")
   @@map("companies")
 }
 
-// // Event Formats model
 model EventFormat {
   id        Int      @id @default(autoincrement())
   title     String   @unique @db.VarChar(100)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Relations
-  events Event[]
+  events Event[]? @relation(map: "events_formats_id_fk")
 
   @@map("event_formats")
 }
 
-// Event Themes model
 model EventTheme {
   id        Int      @id @default(autoincrement())
   title     String   @unique @db.VarChar(100)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Relations
-  eventsRelation EventThemeRelation[]
+  eventsRelation EventThemeRelation[]?
 
   @@map("event_themes")
 }
 
-
-// Events model
 model Event {
   id                   Int                @id @default(autoincrement())
   companyId            Int                @map("company_id")
@@ -125,15 +111,14 @@ model Event {
   createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Relations
-  company Company     @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
-  format  EventFormat @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
-  // attendees      EventAttendee[]
-  tickets        Ticket[]
-  // promoCodes     PromoCode[]
+  company        Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
+  format         EventFormat          @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   themesRelation EventThemeRelation[]
+  news           News[]?              @relation(map: "news_event_id_fk")
+  // attendees      EventAttendee[]
+  tickets        Ticket[]?            @relation(map: "tickets_event_id_fk")
+  // promoCodes     PromoCode[]
   // subscriptions  Subscription[]
-  // news           News[]
 
   @@index([companyId], map: "events_company_id_fk")
   @@index([formatId], map: "events_format_id_fk")
@@ -158,8 +143,7 @@ model Event {
 //   @@index([userId], map: "event_attendees_user_id_fk")
 //   @@map("event_attendees")
 // }
-//
-// Tickets model
+
 model Ticket {
   id        Int          @id @default(autoincrement())
   eventId   Int          @map("event_id")
@@ -170,15 +154,13 @@ model Ticket {
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // // Relations
-  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
   // orderItems OrderItem[]
 
   @@index([eventId], map: "tickets_event_id_fk")
   @@map("tickets")
 }
 
-//
 // // Orders model
 // model Order {
 //   id            Int           @id @default(autoincrement())
@@ -237,15 +219,13 @@ model Ticket {
 //   @@unique([eventId, code], map: "promo_codes_event_id_code_uq")
 //   @@map("promo_codes")
 // }
-//
-// Event Themes Relations model
+
 model EventThemeRelation {
   id        Int      @id @default(autoincrement())
   eventId   Int      @map("event_id")
   themeId   Int      @map("theme_id")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
-  // Relations
   event Event      @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_theme_relations_event_id_fk")
   theme EventTheme @relation(fields: [themeId], references: [id], onDelete: Cascade, map: "event_theme_relations_theme_id_fk")
 
@@ -254,6 +234,7 @@ model EventThemeRelation {
   @@index([themeId], map: "event_theme_relations_theme_id_fk")
   @@map("events_themes_relations")
 }
+
 //
 // // Subscriptions model
 // model Subscription {
@@ -295,32 +276,29 @@ model EventThemeRelation {
 //   @@index([userId], map: "notifications_user_id_fk")
 //   @@map("notifications")
 // }
-//
-// // News model
-// model News {
-//   id          Int      @id @default(autoincrement())
-//   authorId    Int      @map("author_id")
-//   companyId   Int?     @map("company_id")
-//   eventId     Int?     @map("event_id")
-//   title       String   @db.VarChar(100)
-//   description String   @db.Text
-//   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   author  User     @relation(fields: [authorId], references: [id], onDelete: Cascade, map: "news_user_id_fk")
-//   company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull, map: "news_company_id_fk")
-//   event   Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull, map: "news_event_id_fk")
-//
-//   @@unique([eventId, authorId], map: "news_event_id_author_id_uq")
-//   @@unique([companyId, authorId], map: "news_company_id_author_id_uq")
-//   @@index([companyId], map: "news_company_id_fk")
-//   @@index([eventId], map: "news_event_id_fk")
-//   @@index([authorId], map: "news_user_id_fk")
-//   @@map("news")
-// }
-//
-// // Enums
+
+model News {
+  id          Int      @id @default(autoincrement())
+  authorId    Int      @map("author_id")
+  companyId   Int?     @map("company_id")
+  eventId     Int?     @map("event_id")
+  title       String   @db.VarChar(100)
+  description String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  author  User     @relation(fields: [authorId], references: [id], onDelete: Cascade, map: "news_user_id_fk")
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull, map: "news_company_id_fk")
+  event   Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull, map: "news_event_id_fk")
+
+  @@unique([eventId, authorId], map: "news_event_id_author_id_uq")
+  @@unique([companyId, authorId], map: "news_company_id_author_id_uq")
+  @@index([authorId], map: "news_user_id_fk")
+  @@index([companyId], map: "news_company_id_fk")
+  @@index([eventId], map: "news_event_id_fk")
+  @@map("news")
+}
+
 enum UserRole {
   USER  @map("user")
   ADMIN @map("admin")
@@ -341,15 +319,13 @@ enum EventStatus {
   CANCELLED     @map("cancelled")
 }
 
-//
 enum TicketStatus {
-  SOLD      @map("sold")
-  RESERVED  @map("reserved")
-  AVAILABLE @map("available")
+  SOLD        @map("sold")
+  RESERVED    @map("reserved")
+  AVAILABLE   @map("available")
   UNAVAILABLE @map("unavailable")
 }
 
-//
 // enum PaymentStatus {
 //   PENDING  @map("pending")
 //   PAID     @map("paid")

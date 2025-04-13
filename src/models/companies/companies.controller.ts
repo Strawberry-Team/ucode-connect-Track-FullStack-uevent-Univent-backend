@@ -6,20 +6,18 @@ import {
     Body,
     Patch,
     Param,
-    Delete,
-    NotImplementedException,
     UseInterceptors,
     UploadedFile,
     BadRequestException,
     UseGuards,
     HttpStatus,
-    Query,
+    Delete,
+    NotFoundException,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { Company } from './entities/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { BaseCrudController } from '../../common/controller/base-crud.controller';
 import { UserId } from '../../common/decorators/user.decorator';
 import { createFileUploadInterceptor } from '../../common/interceptor/file-upload.interceptor';
 import { AvatarConfig } from '../../config/avatar.config';
@@ -28,51 +26,30 @@ import { CompanyOwnerGuard } from './guards/company-owner.guard';
 import {
     ApiBody,
     ApiConsumes,
-    ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
-    ApiQuery,
     ApiResponse,
     ApiSecurity,
     ApiTags,
 } from '@nestjs/swagger';
+import { NewsService } from '../news/news.service';
+import { CreateNewsDto } from '../news/dto/create-news.dto';
+import { Public } from '../../common/decorators/public.decorator';
+import { CompanyNewsDto } from '../news/dto/company-news.dto';
+import { JwtAuthGuard } from '../auth/guards/auth.guards';
+import { NewsOwnerGuard } from '../news/guards/news-owner.guard';
 
 @Controller('companies')
 @ApiTags('Companies')
 @ApiSecurity('JWT')
-export class CompaniesController extends BaseCrudController<
-    Company,
-    CreateCompanyDto,
-    UpdateCompanyDto
-> {
-    constructor(private readonly companyService: CompaniesService) {
-        super();
-    }
-
-    protected async createEntity(
-        dto: CreateCompanyDto,
-        userId: number,
-    ): Promise<Company> {
-        return await this.companyService.createCompany(dto, userId);
-    }
-
-    protected async findById(id: number, userId: number): Promise<Company> {
-        return await this.companyService.findCompanyById(id);
-    }
-
-    protected async updateEntity(
-        id: number,
-        dto: UpdateCompanyDto,
-        userId: number,
-    ): Promise<Company> {
-        return await this.companyService.updateCompany(id, dto);
-    }
-
-    protected async deleteEntity(id: number, userId: number): Promise<void> {
-        await this.companyService.removeCompany(id);
-    }
+export class CompaniesController {
+    constructor(
+        private readonly companyService: CompaniesService,
+        private readonly newsService: NewsService,
+    ) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Company creation' })
     @ApiBody({
         required: true,
@@ -156,172 +133,176 @@ export class CompaniesController extends BaseCrudController<
         },
     })
     async create(@Body() dto: CreateCompanyDto, @UserId() userId: number) {
-        return super.create(dto, userId);
+        return await this.companyService.create(dto, userId);
+    }
+
+    @Post(':company_id/news')
+    @UseGuards(JwtAuthGuard)
+    @UseGuards(CompanyOwnerGuard, NewsOwnerGuard)
+    @ApiOperation({
+        summary: 'Create company news item',
+    })
+    @ApiParam({
+        required: true,
+        name: 'company_id',
+        type: 'number',
+        description: 'Company identifier',
+        example: 1,
+    })
+    @ApiBody({
+        required: true,
+        type: CreateNewsDto,
+        description: 'Data for news creation',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully creation',
+        type: CompanyNewsDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'array',
+                    description: 'Error message',
+                    example: [
+                        'email must be an email',
+                        'title must be shorter than or equal to 100 characters',
+                        'description must be shorter than or equal to 1000 characters',
+                    ],
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                status: {
+                    type: 'number',
+                    description: 'Error message',
+                    example: 400,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example:
+                        'Only the company owner has access to create its news',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Company not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Company not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
+    async createNews(
+        @Param('company_id') companyId: number,
+        @Body() dto: CreateNewsDto,
+        @UserId() userId: number,
+    ) {
+        return await this.newsService.create(dto, userId, companyId, undefined);
     }
 
     @Get()
+    @Public()
     @ApiOperation({ summary: 'Get all companies data' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'List of companies',
         type: [Company],
     })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Unauthorized',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 401,
-                },
-            },
-        },
-    })
     async findAll() {
-        return this.companyService.findAllCompanies();
+        return await this.companyService.findAll();
     }
 
-    @Get(':id')
-    @ApiOperation({ summary: 'Get company data by id' })
+    @Get(':company_id/news')
+    @Public()
     @ApiParam({
-        name: 'id',
         required: true,
+        name: 'company_id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
+    @ApiOperation({ summary: 'Get all company news' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Successfully retrieve',
-        type: Company,
+        description: 'List of company news',
+        type: [CompanyNewsDto],
     })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Unauthorized',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 401,
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Company not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Company not found',
-                },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Not Found',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 404,
-                },
-            },
-        },
-    })
-    async findOne(@Param('id') id: number, @UserId() userId: number) {
-        return super.findOne(id, userId);
+    async findAllNews(@Param('company_id') companyId: number) {
+        return await this.newsService.findByCompanyId(companyId);
     }
 
-    /*@Get()
-    @ApiOperation({ summary: 'Get company data by title' })
-    @ApiQuery({
-        name: 'title',
-        required: true,
-        type: 'string',
-        description: 'Company title',
-        example: 'Google',
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Successfully retrieve',
-        type: Company,
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Unauthorized',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 401,
-                },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Company not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Company not found',
-                },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Not Found',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 404,
-                },
-            },
-        },
-    })
-    async findOneByTitle(
-        @Query('title') title: string,
-        @UserId() userId: number,
-    ) {
-        return this.companyService.findCompanyByTitle(title, userId);
-    }*/
-
     @Patch(':id')
+    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Update company data' })
     @ApiParam({
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
     @ApiBody({
@@ -389,7 +370,7 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Only the company owner has access to it',
+                    example: 'Only the company owner has access to update it',
                 },
                 error: {
                     type: 'string',
@@ -428,15 +409,12 @@ export class CompaniesController extends BaseCrudController<
             },
         },
     })
-    async update(
-        @Param('id') id: number,
-        @Body() dto: UpdateCompanyDto,
-        @UserId() userId: number,
-    ) {
-        return super.update(id, dto, userId);
+    async update(@Param('id') id: number, @Body() dto: UpdateCompanyDto) {
+        return await this.companyService.update(id, dto);
     }
 
     @Post(':id/upload-logo')
+    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
     @UseInterceptors(
         createFileUploadInterceptor({
@@ -451,7 +429,7 @@ export class CompaniesController extends BaseCrudController<
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
     @ApiBody({
@@ -533,7 +511,8 @@ export class CompaniesController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'You can only access your own account',
+                    example:
+                        'Only the company owner has access to upload its logo',
                 },
                 error: {
                     type: 'string',
@@ -572,7 +551,7 @@ export class CompaniesController extends BaseCrudController<
             },
         },
     })
-    async uploadLogo(
+    async updateLogo(
         @Param('id') id: number,
         @UploadedFile() file: Express.Multer.File,
     ): Promise<{ server_filename: string }> {
@@ -582,15 +561,117 @@ export class CompaniesController extends BaseCrudController<
             );
         }
 
-        await this.companyService.updateCompanyLogo(id, file.filename);
+        await this.companyService.updateLogo(id, file.filename);
 
         return { server_filename: file.filename };
     }
 
     @Delete(':id')
+    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
-    @ApiExcludeEndpoint()
-    async remove(@Param('id') id: number, @UserId() userId: number) {
-        throw new NotImplementedException();
+    @ApiOperation({ summary: 'Company deletion' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Company identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully deletion',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    example: 'Unable to delete a company with existing events',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Only the company owner has access to delete it',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Company not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Company not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
+    async delete(@Param('id') id: number) {
+        return await this.companyService.delete(id);
     }
 }

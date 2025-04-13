@@ -16,6 +16,7 @@ import { CompaniesModule } from './models/companies/companies.module';
 import { EventsModule } from './models/events/events.module';
 import { EventFormatsModule } from './models/events/formats/event-formats.module';
 import { EventThemesModule } from './models/events/themes/event-themes.module';
+import { NewsModule } from './models/news/news.module';
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import { EventThemesModule } from './models/events/themes/event-themes.module';
         EventFormatsModule,
         EventThemesModule,
         TicketsModule,
+        NewsModule,
     ],
     controllers: [],
     providers: [],

@@ -14,19 +14,18 @@ export class CompanyOwnerGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const userId = request.user?.userId;
-        const companyId: number = +request.params?.id;
+        const companyId: number =
+            +request.params?.id || +request.params?.companyId;
 
-        const company = await this.companyService.findCompanyById(companyId);
+        const company = await this.companyService.findById(companyId);
 
         if (!company) {
-            throw new ForbiddenException(
-                'Company not found or access denied',
-            );
+            throw new ForbiddenException('Company not found or access denied');
         }
 
         if (company.ownerId !== userId) {
-            console.log(company.ownerId);
-            console.log(userId);
+            console.log('company.ownerId', company.ownerId);
+            console.log('userId', userId);
             throw new ForbiddenException(
                 'Only the company owner has access to it',
             );

@@ -8,7 +8,7 @@
     "scripts": {
         "setup:db": "ts-node src/setupdb.ts",
 
-        "migrate": "dotenv -e .env.development -- npx prisma migrate deploy",
+        "migrate": "dotenv -e .env.development -- npx prisma migrate deploy && npm run migrate:generate",
         "migrate:create": "dotenv -e .env.development -- npx prisma migrate dev",
         "migrate:generate": "dotenv -e .env.development -- npx prisma generate",
         "migrate:seed": "dotenv -e .env.development -- npx prisma db seed",

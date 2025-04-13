@@ -1,127 +1,91 @@
 // src/models/companies/companies.repository.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { Company } from './entities/company.entity';
-import { SERIALIZATION_GROUPS, User } from '../users/entities/user.entity';
 import { DatabaseService } from '../../db/database.service';
-import { plainToInstance } from 'class-transformer';
+import { CompanyIncludeOptions } from './interfaces/company-include-options.interface';
 
 @Injectable()
 export class CompaniesRepository {
     constructor(private readonly db: DatabaseService) {}
 
-    private plainUser(companyOwner: User | undefined): User {
-        if (companyOwner) {
-            companyOwner = plainToInstance(User, companyOwner, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            });
+    private readonly DEFAULT_INCLUDE: CompanyIncludeOptions = {
+        owner: false,
+        events: false,
+        news: false,
+    };
 
-            return companyOwner;
-        }
+    private async findUniqueCompany(
+        where: Prisma.CompanyWhereUniqueInput,
+        includeOptions: CompanyIncludeOptions = this.DEFAULT_INCLUDE,
+    ): Promise<Company | null> {
+        const include: Prisma.CompanyInclude = {
+            owner: includeOptions.owner ?? false,
+            events: includeOptions.events ?? false,
+            news: includeOptions.events ?? false,
+        };
+        type CompanyWithIncludes = Prisma.CompanyGetPayload<{
+            include: typeof include;
+        }>;
 
-        throw new NotFoundException(`Company owner not found`);
-    }
-
-    async create(data: Partial<Company>): Promise<Company> {
-        const company = await this.db.company.create({
-            data: data as any,
-            include: { owner: true },
-        });
-
-        company.owner = this.plainUser(company.owner);
-
-        return company;
-    }
-
-    async findAll(): Promise<Company[]> {
-        const companies = await this.db.company.findMany({
-            include: { owner: true },
-        });
-
-        companies.map((company: Company) => {
-            company.owner = this.plainUser(company.owner);
-        });
-
-        return companies;
-    }
-
-    async findById(id: number): Promise<Company | null> {
         const company = await this.db.company.findUnique({
-            where: { id },
-            include: { owner: true },
+            where,
+            include,
         });
 
-        if (company == null) {
+        if (!company) {
             return null;
         }
 
-        company.owner = this.plainUser(company.owner);
+        return company as CompanyWithIncludes as Company;
+    }
 
-        return company;
+    async create(
+        data: Partial<Company>,
+        include: CompanyIncludeOptions = this.DEFAULT_INCLUDE,
+    ): Promise<Company> {
+        return this.db.company.create({
+            data: data as Prisma.CompanyCreateInput,
+            include,
+        });
+    }
+
+    async findAll(include: CompanyIncludeOptions = {}): Promise<Company[]> {
+        return this.db.company.findMany({
+            include,
+        });
+    }
+
+    async findById(
+        id: number,
+        include: CompanyIncludeOptions = this.DEFAULT_INCLUDE,
+    ): Promise<Company | null> {
+        return this.findUniqueCompany({ id }, include);
     }
 
     async findByOwnerId(ownerId: number): Promise<Company | null> {
-        const company = await this.db.company.findUnique({
-            where: { ownerId },
-            include: { owner: true },
-        });
-
-        if (company == null) {
-            return null;
-        }
-
-        company.owner = this.plainUser(company.owner);
-
-        return company;
+        return this.findUniqueCompany({ ownerId }, { owner: true });
     }
 
     async findByEmail(email: string): Promise<Company | null> {
-        const company = await this.db.company.findUnique({
-            where: { email },
-            include: { owner: true },
-        });
-
-        if (company == null) {
-            return null;
-        }
-
-        company.owner = this.plainUser(company.owner);
-
-        return company;
+        return this.findUniqueCompany({ email }, {});
     }
 
-/*
-    async findByTitle(title: string, ownerId: number): Promise<Company | null> {
-        const company = await this.db.company.findUnique({
-            where: { title, ownerId },
-            include: { owner: true },
-        });
-
-        if (company == null) {
-            return null;
-        }
-
-        company.owner = this.plainUser(company.owner);
-
-        return company;
-    }
-*/
-
-    async update(id: number, updateData: Partial<Company>): Promise<Company> {
-        const company = await this.db.company.update({
+    async update(
+        id: number,
+        updateData: Partial<Company>,
+        include: CompanyIncludeOptions = {},
+    ): Promise<Company> {
+        return this.db.company.update({
             where: { id },
-            data: updateData as any,
-            include: { owner: true },
+            data: updateData as Prisma.CompanyUpdateInput,
+            include,
         });
-
-        company.owner = this.plainUser(company.owner);
-
-        return company;
     }
 
     async delete(id: number): Promise<void> {
         await this.db.company.delete({
             where: { id },
-            include: { owner: true },
         });
     }
 }

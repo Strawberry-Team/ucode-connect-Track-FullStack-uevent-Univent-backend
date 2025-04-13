@@ -1,7 +1,15 @@
 // src/models/events/events.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { EventsRepository } from './events.repository';
-import { Event, EventWithRelations, SERIALIZATION_GROUPS } from './entities/event.entity';
+import {
+    Event,
+    EventWithRelations,
+    SERIALIZATION_GROUPS,
+} from './entities/event.entity';
 import { plainToInstance } from 'class-transformer';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -27,9 +35,11 @@ export class EventsService {
 
     async findById(id: number): Promise<EventWithRelations> {
         const event = await this.eventsRepository.findById(id);
+
         if (!event) {
             throw new NotFoundException('Event not found');
         }
+
         return plainToInstance(Event, event, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
@@ -48,23 +58,53 @@ export class EventsService {
             throw new NotFoundException('Event not found');
         }
 
-        event = await this.eventsRepository.update(id, {...event, ...eventDto });
+        event = await this.eventsRepository.update(id, {
+            ...event,
+            ...eventDto,
+        });
         return plainToInstance(Event, event, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
     }
 
     async delete(id: number): Promise<void> {
-        const event = await this.eventsRepository.findById(id);
-        if (!event) {
+        const existingEvent = await this.eventsRepository.findById(id);
+
+        if (!existingEvent) {
             throw new NotFoundException('Event not found');
+        }
+
+        if (existingEvent.tickets) {
+            throw new BadRequestException(
+                `Unable to delete an event with existing tickets`,
+            );
         }
 
         return this.eventsRepository.delete(id);
     }
 
-    async syncThemes(eventId: number, eventThemesDto: CreateEventThemesDto): Promise<void> {
+    async updatePoster(id: number, posterName: string): Promise<Event> {
+        let existingEvent = await this.eventsRepository.findById(id);
+
+        if (!existingEvent) {
+            throw new NotFoundException(`Event not found`);
+        }
+
+        const event = await this.eventsRepository.update(id, { posterName });
+
+        return plainToInstance(Event, event, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
+    }
+
+    async syncThemes(
+        eventId: number,
+        eventThemesDto: CreateEventThemesDto,
+    ): Promise<void> {
         const event = await this.findById(eventId);
-        return this.eventsRepository.syncThemes(event.id, eventThemesDto.themes.map(theme => theme.id));
+        return this.eventsRepository.syncThemes(
+            event.id,
+            eventThemesDto.themes.map((theme) => theme.id),
+        );
     }
 }

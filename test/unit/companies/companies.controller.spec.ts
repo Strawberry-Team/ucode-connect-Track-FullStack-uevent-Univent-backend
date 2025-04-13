@@ -50,7 +50,7 @@ describe('CompaniesController', () => {
                         findCompanyById: jest.fn().mockResolvedValue(null),
                         findCompanyByOwnerId: jest.fn().mockResolvedValue(null),
                         findCompanyByEmail: jest.fn().mockResolvedValue(null),
-                        findCompanyByTitle: jest.fn().mockResolvedValue(null),
+                        findByTitle: jest.fn().mockResolvedValue(null),
                         updateCompany: jest.fn().mockResolvedValue(null),
                         updateCompanyLogo: jest.fn().mockResolvedValue(null),
                         removeCompany: jest.fn().mockResolvedValue(undefined),
@@ -93,7 +93,7 @@ describe('CompaniesController', () => {
 
     describe('Create Company', () => {
         it('Should create a company and send welcome email', async () => {
-            jest.spyOn(companiesService, 'createCompany').mockResolvedValue(
+            jest.spyOn(companiesService, 'create').mockResolvedValue(
                 fakeCompany,
             );
 
@@ -102,7 +102,7 @@ describe('CompaniesController', () => {
                 fakeUser.id,
             );
             expect(result).toEqual(fakeCompany);
-            expect(companiesService.createCompany).toHaveBeenCalledWith(
+            expect(companiesService.create).toHaveBeenCalledWith(
                 fakeCreateCompanyDto,
             );
         });
@@ -110,28 +110,27 @@ describe('CompaniesController', () => {
 
     describe('Find All Companies', () => {
         it('Should return all companies', async () => {
-            jest.spyOn(companiesService, 'findAllCompanies').mockResolvedValue([
+            jest.spyOn(companiesService, 'findAll').mockResolvedValue([
                 fakeCompany,
             ]);
 
             const result = await controller.findAll();
             expect(result).toEqual([fakeCompany]);
-            expect(companiesService.findAllCompanies).toHaveBeenCalled();
+            expect(companiesService.findAll).toHaveBeenCalled();
         });
     });
 
     describe('Find One Company by ID', () => {
         it('Should return a company by ID', async () => {
-            jest.spyOn(companiesService, 'findCompanyById').mockResolvedValue(
+            jest.spyOn(companiesService, 'findById').mockResolvedValue(
                 fakeCompany,
             );
 
             const result = await controller.findOne(
                 fakeCompany.id,
-                fakeUser.id,
             );
             expect(result).toEqual(fakeCompany);
-            expect(companiesService.findCompanyById).toHaveBeenCalledWith(
+            expect(companiesService.findById).toHaveBeenCalledWith(
                 fakeCompany.id,
             );
         });
@@ -141,7 +140,7 @@ describe('CompaniesController', () => {
         it('Should return a company by title', async () => {
             jest.spyOn(
                 companiesService,
-                'findCompanyByTitle',
+                'findByTitle',
             ).mockResolvedValue(fakeCompany);
 
             const result = await controller.findOneByTitle(
@@ -149,7 +148,7 @@ describe('CompaniesController', () => {
                 fakeUser.id,
             );
             expect(result).toEqual(fakeCompany);
-            expect(companiesService.findCompanyByTitle).toHaveBeenCalledWith(
+            expect(companiesService.findByTitle).toHaveBeenCalledWith(
                 fakeCompany.title,
                 fakeCompany.ownerId,
             );
@@ -158,17 +157,16 @@ describe('CompaniesController', () => {
 
     describe('Update Company', () => {
         it('Should update a company', async () => {
-            jest.spyOn(companiesService, 'updateCompany').mockResolvedValue(
+            jest.spyOn(companiesService, 'update').mockResolvedValue(
                 fakeUpdatedCompany,
             );
 
             const result = await controller.update(
                 fakeCompany.id,
                 fakeUpdateCompanyDto,
-                fakeUser.id,
             );
             expect(result).toEqual(fakeUpdatedCompany);
-            expect(companiesService.updateCompany).toHaveBeenCalledWith(
+            expect(companiesService.update).toHaveBeenCalledWith(
                 fakeCompany.id,
                 fakeUpdateCompanyDto,
             );
@@ -179,19 +177,19 @@ describe('CompaniesController', () => {
         it('Should upload a company logo successfully', async () => {
             const logoName = generateFakeLogoName();
             const mockFile = { filename: logoName } as Express.Multer.File;
-            jest.spyOn(companiesService, 'updateCompanyLogo').mockResolvedValue(
+            jest.spyOn(companiesService, 'updateLogo').mockResolvedValue(
                 {
                     ...fakeCompany,
                     logoName,
                 },
             );
 
-            const result = await controller.uploadLogo(
+            const result = await controller.updateLogo(
                 fakeCompany.id,
                 mockFile,
             );
             expect(result).toEqual({ server_filename: logoName });
-            expect(companiesService.updateCompanyLogo).toHaveBeenCalledWith(
+            expect(companiesService.updateLogo).toHaveBeenCalledWith(
                 fakeCompany.id,
                 logoName,
             );
@@ -200,12 +198,12 @@ describe('CompaniesController', () => {
 
     describe('Remove Company', () => {
         it('Should throw NotImplementedException', async () => {
-            jest.spyOn(companiesService, 'removeCompany');
+            jest.spyOn(companiesService, 'delete');
 
             await expect(
-                controller.remove(fakeCompany.id, fakeUser.id),
+                controller.delete(fakeCompany.id),
             ).rejects.toThrow(NotImplementedException);
-            expect(companiesService.removeCompany).not.toHaveBeenCalled();
+            expect(companiesService.delete).not.toHaveBeenCalled();
         });
     });
 });
