@@ -119,8 +119,8 @@ export class CreateEventDto {
         description: 'Event attendee visibility setting',
         nullable: true,
         type: 'string',
-        enum: ['PUBLIC', 'PRIVATE', 'RESTRICTED'],
-        example: 'PUBLIC',
+        enum: AttendeeVisibility,
+        example: AttendeeVisibility.EVERYONE,
     })
     attendeeVisibility?: AttendeeVisibility;
 
@@ -130,11 +130,12 @@ export class CreateEventDto {
         description: 'Event status',
         nullable: true,
         type: 'string',
-        enum: ['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED'],
-        example: 'DRAFT',
+        enum: EventStatus,
+        example: EventStatus.DRAFT,
     })
     status?: EventStatus;
 
+    //TODO: remove this field
     @IsId(false)
     @ApiProperty({
         required: true,
@@ -145,6 +146,7 @@ export class CreateEventDto {
     })
     companyId: number;
 
+    //TODO: Validate this field in service
     @IsId(false)
     @ApiProperty({
         required: true,
