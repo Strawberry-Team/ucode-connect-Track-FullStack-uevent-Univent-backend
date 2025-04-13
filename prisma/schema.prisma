@@ -77,7 +77,7 @@ model EventFormat {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  events Event[]? @relation(map: "events_formats_id_fk")
+  events Event[]     @relation(map: "events_formats_id_fk")
 
   @@map("event_formats")
 }
@@ -88,7 +88,7 @@ model EventTheme {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  eventsRelation EventThemeRelation[]?
+  eventsRelation EventThemeRelation[]
 
   @@map("event_themes")
 }
@@ -111,12 +111,12 @@ model Event {
   createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  company        Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
-  format         EventFormat          @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
+  company        Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
+  format         EventFormat              @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   themesRelation EventThemeRelation[]
-  news           News[]?              @relation(map: "news_event_id_fk")
+  news           News[]                   @relation(map: "news_event_id_fk")
   // attendees      EventAttendee[]
-  tickets        Ticket[]?            @relation(map: "tickets_event_id_fk")
+  tickets        Ticket[]                 @relation(map: "tickets_event_id_fk")
   // promoCodes     PromoCode[]
   // subscriptions  Subscription[]
 

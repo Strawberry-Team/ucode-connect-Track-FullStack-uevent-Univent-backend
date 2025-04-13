@@ -138,13 +138,13 @@ describe('EventsController', () => {
 
     describe('Delete Event', () => {
         it('Should delete an event', async () => {
-            await controller.delete(fakeEventWithRelations.id, 0);
+            await controller.delete(fakeEventWithRelations.id);
             expect(eventsService.delete).toHaveBeenCalledWith(fakeEventWithRelations.id);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
             jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
-            await expect(controller.delete(999, 0)).rejects.toThrow(NotFoundException);
+            await expect(controller.delete(999)).rejects.toThrow(NotFoundException);
         });
     });
 

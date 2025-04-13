@@ -21,14 +21,14 @@ class Seeder {
   async seedFormats() {
     for (const format of initialFormats) {
       const res = await this.formatService.create(format);
-      console.log(`#Format created: ${res.id}`);
+      // console.log(`#Format created: ${res.id}`);
     }
   }
 
   async seedThemes() {
     for (const theme of initialThemes) {
       const res = await this.themeService.create(theme);
-      console.log(`#Theme created: ${res.id}`);
+      // console.log(`#Theme created: ${res.id}`);
     }
   }
 }
