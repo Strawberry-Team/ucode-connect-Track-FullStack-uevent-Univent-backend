@@ -17,7 +17,7 @@ import { NewPasswordDto } from './dto/new-password.dto';
 import {
     JwtRefreshGuard,
     JwtResetPasswordGuard,
-    JwtConfirmEmailGuard,
+    JwtConfirmEmailGuard, JwtAuthGuard,
 } from './guards/auth.guards';
 import { Request as ExpressRequest } from 'express';
 import { UserId } from 'src/common/decorators/user.decorator';
@@ -36,8 +36,6 @@ import { User } from '../users/entities/user.entity';
 
 @Controller('auth')
 @ApiTags('Auth')
-@ApiSecurity('JWT')
-@ApiBearerAuth()
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
