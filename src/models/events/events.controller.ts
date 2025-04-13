@@ -37,7 +37,7 @@ import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 @ApiTags('Events')
 @ApiSecurity('JWT')
 export class EventsController {
-    constructor(private readonly eventsService: EventsService) {}
+    constructor(private readonly eventsService: EventsService, private readonly ticketsService: TicketsService) {}
   
     @Post()
     @ApiOperation({ summary: 'Event creation' })

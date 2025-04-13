@@ -29,6 +29,7 @@ import {
     ApiParam,
     ApiResponse,
     ApiTags,
+    OmitType,
 } from '@nestjs/swagger';
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
