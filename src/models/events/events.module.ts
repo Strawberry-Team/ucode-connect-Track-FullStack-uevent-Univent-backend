@@ -7,13 +7,13 @@ import { DatabaseModule } from '../../db/database.module';
 import { UsersModule } from '../users/users.module';
 import { NewsModule } from '../news/news.module';
 import { CompaniesModule } from '../companies/companies.module';
-import { FormatsModule } from '../formats/formats.module';
+import { EventFormatsModule } from './formats/event-formats.module';
 import { TicketsModule } from "../tickets/tickets.module";
 
 @Module({
     imports: [
         DatabaseModule,
-        forwardRef(() => FormatsModule),
+        forwardRef(() => EventFormatsModule),
         forwardRef(() => UsersModule),
         forwardRef(() => NewsModule),
         forwardRef(() => CompaniesModule),

@@ -33,7 +33,7 @@ describe('EventsController', () => {
 
     // Мок даних для базової події (без відносин)
     const fakeBasicEvent: Event = generateFakeBasicEvent();
-    
+
     // Мок даних для події з відносинами
     const fakeEventWithRelations: EventWithRelations = generateFakeEventWithRelations();
 
@@ -91,9 +91,9 @@ describe('EventsController', () => {
         // TODO: Додати тести для перевірки HTTP статусів (201, 400, 401, 403)
         // TODO: Додати тести для перевірки заголовків відповіді
         // TODO: Додати тести для перевірки роботи ValidationPipe
-        
+
         it('Should create an event and return basic fields', async () => {
-            const result = await controller.create(fakeCreateEventDto, 0);
+            const result = await controller.create(fakeCreateEventDto);
             expect(result).toEqual(transformedBasicEvent);
             expect(eventsService.create).toHaveBeenCalledWith(fakeCreateEventDto);
         });
@@ -102,7 +102,7 @@ describe('EventsController', () => {
     describe('Find All Events', () => {
         // TODO: Додати тести для перевірки параметрів запиту (пагінація, фільтрація, сортування)
         // TODO: Додати тести для перевірки різних форматів відповіді (JSON, XML)
-        
+
         it('Should return all events with relations and basic fields', async () => {
             const result = await controller.findAll();
             expect(result).toEqual([transformedEventWithRelations]);
@@ -112,52 +112,52 @@ describe('EventsController', () => {
 
     describe('Find One Event', () => {
         it('Should return an event with relations by ID', async () => {
-            const result = await controller.findOne(fakeEventWithRelations.id, 0);
+            const result = await controller.findOne(fakeEventWithRelations.id);
             expect(result).toEqual(transformedEventWithRelations);
             expect(eventsService.findById).toHaveBeenCalledWith(fakeEventWithRelations.id);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
             jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
-            await expect(controller.findOne(999, 0)).rejects.toThrow(NotFoundException);
+            await expect(controller.findOne(999)).rejects.toThrow(NotFoundException);
         });
     });
 
     describe('Update Event', () => {
         it('Should update an event and return basic fields', async () => {
-            const result = await controller.update(fakeBasicEvent.id, fakeUpdateEventDto, 0);
+            const result = await controller.update(fakeBasicEvent.id, fakeUpdateEventDto);
             expect(result).toEqual(transformedBasicEvent);
             expect(eventsService.update).toHaveBeenCalledWith(fakeBasicEvent.id, fakeUpdateEventDto);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
             jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
-            await expect(controller.update(999, fakeUpdateEventDto, 0)).rejects.toThrow(NotFoundException);
+            await expect(controller.update(999, fakeUpdateEventDto)).rejects.toThrow(NotFoundException);
         });
     });
 
     describe('Delete Event', () => {
         it('Should delete an event', async () => {
-            await controller.remove(fakeEventWithRelations.id, 0);
+            await controller.delete(fakeEventWithRelations.id, 0);
             expect(eventsService.delete).toHaveBeenCalledWith(fakeEventWithRelations.id);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
             jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
-            await expect(controller.remove(999, 0)).rejects.toThrow(NotFoundException);
+            await expect(controller.delete(999, 0)).rejects.toThrow(NotFoundException);
         });
     });
 
     describe('Get Event By Id (Public)', () => {
         it('Should return an event with relations by ID', async () => {
-            const result = await controller.findOne(fakeEventWithRelations.id, 1);
+            const result = await controller.findOne(fakeEventWithRelations.id);
             expect(result).toEqual(transformedEventWithRelations);
             expect(eventsService.findById).toHaveBeenCalledWith(fakeEventWithRelations.id);
         });
 
         it('Should throw NotFoundException when event is not found (public endpoint)', async () => {
             jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
-            await expect(controller.findOne(999, 1)).rejects.toThrow(NotFoundException);
+            await expect(controller.findOne(999)).rejects.toThrow(NotFoundException);
         });
     });
 

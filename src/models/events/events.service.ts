@@ -76,7 +76,7 @@ export class EventsService {
             throw new NotFoundException(`Event not found`);
         }
 
-        const event = await this.eventsRepository.update(id, { posterName });
+        const event = await this.eventsRepository.update(id, { posterName } as Event);
 
         return plainToInstance(Event, event, {
             groups: SERIALIZATION_GROUPS.BASIC,

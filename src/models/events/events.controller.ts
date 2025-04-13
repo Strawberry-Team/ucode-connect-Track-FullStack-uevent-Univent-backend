@@ -387,7 +387,37 @@ export class EventsController {
       @Param('ticketId') ticketId: number,
     ): Promise<Ticket> {
         return this.ticketsService.findOneTicket(ticketId, id);
+    }
 
+    @Public()
+    @Get(':id')
+    @ApiOperation({ summary: 'Get event data' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Event ID',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully retrieve',
+        type: Event,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Event not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Event not found',
+                },
+            },
+        },
+    })
     async findOne(@Param('id') id: number): Promise<Event> {
         // TODO: Треба зробити по нормальному userId
         return await this.eventsService.findById(id);
@@ -710,7 +740,7 @@ export class EventsController {
         status: HttpStatus.OK,
         description: 'Event successfully deleted',
     })
-    async remove(
+    async delete(
         @Param('id') id: number,
         @UserId() userId: number,
     ): Promise<void> {
@@ -796,7 +826,5 @@ export class EventsController {
         @Body() dto: CreateEventThemesDto,
     ): Promise<void> {
         return await this.eventsService.syncThemes(id, dto);
-    async delete(@Param('id') id: number): Promise<void> {
-        return await this.eventsService.delete(id);
     }
 }

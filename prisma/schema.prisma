@@ -93,7 +93,6 @@ model EventFormat {
   @@map("event_formats")
 }
 
-
 // Event Themes model
 model EventTheme {
   id        Int      @id @default(autoincrement())
@@ -127,11 +126,11 @@ model Event {
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  company Company     @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
-  format  EventFormat @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
-  news    News[]      @relation(map: "news_event_id_fk")
+  company        Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
+  format         EventFormat          @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
+  news           News[]               @relation(map: "news_event_id_fk")
   // attendees      EventAttendee[]
-  tickets Ticket[]    @relation(map: "tickets_event_id_fk")
+  tickets        Ticket[]             @relation(map: "tickets_event_id_fk")
   // promoCodes     PromoCode[]
   themesRelation EventThemeRelation[]
   // subscriptions  Subscription[]
@@ -172,9 +171,8 @@ model Ticket {
   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // // Relations
-  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
-  // orderItems OrderItem[]
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
+  // orderItems OrderItem[]
 
   @@index([eventId], map: "tickets_event_id_fk")
   @@map("tickets")
@@ -256,6 +254,7 @@ model EventThemeRelation {
   @@index([themeId], map: "event_theme_relations_theme_id_fk")
   @@map("events_themes_relations")
 }
+
 //
 // // Subscriptions model
 // model Subscription {
