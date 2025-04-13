@@ -1,4 +1,4 @@
-// scr/models/companies/entities/company.entity.ts
+// scr/models/events/formats/entities/event-format.entity.ts
 import { EventTheme as PrismaEventTheme } from '@prisma/client';
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';

@@ -6,7 +6,7 @@ import {
 } from '@prisma/client';
 import { Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { Format } from '../../formats/entities/format.entity';
+import { EventFormat } from '../formats/entities/event-format.entity';
 import { Company } from '../../companies/entities/company.entity';
 import { Ticket } from '../../tickets/entities/ticket.entity';
 import { News } from '../../news/entities/news.entity';
@@ -154,7 +154,7 @@ export class Event implements PrismaEvent {
     updatedAt: Date;
 
     @Expose({ groups: ['systemic'] })
-    format?: Format;
+    format?: EventFormat;
 
     @Expose({ groups: ['systemic'] })
     company?: Company;

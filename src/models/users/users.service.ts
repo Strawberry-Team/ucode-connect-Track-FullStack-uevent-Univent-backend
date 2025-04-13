@@ -104,7 +104,7 @@ export class UsersService {
         }
         try {
             const company =
-                await this.companiesService.findCompanyByOwnerId(userId);
+                await this.companiesService.findByOwnerId(userId);
             return [company];
         } catch (error) {
             if (error instanceof NotFoundException) {

@@ -2,7 +2,7 @@
 import { EventFormat as PrismaEventFormat } from "@prisma/client";
 import { Expose } from "class-transformer";
 import { ApiProperty } from '@nestjs/swagger';
-import { Event } from '../../events/entities/event.entity';
+import { Event } from '../../entities/event.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic']
