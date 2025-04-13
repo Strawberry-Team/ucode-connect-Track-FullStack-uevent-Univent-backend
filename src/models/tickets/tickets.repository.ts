@@ -10,7 +10,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 export class TicketsRepository {
     constructor(private db: DatabaseService) {}
 
-    async create(createTicketDto: CreateTicketDto & { number: string, eventId}): Promise<Ticket> {
+    async create(createTicketDto: CreateTicketDto & { number: string, eventId: number}): Promise<Ticket> {
         const result = await this.db.ticket.create({
             data: {
                 eventId: createTicketDto.eventId,
@@ -54,7 +54,7 @@ export class TicketsRepository {
         return finalResult;
     }
 
-    async findOne(id: number): Promise<Ticket | null> {
+    async findById(id: number): Promise<Ticket | null> {
         const ticket = await this.db.ticket.findUnique({
             where: { id },
         });
@@ -67,7 +67,7 @@ export class TicketsRepository {
         return { ...ticketWithoutPrice, price: Number(price) };
     }
 
-    async findOneByNumber(number: string): Promise<Ticket | null> {
+    async findByNumber(number: string): Promise<Ticket | null> {
         const ticket = await this.db.ticket.findUnique({
             where: { number },
         });
