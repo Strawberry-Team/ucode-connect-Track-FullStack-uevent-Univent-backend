@@ -86,7 +86,7 @@ export class Company implements PrismaCompany {
     @Expose({ groups: ['systemic'] })
     updatedAt: Date;
 
-    @Expose({ groups: ['basic'] })
+    @Expose({ groups: ['systemic'] })
     owner?: User;
 
     @Expose({ groups: ['systemic'] })

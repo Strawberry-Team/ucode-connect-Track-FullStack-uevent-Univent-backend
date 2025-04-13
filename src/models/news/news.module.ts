@@ -2,7 +2,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { NewsService } from './news.service';
 import { NewsController } from './news.controller';
-import { DatabaseModule } from '../../db/database.module';
 import { UsersModule } from '../users/users.module';
 import { CompaniesModule } from '../companies/companies.module';
 import { EventsModule } from '../events/events.module';
@@ -10,7 +9,6 @@ import { NewsRepository } from './news.repository';
 
 @Module({
     imports: [
-        DatabaseModule,
         forwardRef(() => UsersModule),
         forwardRef(() => EventsModule),
         forwardRef(() => CompaniesModule),

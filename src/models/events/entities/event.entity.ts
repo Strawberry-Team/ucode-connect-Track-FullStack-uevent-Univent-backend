@@ -168,6 +168,9 @@ export class Event implements PrismaEvent {
     format?: EventFormat;
 
     @Expose({ groups: ['systemic'] })
+    themes?: EventTheme[];
+
+    @Expose({ groups: ['systemic'] })
     company?: Company;
 
     @Expose({ groups: ['systemic'] })

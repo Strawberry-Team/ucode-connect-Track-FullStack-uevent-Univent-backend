@@ -41,10 +41,13 @@ export class CompaniesService {
             throw new ConflictException('Company email already in use');
         }
 
-        const company = await this.companyRepository.create({
-            ...dto,
-            ownerId: userId,
-        });
+        const company = await this.companyRepository.create(
+            {
+                ...dto,
+                ownerId: userId,
+            },
+            { owner: true },
+        );
 
         if (!company.owner) {
             throw new NotFoundException('User not found');
@@ -112,28 +115,6 @@ export class CompaniesService {
         });
     }
 
-    /*public async findByTitle(
-        title: string,
-        ownerId: number,
-    ): Promise<Company> {
-        if (!title || title.length === 0) {
-            throw new BadRequestException('Company title must be not empty');
-        }
-
-        const company = await this.companyRepository.findByTitle(
-            title,
-            ownerId,
-        );
-
-        if (!company) {
-            throw new NotFoundException(`Company not found`);
-        }
-
-        return plainToInstance(Company, company, {
-            groups: SERIALIZATION_GROUPS.BASIC,
-        });
-    }*/
-
     async update(id: number, dto: UpdateCompanyDto): Promise<Company> {
         const existingCompany = await this.companyRepository.findById(id);
 
@@ -163,10 +144,18 @@ export class CompaniesService {
     }
 
     async delete(id: number): Promise<void> {
-        let existingCompany = await this.companyRepository.findById(id);
+        let existingCompany = await this.companyRepository.findById(id, {
+            events: true,
+        });
 
         if (!existingCompany) {
             throw new NotFoundException(`Company not found`);
+        }
+
+        if (existingCompany.events) {
+            throw new BadRequestException(
+                `Unable to delete a company with existing events`,
+            );
         }
 
         await this.companyRepository.delete(id);

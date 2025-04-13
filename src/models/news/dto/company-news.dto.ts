@@ -6,8 +6,8 @@ export class CompanyNewsDto extends PartialType(News) {
     @ApiProperty({
         description: 'Event identifier',
         nullable: true,
-        type: 'number',
+        type: 'null',
         example: null,
     })
-    eventId: number | null;
+    eventId: null;
 }

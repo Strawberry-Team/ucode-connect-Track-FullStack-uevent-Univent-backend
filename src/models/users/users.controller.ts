@@ -80,7 +80,7 @@ export class UsersController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'User ID',
+        description: 'User identifier',
         example: 1,
     })
     @ApiResponse({
@@ -175,7 +175,7 @@ export class UsersController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'User ID',
+        description: 'User identifier',
         example: 1,
     })
     @ApiResponse({
@@ -240,7 +240,7 @@ export class UsersController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'User ID',
+        description: 'User identifier',
         example: 1,
     })
     @ApiBody({ required: true, type: UpdateUserDto, description: 'User update data' })
@@ -316,7 +316,7 @@ export class UsersController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'User ID',
+        description: 'User identifier',
         example: 1,
     })
     @ApiBody({ required: true, type: UpdateUserPasswordDto, description: 'User password update data' })
@@ -400,7 +400,7 @@ export class UsersController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'User ID',
+        description: 'User identifier',
         example: 1,
     })
     @ApiBody({

@@ -36,6 +36,8 @@ import { NewsService } from '../news/news.service';
 import { CreateNewsDto } from '../news/dto/create-news.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CompanyNewsDto } from '../news/dto/company-news.dto';
+import { JwtAuthGuard } from '../auth/guards/auth.guards';
+import { NewsOwnerGuard } from '../news/guards/news-owner.guard';
 
 @Controller('companies')
 @ApiTags('Companies')
@@ -47,6 +49,7 @@ export class CompaniesController {
     ) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Company creation' })
     @ApiBody({
         required: true,
@@ -134,7 +137,8 @@ export class CompaniesController {
     }
 
     @Post(':company_id/news')
-    @UseGuards(CompanyOwnerGuard)
+    @UseGuards(JwtAuthGuard)
+    @UseGuards(CompanyOwnerGuard, NewsOwnerGuard)
     @ApiOperation({
         summary: 'Create company news item',
     })
@@ -142,7 +146,7 @@ export class CompaniesController {
         required: true,
         name: 'company_id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
     @ApiBody({
@@ -277,7 +281,7 @@ export class CompaniesController {
         required: true,
         name: 'company_id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
     @ApiOperation({ summary: 'Get all company news' })
@@ -290,113 +294,15 @@ export class CompaniesController {
         return await this.newsService.findByCompanyId(companyId);
     }
 
-    @Get(':id')
-    @Public()
-    @ApiOperation({ summary: 'Get company data by id' })
-    @ApiParam({
-        name: 'id',
-        required: true,
-        type: 'number',
-        description: 'Company ID',
-        example: 1,
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Successfully retrieve',
-        type: Company,
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Company not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Company not found',
-                },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Not Found',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 404,
-                },
-            },
-        },
-    })
-    async findOne(@Param('id') id: number) {
-        return await this.companyService.findById(id);
-    }
-
-    @Get(':company_id/news/:news_id')
-    @Public()
-    @ApiOperation({ summary: 'Get company news item by id' })
-    @ApiParam({
-        required: true,
-        name: 'company_id',
-        type: 'number',
-        description: 'Company ID',
-        example: 1,
-    })
-    @ApiParam({
-        required: true,
-        name: 'news_id',
-        type: 'number',
-        description: 'News ID',
-        example: 1,
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Successfully retrieve',
-        type: CompanyNewsDto,
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'News item not found',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'News item not found',
-                },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Not Found',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 404,
-                },
-            },
-        },
-    })
-    async findOneNews(@Param('id') id: number) {
-        const company = await this.companyService.findById(id);
-
-        if (!company) {
-            throw new NotFoundException('Company not found');
-        }
-
-        return await this.newsService.findById(id);
-    }
-
     @Patch(':id')
+    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Update company data' })
     @ApiParam({
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
     @ApiBody({
@@ -508,6 +414,7 @@ export class CompaniesController {
     }
 
     @Post(':id/upload-logo')
+    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
     @UseInterceptors(
         createFileUploadInterceptor({
@@ -522,7 +429,7 @@ export class CompaniesController {
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
     @ApiBody({
@@ -660,18 +567,42 @@ export class CompaniesController {
     }
 
     @Delete(':id')
+    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
+    @ApiOperation({ summary: 'Company deletion' })
     @ApiParam({
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Company ID',
+        description: 'Company identifier',
         example: 1,
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: Company,
         description: 'Successfully deletion',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    example: 'Unable to delete a company with existing events',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
+                },
+            },
+        },
     })
     @ApiResponse({
         status: HttpStatus.UNAUTHORIZED,

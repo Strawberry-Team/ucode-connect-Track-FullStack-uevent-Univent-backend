@@ -1,65 +1,85 @@
-// // src/models/companies/companies.repository.ts
+// src/models/companies/companies.repository.ts
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Company } from './entities/company.entity';
 import { DatabaseService } from '../../db/database.service';
+import { CompanyIncludeOptions } from './interfaces/company-include-options.interface';
 
 @Injectable()
 export class CompaniesRepository {
     constructor(private readonly db: DatabaseService) {}
 
+    private readonly DEFAULT_INCLUDE: CompanyIncludeOptions = {
+        owner: false,
+        events: false,
+        news: false,
+    };
+
     private async findUniqueCompany(
         where: Prisma.CompanyWhereUniqueInput,
-        includeOwner: boolean = false,
-        includeEvents: boolean = false,
-        includeNews: boolean = false,
+        includeOptions: CompanyIncludeOptions = this.DEFAULT_INCLUDE,
     ): Promise<Company | null> {
+        const include: Prisma.CompanyInclude = {
+            owner: includeOptions.owner ?? false,
+            events: includeOptions.events ?? false,
+            news: includeOptions.events ?? false,
+        };
+        type CompanyWithIncludes = Prisma.CompanyGetPayload<{
+            include: typeof include;
+        }>;
+
         const company = await this.db.company.findUnique({
             where,
-            include: {
-                owner: includeOwner,
-                events: includeEvents,
-                news: includeNews,
-            },
+            include,
         });
 
         if (!company) {
             return null;
         }
 
-        return company as Company;
+        return company as CompanyWithIncludes as Company;
     }
 
-    async create(data: Partial<Company>): Promise<Company> {
+    async create(
+        data: Partial<Company>,
+        include: CompanyIncludeOptions = this.DEFAULT_INCLUDE,
+    ): Promise<Company> {
         return this.db.company.create({
-            data: data as any,
-            include: { owner: false, events: false, news: false },
+            data: data as Prisma.CompanyCreateInput,
+            include,
         });
     }
 
-    async findAll(): Promise<Company[]> {
+    async findAll(include: CompanyIncludeOptions = {}): Promise<Company[]> {
         return this.db.company.findMany({
-            include: { owner: false, events: false, news: false },
+            include,
         });
     }
 
-    async findById(id: number): Promise<Company | null> {
-        return this.findUniqueCompany({ id });
+    async findById(
+        id: number,
+        include: CompanyIncludeOptions = this.DEFAULT_INCLUDE,
+    ): Promise<Company | null> {
+        return this.findUniqueCompany({ id }, include);
     }
 
     async findByOwnerId(ownerId: number): Promise<Company | null> {
-        return this.findUniqueCompany({ ownerId }, true);
+        return this.findUniqueCompany({ ownerId }, { owner: true });
     }
 
     async findByEmail(email: string): Promise<Company | null> {
-        return this.findUniqueCompany({ email });
+        return this.findUniqueCompany({ email }, {});
     }
 
-    async update(id: number, updateData: Partial<Company>): Promise<Company> {
+    async update(
+        id: number,
+        updateData: Partial<Company>,
+        include: CompanyIncludeOptions = {},
+    ): Promise<Company> {
         return this.db.company.update({
             where: { id },
-            data: updateData as any,
-            include: { owner: false, events: false, news: false },
+            data: updateData as Prisma.CompanyUpdateInput,
+            include,
         });
     }
 

@@ -2,14 +2,12 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { TicketsRepository } from './tickets.repository';
-import { DatabaseModule } from '../../db/database.module';
 import { TicketsController } from './tickets.controller';
 import { UsersModule } from '../users/users.module';
 import { CompaniesModule } from "../companies/companies.module";
 
 @Module({
     imports: [
-        DatabaseModule,
         forwardRef(() => UsersModule),
         forwardRef(() => CompaniesModule)
     ],
