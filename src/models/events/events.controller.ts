@@ -56,7 +56,6 @@ export class EventsController {
 
     @Post()
     @UseGuards(JwtAuthGuard)
-    @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Event creation' })
     @ApiBody({
         required: true,
@@ -127,7 +126,6 @@ export class EventsController {
 
     @Post(':event_id/news')
     @UseGuards(JwtAuthGuard)
-    @UseGuards(CompanyOwnerGuard)
     @ApiOperation({
         summary: 'Create event news item',
     })
@@ -254,7 +252,6 @@ export class EventsController {
 
     @Post(':id/tickets')
     @UseGuards(JwtAuthGuard)
-    @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Create tickets for an event' })
     @ApiParam({
         name: 'id',
@@ -430,7 +427,6 @@ export class EventsController {
 
     @Patch(':id')
     @UseGuards(JwtAuthGuard)
-    @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Update event data' })
     @ApiParam({
         name: 'id',
@@ -525,7 +521,6 @@ export class EventsController {
 
     @Post(':id/upload-poster')
     @UseGuards(JwtAuthGuard)
-    @UseGuards(CompanyOwnerGuard)
     @UseInterceptors(
         createFileUploadInterceptor({
             destination: './public/uploads/event-posters',
@@ -678,7 +673,6 @@ export class EventsController {
 
     @Post(':id/themes')
     @UseGuards(JwtAuthGuard)
-    @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Sync event themes' })
     @ApiParam({
         required: true,
@@ -761,7 +755,6 @@ export class EventsController {
 
     @Delete(':id')
     @UseGuards(JwtAuthGuard)
-    @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Event deletion' })
     @ApiParam({
         required: true,

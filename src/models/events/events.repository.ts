@@ -57,13 +57,6 @@ export class EventsRepository {
                         title: true,
                     },
                 },
-                tickets: {
-                    select: {
-                        id: true,
-                        title: true,
-                        status: true,
-                    },
-                },
             },
         });
 
