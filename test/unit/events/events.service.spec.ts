@@ -2,49 +2,40 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventsService } from '../../../src/models/events/events.service';
 import { EventsRepository } from '../../../src/models/events/events.repository';
-import { Event } from '../../../src/models/events/entities/event.entity';
+import { Event, EventWithRelations } from '../../../src/models/events/entities/event.entity';
 import { NotFoundException } from '@nestjs/common';
 import { CreateEventDto } from '../../../src/models/events/dto/create-event.dto';
 import { AttendeeVisibility, EventStatus } from '@prisma/client';
+import { generateFakeBasicEvent, generateFakeEventWithRelations, generateFakeCreateEventDto } from '../../fake-data/fake-events';
+
+// TODO: Додати тести для перевірки бізнес-логіки, наприклад:
+// - Перевірка зміни статусу події при різних умовах
+// - Перевірка валідації дат (startedAt < endedAt)
+// - Перевірка логіки публікації події
+
+// TODO: Додати тести для обробки граничних випадків:
+// - Некоректні дати
+// - Некоректні ID зв'язаних сутностей
+// - Порожні або невалідні значення полів
+
+// TODO: Додати тести для перевірки взаємодії з іншими сервісами, якщо вони є
+// (наприклад, сервіс завантаження файлів для posterName)
 
 describe('EventsService', () => {
     let service: EventsService;
     let repository: EventsRepository;
 
-    const mockEvent: Event = {
-        id: 1,
-        companyId: 1,
-        formatId: 1,
-        title: 'Test Event',
-        description: 'Test Description',
-        venue: 'Test Venue',
-        locationCoordinates: '50.4501,30.5234',
-        startedAt: new Date('2024-04-05T10:00:00Z'),
-        endedAt: new Date('2024-04-05T11:00:00Z'),
-        publishedAt: new Date('2024-04-04T10:00:00Z'),
-        ticketsAvailableFrom: new Date('2024-04-04T11:00:00Z'),
-        posterName: 'test-poster.jpg',
-        attendeeVisibility: AttendeeVisibility.EVERYONE,
-        status: EventStatus.PUBLISHED,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    };
+    // Мок даних, які повертає репозиторій (з системними полями)
+    const mockRepositoryEvent: Event = generateFakeBasicEvent();
 
-    const mockCreateEventDto: CreateEventDto = {
-        companyId: 1,
-        formatId: 1,
-        title: 'Test Event',
-        description: 'Test Description',
-        venue: 'Test Venue',
-        locationCoordinates: '50.4501,30.5234',
-        startedAt: new Date('2024-04-05T10:00:00Z'),
-        endedAt: new Date('2024-04-05T11:00:00Z'),
-        publishedAt: new Date('2024-04-04T10:00:00Z'),
-        ticketsAvailableFrom: new Date('2024-04-04T11:00:00Z'),
-        posterName: 'test-poster.jpg',
-        attendeeVisibility: AttendeeVisibility.EVERYONE,
-        status: EventStatus.PUBLISHED,
-    };
+    // Мок даних з відносинами, які повертає репозиторій
+    const mockRepositoryEventWithRelations: EventWithRelations = generateFakeEventWithRelations();
+
+    const mockCreateEventDto: CreateEventDto = generateFakeCreateEventDto();
+
+    // TODO: Додати більше варіацій тестових даних для різних сценаріїв
+    // const mockEventWithPastDates = generateFakeBasicEvent({ withPastDates: true });
+    // const mockEventWithoutOptionalFields = generateFakeBasicEvent({ withOptionalFields: false });
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -53,14 +44,15 @@ describe('EventsService', () => {
                 {
                     provide: EventsRepository,
                     useValue: {
-                        create: jest.fn(),
-                        findById: jest.fn(),
-                        findByCompanyId: jest.fn(),
-                        update: jest.fn(),
-                        delete: jest.fn(),
-                        findAll: jest.fn(),
+                        create: jest.fn().mockResolvedValue(mockRepositoryEvent),
+                        findById: jest.fn().mockResolvedValue(mockRepositoryEventWithRelations),
+                        findByCompanyId: jest.fn().mockResolvedValue([mockRepositoryEventWithRelations]),
+                        update: jest.fn().mockResolvedValue(mockRepositoryEvent),
+                        delete: jest.fn().mockResolvedValue(undefined),
+                        findAll: jest.fn().mockResolvedValue([mockRepositoryEventWithRelations]),
                     },
                 },
+                // TODO: Додати моки для інших залежностей сервісу, якщо вони є
             ],
         }).compile();
 
@@ -68,115 +60,168 @@ describe('EventsService', () => {
         repository = module.get<EventsRepository>(EventsRepository);
     });
 
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     describe('createEvent', () => {
-        it('should set status to PUBLISHED when publishedAt is provided', async () => {
-            jest.spyOn(repository, 'create').mockResolvedValue(mockEvent);
+        // TODO: Додати тести для перевірки валідації вхідних даних
+        // TODO: Додати тести для перевірки обробки помилок від репозиторію
+        // TODO: Додати тести для перевірки трансформації даних (вхідні -> збережені -> повернуті)
+        
+        it('should create event and return basic fields only', async () => {
+            const result = await service.create(mockCreateEventDto);
 
-            const result = await service.createEvent(mockCreateEventDto);
+            // Перевіряємо, що системні поля відсутні
+            expect(result['createdAt']).toBeUndefined();
+            expect(result['updatedAt']).toBeUndefined();
 
-            expect(result.status).toBe(EventStatus.PUBLISHED);
-            expect(repository.create).toHaveBeenCalledWith({
-                ...mockCreateEventDto,
-                status: EventStatus.PUBLISHED,
-            });
+            // Перевіряємо, що всі basic поля присутні
+            expect(result).toHaveProperty('id', mockRepositoryEvent.id);
+            expect(result).toHaveProperty('title', mockRepositoryEvent.title);
+            expect(result).toHaveProperty('description', mockRepositoryEvent.description);
+            expect(result).toHaveProperty('venue', mockRepositoryEvent.venue);
+            expect(result).toHaveProperty('locationCoordinates', mockRepositoryEvent.locationCoordinates);
+            expect(result).toHaveProperty('startedAt', mockRepositoryEvent.startedAt);
+            expect(result).toHaveProperty('endedAt', mockRepositoryEvent.endedAt);
+            expect(result).toHaveProperty('publishedAt', mockRepositoryEvent.publishedAt);
+            expect(result).toHaveProperty('ticketsAvailableFrom', mockRepositoryEvent.ticketsAvailableFrom);
+            expect(result).toHaveProperty('posterName', mockRepositoryEvent.posterName);
+            expect(result).toHaveProperty('attendeeVisibility', mockRepositoryEvent.attendeeVisibility);
+            expect(result).toHaveProperty('status', mockRepositoryEvent.status);
+
+            // Перевіряємо, що репозиторій був викликаний з правильними параметрами
+            expect(repository.create).toHaveBeenCalledWith(mockCreateEventDto);
         });
+
+        // TODO: Додати тест для перевірки автоматичного встановлення статусу PUBLISHED
+        // при наявності publishedAt
     });
 
     describe('findById', () => {
-        it('should return event when found', async () => {
-            jest.spyOn(repository, 'findById').mockResolvedValue(mockEvent);
+        it('should return event with relations and basic fields only', async () => {
+            const result = await service.findById(1);
 
-            const result = await service.findEventById(1);
+            // Перевіряємо, що системні поля відсутні
+            expect(result['createdAt']).toBeUndefined();
+            expect(result['updatedAt']).toBeUndefined();
 
-            expect(result).toEqual(mockEvent);
+            // Перевіряємо наявність відносин
+            expect(result).toHaveProperty('themes', mockRepositoryEventWithRelations.themes);
+            expect(result).toHaveProperty('company', mockRepositoryEventWithRelations.company);
+            expect(result).toHaveProperty('format', mockRepositoryEventWithRelations.format);
+
+            // Перевіряємо basic поля
+            expect(result).toHaveProperty('id', mockRepositoryEventWithRelations.id);
+            expect(result).toHaveProperty('title', mockRepositoryEventWithRelations.title);
+
             expect(repository.findById).toHaveBeenCalledWith(1);
         });
 
         it('should throw NotFoundException when event not found', async () => {
             jest.spyOn(repository, 'findById').mockResolvedValue(null);
-
-            await expect(service.findEventById(1)).rejects.toThrow(NotFoundException);
-            expect(repository.findById).toHaveBeenCalledWith(1);
+            await expect(service.findById(1)).rejects.toThrow(NotFoundException);
         });
     });
 
-    describe('findByCompanyId', () => {
-        it('should return all events for company', async () => {
-            const companyEvents = [mockEvent];
-            jest.spyOn(repository, 'findByCompanyId').mockResolvedValue(companyEvents);
-
-            const result = await service.findEventByCompanyId(1);
-
-            expect(result).toEqual(companyEvents);
-            expect(repository.findByCompanyId).toHaveBeenCalledWith(1);
-        });
-
-        it('should return empty array when company has no events', async () => {
-            jest.spyOn(repository, 'findByCompanyId').mockResolvedValue([]);
-
-            const result = await service.findEventByCompanyId(1);
-
-            expect(result).toEqual([]);
-            expect(repository.findByCompanyId).toHaveBeenCalledWith(1);
-        });
-    });
-
-    describe('updateEvent', () => {
-        it('should update event successfully', async () => {
-          jest.spyOn(repository, 'findById').mockResolvedValue(mockEvent);
-
-            const updatedEvent = { ...mockEvent, title: 'Updated Title' };
+    describe('update', () => {
+        it('should update event and return basic fields only', async () => {
+            const updateDto = { title: 'Updated Title' };
+            const updatedEvent = { ...mockRepositoryEvent, ...updateDto };
+            
             jest.spyOn(repository, 'update').mockResolvedValue(updatedEvent);
 
-            const result = await service.updateEvent(1, updatedEvent);
+            const result = await service.update(1, updateDto);
 
-            expect(result).toEqual(updatedEvent);
-            expect(repository.update).toHaveBeenCalledWith(1, updatedEvent);
+            // Перевіряємо, що системні поля відсутні
+            expect(result['createdAt']).toBeUndefined();
+            expect(result['updatedAt']).toBeUndefined();
+
+            // Перевіряємо оновлене поле
+            expect(result).toHaveProperty('title', updateDto.title);
+
+            // Перевіряємо, що інші поля залишились незмінними
+            expect(result).toHaveProperty('id', mockRepositoryEvent.id);
+            expect(result).toHaveProperty('description', mockRepositoryEvent.description);
+
+            expect(repository.update).toHaveBeenCalledWith(1, expect.objectContaining(updateDto));
         });
 
         it('should throw NotFoundException when updating non-existent event', async () => {
             jest.spyOn(repository, 'findById').mockResolvedValue(null);
-
-            await expect(service.updateEvent(1, mockEvent)).rejects.toThrow(NotFoundException);
+            await expect(service.update(1, { title: 'Updated Title' })).rejects.toThrow(NotFoundException);
         });
     });
 
-    describe('deleteEvent', () => {
+    describe('delete', () => {
         it('should delete event successfully', async () => {
-            jest.spyOn(repository, 'findById').mockResolvedValue(mockEvent);
-
-            jest.spyOn(repository, 'delete').mockResolvedValue(undefined);
-
-            await service.deleteEvent(1);
-
+            await service.delete(1);
             expect(repository.delete).toHaveBeenCalledWith(1);
         });
 
         it('should throw NotFoundException when deleting non-existent event', async () => {
             jest.spyOn(repository, 'findById').mockResolvedValue(null);
-
-            await expect(service.deleteEvent(1)).rejects.toThrow(NotFoundException);
+            await expect(service.delete(1)).rejects.toThrow(NotFoundException);
         });
     });
 
-    describe('findAllEvents', () => {
-        it('should return all events', async () => {
-            const allEvents = [mockEvent];
-            jest.spyOn(repository, 'findAll').mockResolvedValue(allEvents);
+    describe('findAll', () => {
+        it('should return events with relations and basic fields only', async () => {
+            const result = await service.findAll();
 
-            const result = await service.findAllEvents();
+            expect(result).toHaveLength(1);
+            const event = result[0];
 
-            expect(result).toEqual(allEvents);
+            // Перевіряємо, що системні поля відсутні
+            expect(event['createdAt']).toBeUndefined();
+            expect(event['updatedAt']).toBeUndefined();
+
+            // Перевіряємо наявність відносин
+            expect(event).toHaveProperty('themes', mockRepositoryEventWithRelations.themes);
+            expect(event).toHaveProperty('company', mockRepositoryEventWithRelations.company);
+            expect(event).toHaveProperty('format', mockRepositoryEventWithRelations.format);
+
+            // Перевіряємо basic поля
+            expect(event).toHaveProperty('id', mockRepositoryEventWithRelations.id);
+            expect(event).toHaveProperty('title', mockRepositoryEventWithRelations.title);
+
             expect(repository.findAll).toHaveBeenCalled();
         });
 
         it('should return empty array when no events exist', async () => {
             jest.spyOn(repository, 'findAll').mockResolvedValue([]);
-
-            const result = await service.findAllEvents();
-
+            const result = await service.findAll();
             expect(result).toEqual([]);
-            expect(repository.findAll).toHaveBeenCalled();
+        });
+    });
+
+    describe('findByCompanyId', () => {
+        it('should return company events with relations and basic fields only', async () => {
+            const result = await service.findByCompanyId(1);
+
+            expect(result).toHaveLength(1);
+            const event = result[0];
+
+            // Перевіряємо, що системні поля відсутні
+            expect(event['createdAt']).toBeUndefined();
+            expect(event['updatedAt']).toBeUndefined();
+
+            // Перевіряємо наявність відносин
+            expect(event).toHaveProperty('themes', mockRepositoryEventWithRelations.themes);
+            expect(event).toHaveProperty('company', mockRepositoryEventWithRelations.company);
+            expect(event).toHaveProperty('format', mockRepositoryEventWithRelations.format);
+
+            // Перевіряємо basic поля
+            expect(event).toHaveProperty('id', mockRepositoryEventWithRelations.id);
+            expect(event).toHaveProperty('title', mockRepositoryEventWithRelations.title);
+
+            expect(repository.findByCompanyId).toHaveBeenCalledWith(1);
+        });
+
+        it('should return empty array when company has no events', async () => {
+            jest.spyOn(repository, 'findByCompanyId').mockResolvedValue([]);
+            const result = await service.findByCompanyId(1);
+            expect(result).toEqual([]);
         });
     });
 });

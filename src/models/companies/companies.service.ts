@@ -65,10 +65,6 @@ export class CompaniesService {
     public async findAllCompanies(): Promise<Company[]> {
         const companies = await this.companyRepository.findAll();
 
-        if (!companies || companies.length === 0) {
-            throw new NotFoundException(`Companies not found`);
-        }
-
         return companies.map((company) =>
             plainToInstance(Company, company, {
                 groups: SERIALIZATION_GROUPS.BASIC,
@@ -126,6 +122,28 @@ export class CompaniesService {
         });
     }
 
+    /*public async findCompanyByTitle(
+        title: string,
+        ownerId: number,
+    ): Promise<Company> {
+        if (!title || title.length === 0) {
+            throw new BadRequestException('Company title must be not empty');
+        }
+
+        const company = await this.companyRepository.findByTitle(
+            title,
+            ownerId,
+        );
+
+        if (!company) {
+            throw new NotFoundException(`Company not found`);
+        }
+
+        return plainToInstance(Company, company, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
+    }*/
+
     async updateCompany(id: number, dto: UpdateCompanyDto): Promise<Company> {
         const existingCompany = await this.companyRepository.findById(id);
 
@@ -140,16 +158,16 @@ export class CompaniesService {
         });
     }
 
-    async updateCompanyLogo(id: number, logo: string): Promise<Company> {
+    async updateCompanyLogo(id: number, logoName: string): Promise<Company> {
         let company = await this.companyRepository.findById(id);
 
         if (!company) {
             throw new NotFoundException(`Company not found`);
         }
-        company.logoName = logo;
-        company = await this.companyRepository.update(id, company);
 
-        return plainToInstance(Company, company, {
+        const result = await this.companyRepository.update(id, { logoName });
+
+        return plainToInstance(Company, result, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
     }

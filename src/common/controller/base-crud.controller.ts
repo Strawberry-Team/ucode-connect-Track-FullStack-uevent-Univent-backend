@@ -14,7 +14,6 @@ import { UserId } from '../decorators/user.decorator';
 import { ApiSecurity } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
-@ApiSecurity('JWT')
 export abstract class BaseCrudController<T, CreateDto, UpdateDto> {
     protected abstract createEntity(dto: CreateDto, userId: number): Promise<T>;
 

@@ -4,8 +4,6 @@ export type TokenType =
     | 'refresh'
     | 'confirmEmail'
     | 'resetPassword'
-    | 'confirmCalendar'
-    | 'confirmArrangement';
 export type JwtContext = 'auth' | 'calendar' | 'event';
 
 export const TOKEN_CONTEXT_MAP: Record<TokenType, JwtContext> = {
@@ -13,8 +11,6 @@ export const TOKEN_CONTEXT_MAP: Record<TokenType, JwtContext> = {
     refresh: 'auth',
     confirmEmail: 'auth',
     resetPassword: 'auth',
-    confirmCalendar: 'calendar',
-    confirmArrangement: 'event',
 };
 
 export interface JwtPayload {

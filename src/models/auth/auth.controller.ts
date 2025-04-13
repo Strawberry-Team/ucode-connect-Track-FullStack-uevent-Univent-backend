@@ -4,8 +4,6 @@ import {
     Controller,
     Post,
     UseGuards,
-    UsePipes,
-    ValidationPipe,
     HttpCode,
     Get,
     Req,
@@ -19,7 +17,7 @@ import { NewPasswordDto } from './dto/new-password.dto';
 import {
     JwtRefreshGuard,
     JwtResetPasswordGuard,
-    JwtConfirmEmailGuard,
+    JwtConfirmEmailGuard, JwtAuthGuard,
 } from './guards/auth.guards';
 import { Request as ExpressRequest } from 'express';
 import { UserId } from 'src/common/decorators/user.decorator';
@@ -32,15 +30,12 @@ import {
     ApiBody,
     ApiSecurity,
     getSchemaPath,
-    ApiBearerAuth,
+    ApiBearerAuth, OmitType,
 } from '@nestjs/swagger';
 import { User } from '../users/entities/user.entity';
 
 @Controller('auth')
-@UsePipes(new ValidationPipe({ whitelist: true }))
 @ApiTags('Auth')
-@ApiSecurity('JWT')
-@ApiBearerAuth()
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
@@ -76,6 +71,7 @@ export class AuthController {
     })
     @ApiResponse({
         status: HttpStatus.CREATED,
+        type: User,
         description: 'Successful user registration',
         schema: {
             type: 'object',
@@ -186,6 +182,7 @@ export class AuthController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successful login',
+        type: User,
         schema: {
             type: 'object',
             properties: {
@@ -241,7 +238,7 @@ export class AuthController {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Invalid email or password',
+                    example: 'Invalid password',
                 },
                 error: {
                     type: 'string',

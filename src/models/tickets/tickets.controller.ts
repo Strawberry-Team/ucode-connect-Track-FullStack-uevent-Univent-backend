@@ -18,12 +18,13 @@ import {
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
+import {ApiExcludeEndpoint} from "@nestjs/swagger";
 
 @ApiTags('Tickets')
 @Controller('tickets')
 export class TicketsController {
     constructor(private readonly ticketsService: TicketsService) {}
-
+    
     @Patch(':id')
     @ApiOperation({ summary: 'Update ticket data' })
     @ApiParam({
@@ -47,6 +48,8 @@ export class TicketsController {
         status: HttpStatus.BAD_REQUEST,
         description: 'Validation error',
     })
+    @ApiExcludeEndpoint()
+    // @UseGuards(EventCreatorGuard)
     async update(
         @Param('id') id: number,
         @Body() dto: UpdateTicketDto,
@@ -55,7 +58,10 @@ export class TicketsController {
         return await this.ticketsService.updateTicket(id, dto);
     }
 
+
     @Delete(':id')
+    @ApiExcludeEndpoint()
+    // @UseGuards(EventCreatorGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiOperation({ summary: 'Delete ticket' })
     @ApiParam({

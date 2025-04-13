@@ -5,6 +5,7 @@ Table users {
   "first_name" VARCHAR(100) [not null]
   "last_name" VARCHAR(100)
   "email" VARCHAR(255) [not null]
+  "role" ENUM('admin', 'user') [not null, default: 'user']
   "profile_picture_name" VARCHAR(255) [not null, default: 'default-avatar.png']
   "is_email_verified" BOOL [not null, default: 0]
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
@@ -137,6 +138,7 @@ Table companies {
   "title" VARCHAR(100) [not null]
   "email" VARCHAR(255) [unique, not null]
   "description" TEXT [not null]
+  "logoName" VARCHAR(255) [not null, default: 'default-logo.png']
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
   "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
 

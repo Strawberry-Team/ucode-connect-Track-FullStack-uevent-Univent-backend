@@ -9,6 +9,7 @@ import * as csurf from 'csurf';
 import { CsrfExceptionFilter } from './common/filters/csrf-exception.filter';
 import { CsrfError } from './common/filters/csrf-exception.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { applySwaggerSecurity } from './common/enhancers/swagger-security.enhancer';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -29,44 +30,52 @@ async function bootstrap() {
     const csrfConfig = configService.get('app.csrf');
     const corsConfig = configService.get('app.cors');
     const nodeEnv = String(configService.get('app.nodeEnv'));
+    const enableCsrfProtection = nodeEnv === 'production';
 
     app.useGlobalFilters(new CsrfExceptionFilter());
     app.setGlobalPrefix(globalPrefix);
     app.useStaticAssets('public');
     app.enableCors({
+        //TODO: read more about cors. about Postman.
         origin: frontendOrigin,
         methods: corsConfig.methods,
         allowedHeaders: corsConfig.allowedHeaders,
-        credentials: corsConfig.credentials,
+        credentials: corsConfig.credentials, // Required to send cookies cross-origin
     });
-    app.use(
-        csurf({
-            cookie: {
-                key: csrfConfig.cookie.key,
-                httpOnly: csrfConfig.cookie.httpOnly,
-                secure: nodeEnv === 'production',
-                sameSite: csrfConfig.cookie.sameSite,
-            },
-            ignoreMethods: csrfConfig.ignoreMethods,
-        }),
-    );
-    app.use((err: any, req: any, res: any, next: any) => {
-        if (err && err.code === 'EBADCSRFTOKEN') {
-            next(new CsrfError());
-        } else {
-            next(err);
-        }
-    });
+
+    if (enableCsrfProtection) {
+        console.log('⚠️ CSRF protection is enabled');
+        app.use(
+            csurf({
+                cookie: {
+                    key: csrfConfig.cookie.key,
+                    httpOnly: csrfConfig.cookie.httpOnly, //Not available via JS
+                    secure: nodeEnv === 'production', //Cookies are only transmitted via HTTPS
+                    sameSite: csrfConfig.cookie.sameSite, //Cookies will only be sent for requests originating from the same domain (site)
+                },
+                ignoreMethods: csrfConfig.ignoreMethods,
+            }),
+        );
+        app.use((err: any, req: any, res: any, next: any) => {
+            if (err && err.code === 'EBADCSRFTOKEN') {
+                next(new CsrfError());
+            } else {
+                next(err);
+            }
+        });
+    } else {
+        console.log('⚠️ CSRF protection is disabled.');
+    }
     app.useGlobalPipes(
         new ValidationPipe({
-            transform: true,
+            transform: true, // Automatically convert incoming primitive values into instances of classes specified in the DTO
             transformOptions: {
-                enableImplicitConversion: true,
-                exposeDefaultValues: true,
+                enableImplicitConversion: true, // Enable implicit type conversion
+                exposeDefaultValues: true, // Expose default values in the transformed object
             },
-            whitelist: true,
-            forbidNonWhitelisted: false,
-            validateCustomDecorators: true,
+            whitelist: true, // Filters out properties that do not have decorators
+            forbidNonWhitelisted: false, // Does not generate an error if there are extra fields
+            validateCustomDecorators: true, // Validate custom decorators
         }),
     );
 
@@ -83,7 +92,15 @@ async function bootstrap() {
                 description: 'Enter JWT access token',
                 in: 'header',
             },
-            'JWT',
+            'access-token',
+        )
+        .addApiKey(
+            {
+                type: 'apiKey',
+                name: 'X-CSRF-TOKEN',
+                in: 'header',
+            },
+            'csrf-token',
         )
         .addTag('Auth')
         .addTag('Users')
@@ -96,16 +113,27 @@ async function bootstrap() {
         .build();
     const document = SwaggerModule.createDocument(app, configAPIDoc);
 
-    SwaggerModule.setup('api', app, document, {
+    applySwaggerSecurity(app, document, globalPrefix);
+
+    SwaggerModule.setup('api-docs', app, document, {
         swaggerOptions: {
             persistAuthorization: true,
+            tagsSorter: 'alpha',
+            operationsSorter: 'alpha',
+            docExpansion: 'none',
+            filter: true,
+            tryItOutEnabled: true,
+            displayRequestDuration: true,
         },
+        customSiteTitle: 'uevent API',
+        customCss: '.swagger-ui .topbar { display: none }',
+        customfavIcon: './project/logo.png',
     });
 
     await app.listen(port);
 
     console.log(`\n✔ Application is running on: ${baseUrl}`);
-    console.log(`\n✔ API Docs is available on: ${baseUrl}/${globalPrefix}\n`);
+    console.log(`\n✔ API Docs is available on: ${baseUrl}/${globalPrefix}-docs\n`);
 }
 
 bootstrap();

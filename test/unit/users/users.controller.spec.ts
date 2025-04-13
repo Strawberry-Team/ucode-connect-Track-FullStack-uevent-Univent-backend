@@ -36,16 +36,16 @@ describe('UsersController', () => {
 
     describe('findOneByEmail (GET /users?email=...)', () => {
         it('should throw BadRequestException if email is not provided', async () => {
-            await expect(usersController.findOneByEmail('')).rejects.toThrow(
+            await expect(usersController.findAll('')).rejects.toThrow(
                 BadRequestException,
             );
         });
 
-        it('should return user by email without confidential data', async () => {
+        it('should return user by email without PRIVATE data', async () => {
             const testUser: User = UsersFaker.generateFakeUser();
             usersService.findUserByEmailWithoutPassword.mockResolvedValue(testUser);
 
-            const result = await usersController.findOneByEmail(testUser.email);
+            const result = await usersController.findAll(testUser.email);
             expect(usersService.findUserByEmailWithoutPassword).toHaveBeenCalledWith(
                 testUser.email,
             );
@@ -54,7 +54,7 @@ describe('UsersController', () => {
     });
 
     describe('findOne (GET /users/:id)', () => {
-        it('should return user by id without confidential data', async () => {
+        it('should return user by id without PRIVATE data', async () => {
             const testUser: User = UsersFaker.generateFakeUser();
             usersService.findUserByIdWithoutPassword.mockResolvedValue(testUser);
 

@@ -30,8 +30,6 @@ export class JwtUtils {
             'refresh',
             'confirmEmail',
             'resetPassword',
-            'confirmCalendar',
-            'confirmArrangement',
         ];
         const contexts: JwtContext[] = ['auth', 'calendar', 'event'];
 

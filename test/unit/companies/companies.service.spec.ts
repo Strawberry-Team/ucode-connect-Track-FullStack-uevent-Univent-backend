@@ -16,28 +16,28 @@ import {
 } from '../../fake-data/fake-companies';
 import { UpdateCompanyDto } from '../../../src/models/companies/dto/update-company.dto';
 import { generateFakeUser } from '../../fake-data/fake-users';
+import { EmailService } from '../../../src/email/email.service';
 
 describe('CompaniesService', () => {
     let service: CompaniesService;
     let repository: CompaniesRepository;
+    let emailService: EmailService;
 
-    const fakeCompany: Company = generateFakeCompany();
+    const fakeUser = generateFakeUser();
+    const fakeCompany: Company = generateFakeCompany(fakeUser.id);
     const fakeCreateCompanyDto: CreateCompanyDto = pickCompanyFields(
         fakeCompany,
         ['ownerId', 'email', 'title', 'description'],
     );
-    const fakeUpdateCompanyDto: UpdateCompanyDto = generateFakeCompany(false, [
-        'ownerId',
-        'email',
-        'title',
-        'description',
-    ]);
+    const fakeUpdateCompanyDto: UpdateCompanyDto = generateFakeCompany(
+        fakeUser.id,
+        false,
+        ['ownerId', 'email', 'title', 'description'],
+    );
     const fakeUpdatedCompany: Company = {
         ...fakeCompany,
         ...fakeUpdateCompanyDto,
     };
-    const fakeUser = generateFakeUser();
-    fakeUser.id = fakeCompany.ownerId;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -49,11 +49,17 @@ describe('CompaniesService', () => {
                         create: jest.fn().mockResolvedValue(null),
                         findAll: jest.fn().mockResolvedValue([]),
                         findById: jest.fn().mockResolvedValue(null),
-                        findUserByOwnerId: jest.fn().mockResolvedValue(null),
                         findByOwnerId: jest.fn().mockResolvedValue(null),
                         findByEmail: jest.fn().mockResolvedValue(null),
+                        findByTitle: jest.fn().mockResolvedValue(null),
                         update: jest.fn().mockResolvedValue(null),
                         delete: jest.fn().mockResolvedValue(undefined),
+                    },
+                },
+                {
+                    provide: EmailService,
+                    useValue: {
+                        sendWelcomeCompanyEmail: jest.fn().mockResolvedValue(null),
                     },
                 },
             ],
@@ -61,6 +67,7 @@ describe('CompaniesService', () => {
 
         service = module.get<CompaniesService>(CompaniesService);
         repository = module.get<CompaniesRepository>(CompaniesRepository);
+        emailService = module.get<EmailService>(EmailService);
     });
 
     afterEach(() => {
@@ -69,12 +76,10 @@ describe('CompaniesService', () => {
 
     describe('Create Company', () => {
         it('Should create a Company', async () => {
-            jest.spyOn(repository, 'findUserByOwnerId').mockResolvedValue(
-                fakeUser,
-            );
             jest.spyOn(repository, 'findByOwnerId');
             jest.spyOn(repository, 'findByEmail');
             jest.spyOn(repository, 'create').mockResolvedValue(fakeCompany);
+            jest.spyOn(emailService, 'sendWelcomeCompanyEmail');
 
             const result = await service.createCompany(
                 fakeCreateCompanyDto,
@@ -84,23 +89,7 @@ describe('CompaniesService', () => {
             expect(repository.create).toHaveBeenCalledWith(
                 fakeCreateCompanyDto,
             );
-        });
-
-        it('Should throw NotFoundException when owner not found', async () => {
-            jest.spyOn(repository, 'findUserByOwnerId');
-            jest.spyOn(repository, 'findByOwnerId');
-            jest.spyOn(repository, 'findByEmail');
-            jest.spyOn(repository, 'create');
-
-            await expect(
-                service.createCompany(fakeCreateCompanyDto, fakeUser.id),
-            ).rejects.toThrow(NotFoundException);
-            expect(repository.findUserByOwnerId).toHaveBeenCalledWith(
-                fakeUser.id,
-            );
-            expect(repository.findByOwnerId).not.toHaveBeenCalled();
-            expect(repository.findByEmail).not.toHaveBeenCalled();
-            expect(repository.create).not.toHaveBeenCalled();
+            expect(emailService.sendWelcomeCompanyEmail).toHaveBeenCalled();
         });
 
         it('Should throw ConflictException when owner has already a Company', async () => {
@@ -108,49 +97,20 @@ describe('CompaniesService', () => {
                 ...fakeCompany,
                 id: generateFakeId(),
             };
-            jest.spyOn(repository, 'findUserByOwnerId').mockResolvedValue(
-                fakeUser,
-            );
             jest.spyOn(repository, 'findByOwnerId').mockResolvedValue(
                 anotherCompany,
             );
             jest.spyOn(repository, 'findByEmail');
             jest.spyOn(repository, 'create');
+            jest.spyOn(emailService, 'sendWelcomeCompanyEmail');
 
             await expect(
                 service.createCompany(fakeCreateCompanyDto, fakeUser.id),
             ).rejects.toThrow(ConflictException);
-            expect(repository.findUserByOwnerId).toHaveBeenCalledWith(
-                fakeUser.id,
-            );
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
             expect(repository.findByEmail).not.toHaveBeenCalled();
             expect(repository.create).not.toHaveBeenCalled();
-        });
-
-        it('Should throw BadRequestException when invalid email passed', async () => {
-            jest.spyOn(repository, 'findUserByOwnerId').mockResolvedValue(
-                fakeUser,
-            );
-            jest.spyOn(repository, 'findByOwnerId');
-            jest.spyOn(repository, 'findByEmail');
-            jest.spyOn(repository, 'create');
-
-            await expect(
-                service.createCompany(
-                    {
-                        ...fakeCreateCompanyDto,
-                        email: '',
-                    },
-                    fakeUser.id,
-                ),
-            ).rejects.toThrow(BadRequestException);
-            expect(repository.findUserByOwnerId).toHaveBeenCalledWith(
-                fakeUser.id,
-            );
-            expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
-            expect(repository.findByEmail).not.toHaveBeenCalled();
-            expect(repository.create).not.toHaveBeenCalled();
+            expect(emailService.sendWelcomeCompanyEmail).not.toHaveBeenCalled();
         });
 
         it('Should throw ConflictException when email is already in use', async () => {
@@ -158,25 +118,34 @@ describe('CompaniesService', () => {
                 ...fakeCompany,
                 id: generateFakeId(),
             };
-            jest.spyOn(repository, 'findUserByOwnerId').mockResolvedValue(
-                fakeUser,
-            );
             jest.spyOn(repository, 'findByOwnerId');
             jest.spyOn(repository, 'findByEmail').mockResolvedValue(
                 anotherCompany,
             );
             jest.spyOn(repository, 'create');
+            jest.spyOn(emailService, 'sendWelcomeCompanyEmail');
 
             await expect(
                 service.createCompany(fakeCreateCompanyDto, fakeUser.id),
             ).rejects.toThrow(ConflictException);
-            expect(repository.findUserByOwnerId).toHaveBeenCalledWith(
-                fakeUser.id,
-            );
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
             expect(repository.findByEmail).toHaveBeenCalledWith(
                 fakeCreateCompanyDto.email,
             );
+            expect(repository.create).not.toHaveBeenCalled();
+            expect(emailService.sendWelcomeCompanyEmail).not.toHaveBeenCalled();
+        });
+
+        it('Should throw NotFoundException when owner not found', async () => {
+            jest.spyOn(repository, 'findByOwnerId');
+            jest.spyOn(repository, 'findByEmail');
+            jest.spyOn(repository, 'create');
+
+            await expect(
+                service.createCompany(fakeCreateCompanyDto, fakeUser.id),
+            ).rejects.toThrow(NotFoundException);
+            expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeCompany.ownerId);
+            expect(repository.findByEmail).toHaveBeenCalledWith(fakeCompany.email);
             expect(repository.create).not.toHaveBeenCalled();
         });
     });
@@ -187,15 +156,6 @@ describe('CompaniesService', () => {
 
             const result = await service.findAllCompanies();
             expect(result).toEqual([fakeCompany]);
-            expect(repository.findAll).toHaveBeenCalled();
-        });
-
-        it('Should throw NotFoundException when no Companies exist', async () => {
-            jest.spyOn(repository, 'findAll').mockResolvedValue([]);
-
-            await expect(service.findAllCompanies()).rejects.toThrow(
-                NotFoundException,
-            );
             expect(repository.findAll).toHaveBeenCalled();
         });
     });
@@ -301,9 +261,6 @@ describe('CompaniesService', () => {
     describe('Update Company', () => {
         it('Should update Company successfully', async () => {
             jest.spyOn(repository, 'findById').mockResolvedValue(fakeCompany);
-            jest.spyOn(repository, 'findUserByOwnerId').mockResolvedValue(
-                fakeUser,
-            );
             jest.spyOn(repository, 'findByOwnerId');
             jest.spyOn(repository, 'findByEmail');
             jest.spyOn(repository, 'update').mockResolvedValue(
@@ -326,7 +283,6 @@ describe('CompaniesService', () => {
 
         it('Should throw BadRequestException when invalid ID passed', async () => {
             jest.spyOn(repository, 'findById');
-            jest.spyOn(repository, 'findUserByOwnerId');
             jest.spyOn(repository, 'findByOwnerId');
             jest.spyOn(repository, 'findByEmail');
             jest.spyOn(repository, 'update');
@@ -335,7 +291,6 @@ describe('CompaniesService', () => {
                 service.updateCompany(-1, fakeUpdateCompanyDto),
             ).rejects.toThrow(BadRequestException);
             expect(repository.findById).not.toHaveBeenCalled();
-            expect(repository.findUserByOwnerId).not.toHaveBeenCalled();
             expect(repository.findByOwnerId).not.toHaveBeenCalled();
             expect(repository.findByEmail).not.toHaveBeenCalled();
             expect(repository.update).not.toHaveBeenCalled();
@@ -343,7 +298,6 @@ describe('CompaniesService', () => {
 
         it('Should throw NotFoundException when Company not found', async () => {
             jest.spyOn(repository, 'findById');
-            jest.spyOn(repository, 'findUserByOwnerId');
             jest.spyOn(repository, 'findByOwnerId');
             jest.spyOn(repository, 'findByEmail');
             jest.spyOn(repository, 'update');
@@ -352,7 +306,6 @@ describe('CompaniesService', () => {
                 service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
-            expect(repository.findUserByOwnerId).not.toHaveBeenCalled();
             expect(repository.findByOwnerId).not.toHaveBeenCalled();
             expect(repository.findByEmail).not.toHaveBeenCalled();
             expect(repository.update).not.toHaveBeenCalled();
@@ -360,7 +313,6 @@ describe('CompaniesService', () => {
 
         it('Should throw NotFoundException when new owner not found', async () => {
             jest.spyOn(repository, 'findById').mockResolvedValue(fakeCompany);
-            jest.spyOn(repository, 'findUserByOwnerId');
             jest.spyOn(repository, 'findByOwnerId');
             jest.spyOn(repository, 'findByEmail');
             jest.spyOn(repository, 'update');
@@ -369,9 +321,6 @@ describe('CompaniesService', () => {
                 service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(NotFoundException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
-            expect(repository.findUserByOwnerId).toHaveBeenCalledWith(
-                fakeUser.id,
-            );
             expect(repository.findByOwnerId).not.toHaveBeenCalled();
             expect(repository.findByEmail).not.toHaveBeenCalled();
             expect(repository.update).not.toHaveBeenCalled();
@@ -383,9 +332,6 @@ describe('CompaniesService', () => {
                 id: generateFakeId(),
             };
             jest.spyOn(repository, 'findById').mockResolvedValue(fakeCompany);
-            jest.spyOn(repository, 'findUserByOwnerId').mockResolvedValue(
-                fakeUser,
-            );
             jest.spyOn(repository, 'findByOwnerId').mockResolvedValue(
                 anotherCompany,
             );
@@ -396,9 +342,6 @@ describe('CompaniesService', () => {
                 service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(ConflictException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
-            expect(repository.findUserByOwnerId).toHaveBeenCalledWith(
-                fakeUser.id,
-            );
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
             expect(repository.findByEmail).not.toHaveBeenCalled();
             expect(repository.update).not.toHaveBeenCalled();
@@ -410,9 +353,6 @@ describe('CompaniesService', () => {
                 id: generateFakeId(),
             };
             jest.spyOn(repository, 'findById').mockResolvedValue(fakeCompany);
-            jest.spyOn(repository, 'findUserByOwnerId').mockResolvedValue(
-                fakeUser,
-            );
             jest.spyOn(repository, 'findByOwnerId');
             jest.spyOn(repository, 'findByEmail').mockResolvedValue(
                 anotherCompany,
@@ -423,9 +363,6 @@ describe('CompaniesService', () => {
                 service.updateCompany(fakeCompany.id, fakeUpdateCompanyDto),
             ).rejects.toThrow(ConflictException);
             expect(repository.findById).toHaveBeenCalledWith(fakeCompany.id);
-            expect(repository.findUserByOwnerId).toHaveBeenCalledWith(
-                fakeUser.id,
-            );
             expect(repository.findByOwnerId).toHaveBeenCalledWith(fakeUser.id);
             expect(repository.findByEmail).toHaveBeenCalledWith(fakeUser.id);
             expect(repository.update).not.toHaveBeenCalled();

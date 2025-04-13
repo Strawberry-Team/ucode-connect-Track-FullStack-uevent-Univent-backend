@@ -6,9 +6,11 @@ import { EventsRepository } from './events.repository';
 import { DatabaseModule } from '../../db/database.module';
 import { UsersModule } from '../users/users.module';
 import {TicketsModule} from "../tickets/tickets.module";
+import { EventThemesModule } from './themes/event-themes.module';
+import { EventFormatsModule } from './formats/event-formats.module';
 
 @Module({
-    imports: [DatabaseModule, UsersModule, TicketsModule],
+    imports: [DatabaseModule, UsersModule, EventThemesModule, EventFormatsModule, TicketsModule],
     providers: [EventsService, EventsRepository],
     controllers: [EventsController],
     exports: [EventsService, EventsRepository],

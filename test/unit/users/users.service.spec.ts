@@ -55,7 +55,7 @@ describe('UsersService', () => {
     });
 
     describe('findUserById', () => {
-        it('should return a user by id with confidential data', async () => {
+        it('should return a user by id with PRIVATE data', async () => {
             const testUser = generateFakeUser();
             usersRepository.findById.mockResolvedValue(testUser);
 
@@ -64,7 +64,7 @@ describe('UsersService', () => {
             expect(usersRepository.findById).toHaveBeenCalledWith(testUser.id);
             expect(result).toEqual(
                 plainToInstance(User, testUser, {
-                    groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+                    groups: SERIALIZATION_GROUPS.PRIVATE,
                 })
             );
             expect(result.password).toBeDefined();
@@ -82,7 +82,7 @@ describe('UsersService', () => {
     });
 
     describe('findUserByIdWithoutPassword', () => {
-        it('should return a user by id without confidential data', async () => {
+        it('should return a user by id without PRIVATE data', async () => {
             const testUser = generateFakeUser();
             usersRepository.findById.mockResolvedValue(testUser);
 
@@ -109,7 +109,7 @@ describe('UsersService', () => {
     });
 
     describe('findUserByEmail', () => {
-        it('should return a user by email with confidential data', async () => {
+        it('should return a user by email with PRIVATE data', async () => {
             const testUser = generateFakeUser();
             usersRepository.findByEmail.mockResolvedValue(testUser);
 
@@ -118,7 +118,7 @@ describe('UsersService', () => {
             expect(usersRepository.findByEmail).toHaveBeenCalledWith(testUser.email);
             expect(result).toEqual(
                 plainToInstance(User, testUser, {
-                    groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+                    groups: SERIALIZATION_GROUPS.PRIVATE,
                 })
             );
             expect(result.password).toBeDefined();
@@ -136,7 +136,7 @@ describe('UsersService', () => {
     });
 
     describe('findUserByEmailWithoutPassword', () => {
-        it('should return a user by email without confidential data', async () => {
+        it('should return a user by email without PRIVATE data', async () => {
             const testUser = generateFakeUser();
             usersRepository.findByEmail.mockResolvedValue(testUser);
 
@@ -178,7 +178,7 @@ describe('UsersService', () => {
             result.forEach((user, index) => {
                 expect(user).toEqual(
                     plainToInstance(User, unactivatedUsers[index], {
-                        groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+                        groups: SERIALIZATION_GROUPS.PRIVATE,
                     })
                 );
                 expect(user.password).toBeDefined();
@@ -197,7 +197,7 @@ describe('UsersService', () => {
     });
 
     describe('createUser', () => {
-        it('should create a new user and return it without confidential data', async () => {
+        it('should create a new user and return it without PRIVATE data', async () => {
             const createUserDto = generateCreateUserDto();
             const hashedPassword = 'hashed_password_example';
             const createdUser = {
@@ -244,7 +244,7 @@ describe('UsersService', () => {
     });
 
     describe('updateUser', () => {
-        it('should update a user and return updated data without confidential fields', async () => {
+        it('should update a user and return updated data without PRIVATE fields', async () => {
             const userId = 1;
             const updateUserDto = generateUpdateUserDto();
             const updatedUser = {

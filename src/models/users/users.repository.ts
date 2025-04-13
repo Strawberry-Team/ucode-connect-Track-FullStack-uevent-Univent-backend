@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { DatabaseService } from '../../db/database.service';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -22,6 +23,17 @@ export class UsersRepository {
                 createdAt: { lt: thresholdDate },
                 isEmailVerified: false,
             },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async findAll(getUsersDto: GetUsersDto): Promise<User[]> {
+        const whereOptions: Record<string, unknown> = {};
+        if (getUsersDto.email) {
+            whereOptions.email = getUsersDto.email;
+        }
+        return this.db.user.findMany({
+            where: whereOptions,
             orderBy: { createdAt: 'desc' },
         });
     }

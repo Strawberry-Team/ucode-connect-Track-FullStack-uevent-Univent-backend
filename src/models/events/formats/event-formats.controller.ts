@@ -1,14 +1,14 @@
-// src/models/formats/formats.controller.ts
+// src/models/events/formats/formats.controller.ts
 import { Controller, Get, Param, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags, ApiParam } from '@nestjs/swagger';
-import { FormatsService } from './formats.service';
-import { Format } from './entities/format.entity';
-import { Public } from '../../common/decorators/public.decorator';
+import { EventFormatsService } from './event-formats.service';
+import { EventFormat } from './entities/event-format.entity';
+import { Public } from '../../../common/decorators/public.decorator';
 
 @Controller('formats')
 @ApiTags('Formats')
-export class FormatsController {
-    constructor(private readonly formatsService: FormatsService) {}
+export class EventFormatsController {
+    constructor(private readonly formatsService: EventFormatsService) {}
 
     @Public()
     @Get()
@@ -16,10 +16,10 @@ export class FormatsController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'List of formats',
-        type: [Format],
+        type: [EventFormat],
     })
-    async findAll(): Promise<Format[]> {
-        return this.formatsService.findAllFormats();
+    async findAll(): Promise<EventFormat[]> {
+        return this.formatsService.findAll();
     }
 
     @Public()
@@ -35,7 +35,7 @@ export class FormatsController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successfully retrieve',
-        type: Format,
+        type: EventFormat,
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
@@ -51,7 +51,7 @@ export class FormatsController {
             },
         },
     })
-    async findOne(@Param('id') id: number): Promise<Format> {
-        return this.formatsService.findFormatById(id);
+    async findOne(@Param('id') id: number): Promise<EventFormat> {
+        return this.formatsService.findById(id);
     }
 }

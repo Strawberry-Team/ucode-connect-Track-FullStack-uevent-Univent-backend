@@ -6,20 +6,14 @@ import {
     BadRequestException,
     Post,
     Body,
-    NotImplementedException,
     Param,
     Patch,
-    Delete,
     UseGuards,
     Get,
-    SerializeOptions,
     Query,
     HttpStatus,
-    NotFoundException,
 } from '@nestjs/common';
-import { BaseCrudController } from '../../common/controller/base-crud.controller';
-import { SERIALIZATION_GROUPS, User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { Express } from 'express';
@@ -31,66 +25,53 @@ import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import {
     ApiBody,
     ApiConsumes,
-    ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
-    ApiQuery,
     ApiResponse,
-    ApiSecurity,
     ApiTags,
 } from '@nestjs/swagger';
+import { GetUsersDto } from './dto/get-users.dto';
+import { Company } from '../companies/entities/company.entity';
+import { JwtAuthGuard } from '../auth/guards/auth.guards';
 
+// TODO create get user events route
 @Controller('users')
-@SerializeOptions({
-    groups: SERIALIZATION_GROUPS.BASIC,
-})
 @ApiTags('Users')
-@ApiSecurity('JWT')
-export class UsersController extends BaseCrudController<
-    User,
-    CreateUserDto,
-    UpdateUserDto
-> {
+@UseGuards(JwtAuthGuard)
+export class UsersController {
     constructor(private readonly usersService: UsersService) {
-        super();
     }
 
-    protected async createEntity(
-        dto: CreateUserDto,
-        userId: number,
-    ): Promise<User> {
-        return await this.usersService.createUser(dto);
+    @UseGuards(JwtAuthGuard)
+    @Get('me')
+    @ApiOperation({ summary: 'Get current user data' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: User,
+        description: 'Successfully retrieved current user profile',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                }
+            },
+        },
+    })
+    async findMe(@UserId() userId: number): Promise<User> {
+        return await this.usersService.findUserByIdWithConfidential(userId);
     }
-
-    protected async findById(id: number, userId: number): Promise<User> {
-        return await this.usersService.findUserByIdWithoutPassword(id);
-    }
-
-    protected async updateEntity(
-        id: number,
-        dto: UpdateUserDto,
-        userId: number,
-    ): Promise<User> {
-        return await this.usersService.updateUser(id, dto);
-    }
-
-    protected async deleteEntity(id: number, userId: number): Promise<void> {
-        return await this.usersService.deleteUser(id);
-    }
-
-    @Post()
-    @ApiExcludeEndpoint()
-    async create(
-        @Body() dto: CreateUserDto,
-        @UserId() userId: number,
-    ): Promise<User> {
-        throw new NotImplementedException();
-        // const user: User = await super.create(dto, userId);
-        // this.authService.sendConfirmationEmailAndNewPassword(user);
-        // return user;
-    }
-
-    // TODO create get user events route
 
     @Get(':id')
     @ApiOperation({ summary: 'Get user data' })
@@ -103,7 +84,7 @@ export class UsersController extends BaseCrudController<
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: User,
+        type: () => OmitType(User, ['role']),
         description: 'Successfully retrieve',
     })
     @ApiResponse({
@@ -151,27 +132,55 @@ export class UsersController extends BaseCrudController<
     })
     async findOne(
         @Param('id') id: number,
-        @UserId() userId: number,
     ): Promise<User> {
-        const existing = await this.usersService.findUserByIdWithoutPassword(id);
-        if (!existing) {
-            throw new NotFoundException('User not found');
-        }
-        return existing;
+        return await this.usersService.findUserByIdWithoutPassword(id);
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get user data' })
-    @ApiQuery({
-        name: 'email',
+    @ApiOperation({ summary: 'Get all users' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: () => OmitType(User, ['role']),
+        isArray: true,
+        description: 'Successfully retrieve',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401
+                }
+            },
+        },
+    })
+    async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
+        return await this.usersService.findAllUsers(getUsersDto);
+    }
+
+    @Get(':id/companies')
+    @UseGuards(AccountOwnerGuard)
+    @ApiOperation({ summary: 'Get user companies' })
+    @ApiParam({
         required: true,
-        type: 'string',
-        description: 'Email address of the user to retrieve',
-        example: 'ann.nichols@gmail.ua',
+        name: 'id',
+        type: 'number',
+        description: 'User ID',
+        example: 1,
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: User,
+        type: Company,
+        isArray: true,
         description: 'Successfully retrieve',
     })
     @ApiResponse({
@@ -194,35 +203,33 @@ export class UsersController extends BaseCrudController<
         },
     })
     @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'User not found',
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'User with this email not found',
+                    example: 'You can only access your own account',
                 },
                 error: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Not Found',
+                    example: 'Forbidden',
                 },
                 statusCode: {
                     type: 'number',
                     description: 'Error code',
-                    example: 404
+                    example: 403,
                 }
             },
         },
     })
-    async findOneByEmail(@Query('email') email: string): Promise<User> {
-        if (!email) {
-            throw new BadRequestException('Email parameter is required');
-        }
-
-        return await this.usersService.findUserByEmailWithoutPassword(email);
+    async findUserCompanies(
+        @Param('id') id: number,
+    ): Promise<Company[]> {
+        return await this.usersService.findUserCompanies(id);
     }
 
     @Patch(':id')
@@ -250,7 +257,84 @@ export class UsersController extends BaseCrudController<
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'Email update is temporarily unavailable',
+                    example: ['firstName must match /^[a-zA-Z-]+$/ regular expression'],
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
+            },
+        },
+    })
+    async update(
+        @Param('id') id: number,
+        @Body() dto: UpdateUserDto,
+        @UserId() userId: number,
+    ): Promise<User> {
+        return await this.usersService.updateUser(id, dto);
+    }
+
+    @Patch(':id/password')
+    @UseGuards(AccountOwnerGuard)
+    @ApiOperation({ summary: 'Update user password data' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User ID',
+        example: 1,
+    })
+    @ApiBody({ required: true, type: UpdateUserPasswordDto, description: 'User password update data' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: User,
+        description: 'Successfully update',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: ['oldPassword is not strong enough',
+                        'newPassword is not strong enough'],
                 },
             },
         },
@@ -270,43 +354,29 @@ export class UsersController extends BaseCrudController<
         },
     })
     @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'User not found',
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'User not found',
+                    example: 'You can only access your own account',
                 },
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.CONFLICT,
-        description: 'User data conflict',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
+                error: {
                     type: 'string',
                     description: 'Error message',
-                    example: 'User email already in use',
+                    example: 'Forbidden',
                 },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
             },
         },
     })
-    async update(
-        @Param('id') id: number,
-        @Body() dto: UpdateUserDto,
-        @UserId() userId: number,
-    ): Promise<User> {
-        return super.update(id, dto, userId);
-    }
-
-    @Patch(':id/password')
-    @UseGuards(AccountOwnerGuard)
     async updatePassword(
         @Param('id') id: number,
         @Body() dto: UpdateUserPasswordDto,
@@ -437,16 +507,5 @@ export class UsersController extends BaseCrudController<
         this.usersService.updateUserAvatar(id, file.filename);
 
         return { server_filename: file.filename };
-    }
-
-    @Delete(':id')
-    @UseGuards(AccountOwnerGuard)
-    @ApiExcludeEndpoint()
-    async remove(
-        @Param('id') id: number,
-        @UserId() userId: number,
-    ): Promise<void> {
-        throw new NotImplementedException();
-        // return super.delete(id, userId);
     }
 }

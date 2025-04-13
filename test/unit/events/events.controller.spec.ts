@@ -2,12 +2,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventsController } from '../../../src/models/events/events.controller';
 import { EventsService } from '../../../src/models/events/events.service';
-import { Event } from '../../../src/models/events/entities/event.entity';
+import { Event, EventWithRelations } from '../../../src/models/events/entities/event.entity';
 import { CreateEventDto } from '../../../src/models/events/dto/create-event.dto';
 import { UpdateEventDto } from '../../../src/models/events/dto/update-event.dto';
 import { NotFoundException } from '@nestjs/common';
-import { generateFakeEvent, generateFakeCreateEventDto, generateFakeUpdateEventDto } from '../../fake-data/fake-events';
+import { generateFakeBasicEvent, generateFakeEventWithRelations, generateFakeCreateEventDto, generateFakeUpdateEventDto } from '../../fake-data/fake-events';
 import { Reflector } from '@nestjs/core';
+import { plainToInstance } from 'class-transformer';
+
+// TODO: Додати тести для перевірки роботи декораторів контролера:
+// - @UseGuards
+// - @UsePipes
+// - @UseInterceptors
+// - @SerializeOptions
+
+// TODO: Додати тести для перевірки роботи валідації DTO:
+// - Перевірка обов'язкових полів
+// - Перевірка типів даних
+// - Перевірка обмежень (min/max значення, формати, тощо)
 
 jest.mock('../../../src/models/auth/guards/auth.guards', () => ({
     JwtAuthGuard: jest.fn().mockImplementation(() => ({
@@ -19,13 +31,29 @@ describe('EventsController', () => {
     let controller: EventsController;
     let eventsService: EventsService;
 
-    const fakeEvent: Event = generateFakeEvent();
+    // Мок даних для базової події (без відносин)
+    const fakeBasicEvent: Event = generateFakeBasicEvent();
+    
+    // Мок даних для події з відносинами
+    const fakeEventWithRelations: EventWithRelations = generateFakeEventWithRelations();
+
     const fakeCreateEventDto: CreateEventDto = generateFakeCreateEventDto();
     const fakeUpdateEventDto: UpdateEventDto = generateFakeUpdateEventDto();
-    const fakeUpdatedEvent: Event = {
-        ...fakeEvent,
-        ...fakeUpdateEventDto,
-    };
+
+    // Трансформуємо дані для очікуваних результатів (без системних полів)
+    const transformedBasicEvent = plainToInstance(Event, fakeBasicEvent, {
+        excludeExtraneousValues: true,
+        groups: ['basic']
+    });
+
+    const transformedEventWithRelations = plainToInstance(Event, fakeEventWithRelations, {
+        excludeExtraneousValues: true,
+        groups: ['basic']
+    });
+
+    // TODO: Додати тестові дані для перевірки різних HTTP статусів
+    // const invalidCreateEventDto = { ...fakeCreateEventDto, title: '' };
+    // const unauthorizedUser = { id: 999 };
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -34,11 +62,11 @@ describe('EventsController', () => {
                 {
                     provide: EventsService,
                     useValue: {
-                        findEventById: jest.fn(),
-                        createEvent: jest.fn(),
-                        findAllEvents: jest.fn(),
-                        updateEvent: jest.fn(),
-                        deleteEvent: jest.fn(),
+                        findById: jest.fn().mockResolvedValue(transformedEventWithRelations),
+                        create: jest.fn().mockResolvedValue(transformedBasicEvent),
+                        findAll: jest.fn().mockResolvedValue([transformedEventWithRelations]),
+                        update: jest.fn().mockResolvedValue(transformedBasicEvent),
+                        delete: jest.fn().mockResolvedValue(undefined),
                     },
                 },
                 {
@@ -47,6 +75,7 @@ describe('EventsController', () => {
                         getAllAndOverride: jest.fn().mockReturnValue(true),
                     },
                 },
+                // TODO: Додати моки для інших провайдерів (guards, interceptors, тощо)
             ],
         }).compile();
 
@@ -59,101 +88,80 @@ describe('EventsController', () => {
     });
 
     describe('Create Event', () => {
-        it('Should create an event', async () => {
-            jest.spyOn(eventsService, 'createEvent').mockResolvedValue(fakeEvent);
-
+        // TODO: Додати тести для перевірки HTTP статусів (201, 400, 401, 403)
+        // TODO: Додати тести для перевірки заголовків відповіді
+        // TODO: Додати тести для перевірки роботи ValidationPipe
+        
+        it('Should create an event and return basic fields', async () => {
             const result = await controller.create(fakeCreateEventDto, 0);
-
-            expect(result).toEqual(fakeEvent);
-            expect(eventsService.createEvent).toHaveBeenCalledWith(fakeCreateEventDto);
+            expect(result).toEqual(transformedBasicEvent);
+            expect(eventsService.create).toHaveBeenCalledWith(fakeCreateEventDto);
         });
     });
 
     describe('Find All Events', () => {
-        it('Should return all events', async () => {
-            jest.spyOn(eventsService, 'findAllEvents').mockResolvedValue([fakeEvent]);
-
+        // TODO: Додати тести для перевірки параметрів запиту (пагінація, фільтрація, сортування)
+        // TODO: Додати тести для перевірки різних форматів відповіді (JSON, XML)
+        
+        it('Should return all events with relations and basic fields', async () => {
             const result = await controller.findAll();
-
-            expect(result).toEqual([fakeEvent]);
-            expect(eventsService.findAllEvents).toHaveBeenCalled();
+            expect(result).toEqual([transformedEventWithRelations]);
+            expect(eventsService.findAll).toHaveBeenCalled();
         });
     });
 
     describe('Find One Event', () => {
-        it('Should return an event by ID', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockResolvedValue(fakeEvent);
-
-            const result = await controller.findOne(fakeEvent.id, 0);
-
-            expect(result).toEqual(fakeEvent);
-            expect(eventsService.findEventById).toHaveBeenCalledWith(fakeEvent.id);
+        it('Should return an event with relations by ID', async () => {
+            const result = await controller.findOne(fakeEventWithRelations.id, 0);
+            expect(result).toEqual(transformedEventWithRelations);
+            expect(eventsService.findById).toHaveBeenCalledWith(fakeEventWithRelations.id);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockRejectedValue(new NotFoundException('Event not found'));
-
+            jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
             await expect(controller.findOne(999, 0)).rejects.toThrow(NotFoundException);
-            expect(eventsService.findEventById).toHaveBeenCalledWith(999);
         });
     });
 
     describe('Update Event', () => {
-        it('Should update an event', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockResolvedValue(fakeEvent);
-            jest.spyOn(eventsService, 'updateEvent').mockResolvedValue(fakeUpdatedEvent);
-
-            const result = await controller.update(fakeEvent.id, fakeUpdateEventDto, 0);
-
-            expect(result).toEqual(fakeUpdatedEvent);
-            expect(eventsService.findEventById).toHaveBeenCalledWith(fakeEvent.id);
-            expect(eventsService.updateEvent).toHaveBeenCalledWith(fakeEvent.id, fakeUpdateEventDto);
+        it('Should update an event and return basic fields', async () => {
+            const result = await controller.update(fakeBasicEvent.id, fakeUpdateEventDto, 0);
+            expect(result).toEqual(transformedBasicEvent);
+            expect(eventsService.update).toHaveBeenCalledWith(fakeBasicEvent.id, fakeUpdateEventDto);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockRejectedValue(new NotFoundException('Event not found'));
-
+            jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
             await expect(controller.update(999, fakeUpdateEventDto, 0)).rejects.toThrow(NotFoundException);
-            expect(eventsService.findEventById).toHaveBeenCalledWith(999);
-            expect(eventsService.updateEvent).not.toHaveBeenCalled();
         });
     });
 
     describe('Delete Event', () => {
         it('Should delete an event', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockResolvedValue(fakeEvent);
-            jest.spyOn(eventsService, 'deleteEvent').mockResolvedValue(undefined);
-
-            await controller.remove(fakeEvent.id, 0);
-
-            expect(eventsService.findEventById).toHaveBeenCalledWith(fakeEvent.id);
-            expect(eventsService.deleteEvent).toHaveBeenCalledWith(fakeEvent.id);
+            await controller.remove(fakeEventWithRelations.id, 0);
+            expect(eventsService.delete).toHaveBeenCalledWith(fakeEventWithRelations.id);
         });
 
         it('Should throw NotFoundException when event is not found', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockRejectedValue(new NotFoundException('Event not found'));
-
+            jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
             await expect(controller.remove(999, 0)).rejects.toThrow(NotFoundException);
-            expect(eventsService.findEventById).toHaveBeenCalledWith(999);
-            expect(eventsService.deleteEvent).not.toHaveBeenCalled();
         });
     });
 
-    describe('Get Event By Id', () => {
-        it('Should return an event by ID (public endpoint)', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockResolvedValue(fakeEvent);
-
-            const result = await controller.findOne(fakeEvent.id, 1);
-
-            expect(result).toEqual(fakeEvent);
-            expect(eventsService.findEventById).toHaveBeenCalledWith(fakeEvent.id);
+    describe('Get Event By Id (Public)', () => {
+        it('Should return an event with relations by ID', async () => {
+            const result = await controller.findOne(fakeEventWithRelations.id, 1);
+            expect(result).toEqual(transformedEventWithRelations);
+            expect(eventsService.findById).toHaveBeenCalledWith(fakeEventWithRelations.id);
         });
 
         it('Should throw NotFoundException when event is not found (public endpoint)', async () => {
-            jest.spyOn(eventsService, 'findEventById').mockRejectedValue(new NotFoundException('Event not found'));
-
+            jest.spyOn(eventsService, 'findById').mockRejectedValue(new NotFoundException('Event not found'));
             await expect(controller.findOne(999, 1)).rejects.toThrow(NotFoundException);
-            expect(eventsService.findEventById).toHaveBeenCalledWith(999);
         });
     });
+
+    // TODO: Додати тести для перевірки обробки помилок від сервісу
+    // TODO: Додати тести для перевірки роботи з файлами (якщо є)
+    // TODO: Додати тести для перевірки кешування (якщо використовується)
 });

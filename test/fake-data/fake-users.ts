@@ -114,14 +114,18 @@ export function generateUpdateUserPasswordDto(): UpdateUserPasswordDto {
     };
 }
 
-export function generateUnactivatedUsers(count: number, seconds: number): User[] {
+export function generateUnactivatedUsers(
+    count: number,
+    seconds: number,
+): User[] {
     const thresholdDate = new Date();
     thresholdDate.setSeconds(thresholdDate.getSeconds() - seconds);
     return Array.from({ length: count }, () => {
         const user = this.generateFakeUser();
         user.isEmailVerified = false;
         user.createdAt = new Date(
-            thresholdDate.getTime() - faker.number.int({ min: 1000, max: 10000 })
+            thresholdDate.getTime() -
+                faker.number.int({ min: 1000, max: 10000 }),
         );
         return user;
     });

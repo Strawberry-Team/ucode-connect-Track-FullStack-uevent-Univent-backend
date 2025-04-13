@@ -14,7 +14,6 @@ import { EventsService } from './events.service';
 import { TicketsService } from '../tickets/tickets.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { BaseCrudController } from '../../common/controller/base-crud.controller';
 import { Event } from './entities/event.entity';
 import { Public } from '../../common/decorators/public.decorator';
 import {
@@ -32,45 +31,14 @@ import { CreateTicketDto } from '../tickets/dto/create-ticket.dto';
 import { Ticket } from '../tickets/entities/ticket.entity';
 import { TicketStatus } from '@prisma/client';
 import { FindAllTicketsQueryDto } from '../tickets/dto/find-all-tickets-query.dto';
+import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 
 @Controller('events')
 @ApiTags('Events')
 @ApiSecurity('JWT')
-export class EventsController extends BaseCrudController<
-    Event,
-    CreateEventDto,
-    UpdateEventDto
-> {
-    constructor(
-        private readonly eventsService: EventsService,
-        private readonly ticketsService: TicketsService,
-    ) {
-        super();
-    }
-
-    protected async createEntity(
-        dto: CreateEventDto,
-        userId: number,
-    ): Promise<Event> {
-        return this.eventsService.createEvent(dto);
-    }
-
-    protected async findById(id: number, userId: number): Promise<Event> {
-        return this.eventsService.findEventById(id);
-    }
-
-    protected async updateEntity(
-        id: number,
-        dto: UpdateEventDto,
-        userId: number,
-    ): Promise<Event> {
-        return this.eventsService.updateEvent(id, dto);
-    }
-
-    protected async deleteEntity(id: number, userId: number): Promise<void> {
-        return this.eventsService.deleteEvent(id);
-    }
-
+export class EventsController {
+    constructor(private readonly eventsService: EventsService) {}
+  
     @Post()
     @ApiOperation({ summary: 'Event creation' })
     @ApiBody({
@@ -125,25 +93,11 @@ export class EventsController extends BaseCrudController<
             },
         },
     })
-    @ApiResponse({
-        status: HttpStatus.CONFLICT,
-        description: 'Event data conflict',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event with this title already exists',
-                },
-            },
-        },
-    })
     async create(
         @Body() dto: CreateEventDto,
         @UserId() userId: number,
     ): Promise<Event> {
-        return await super.create(dto, userId);
+        return this.eventsService.create(dto);
     }
 
     @Post(':id/tickets')
@@ -182,7 +136,7 @@ export class EventsController extends BaseCrudController<
         type: [Event],
     })
     async findAll(): Promise<Event[]> {
-        return this.eventsService.findAllEvents();
+        return this.eventsService.findAll();
     }
 
     @Public()
@@ -258,10 +212,11 @@ export class EventsController extends BaseCrudController<
         description: 'Ticket not found',
     })
     async findOneTicket(
-        @Param('id') id: number,
-        @Param('ticketId') ticketId: number,
+      @Param('id') id: number,
+      @Param('ticketId') ticketId: number,
     ): Promise<Ticket> {
         return this.ticketsService.findOneTicket(ticketId, id);
+        
     }
 
     @Patch(':id')
@@ -286,13 +241,51 @@ export class EventsController extends BaseCrudController<
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
         description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Event title must be not empty',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Event data can be updated only by its owner',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Event not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Event not found',
+                },
+            },
+        },
     })
     async update(
         @Param('id') id: number,
         @Body() dto: UpdateEventDto,
         @UserId() userId: number,
     ): Promise<Event> {
-        return await super.update(id, dto, userId);
+        return this.eventsService.update(id, dto);
     }
 
     @Delete(':id')
@@ -312,6 +305,43 @@ export class EventsController extends BaseCrudController<
         @Param('id') id: number,
         @UserId() userId: number,
     ): Promise<void> {
-        return await super.remove(id, userId);
+        return this.eventsService.delete(id);
+    }
+
+    @Post(':id/themes')
+    @ApiOperation({ summary: 'Sync event themes' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Event ID',
+        example: 1,
+    })
+    @ApiBody({
+        required: true,
+        type: CreateEventThemesDto,
+        description: 'Event themes',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Event themes successfully synced',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Event not found',
+    })
+    async syncThemes(
+        @Param('id') id: number,
+        @Body() dto: CreateEventThemesDto,
+    ): Promise<void> {
+        return await this.eventsService.syncThemes(id, dto);
     }
 }

@@ -7,6 +7,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 // generator dbml {
@@ -21,10 +22,12 @@ model User {
   firstName          String   @map("first_name") @db.VarChar(100)
   lastName           String?  @map("last_name") @db.VarChar(100)
   email              String   @unique(map: "users_email_uq") @db.VarChar(255)
+  role               UserRole @default(USER)
   profilePictureName String   @default("default-avatar.png") @map("profile_picture_name") @db.VarChar(255)
-  isEmailVerified    Boolean  @default(false) @map("is_email_verified")
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  isEmailVerified Boolean  @default(false) @map("is_email_verified")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   refreshTokenNonces RefreshTokenNonce[] // Add this line
@@ -67,8 +70,8 @@ model Company {
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
-  events        Event[]
+  owner  User    @relation(fields: [ownerId], references: [id], onDelete: Restrict, map: "companies_owner_id_fk")
+  events Event[]
   // subscriptions Subscription[]
   // news          News[]
 
@@ -88,20 +91,20 @@ model EventFormat {
 
   @@map("event_formats")
 }
-//
-// // Event Themes model
-// model EventTheme {
-//   id        Int      @id @default(autoincrement())
-//   title     String   @unique @db.VarChar(100)
-//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   eventsRelation EventThemeRelation[]
-//
-//   @@map("event_themes")
-// }
-//
+
+// Event Themes model
+model EventTheme {
+  id        Int      @id @default(autoincrement())
+  title     String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  eventsRelation EventThemeRelation[]
+
+  @@map("event_themes")
+}
+
 
 // Events model
 model Event {
@@ -123,12 +126,12 @@ model Event {
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  company              Company            @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
-  format               EventFormat        @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
+  company Company     @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
+  format  EventFormat @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   // attendees      EventAttendee[]
   tickets        Ticket[]
   // promoCodes     PromoCode[]
-  // themesRelation EventThemeRelation[]
+  themesRelation EventThemeRelation[]
   // subscriptions  Subscription[]
   // news           News[]
 
@@ -174,6 +177,7 @@ model Ticket {
   @@index([eventId], map: "tickets_event_id_fk")
   @@map("tickets")
 }
+
 //
 // // Orders model
 // model Order {
@@ -234,22 +238,22 @@ model Ticket {
 //   @@map("promo_codes")
 // }
 //
-// // Event Themes Relations model
-// model EventThemeRelation {
-//   id        Int      @id @default(autoincrement())
-//   eventId   Int      @map("event_id")
-//   themeId   Int      @map("theme_id")
-//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//
-//   // Relations
-//   event Event      @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_theme_relations_event_id_fk")
-//   theme EventTheme @relation(fields: [themeId], references: [id], onDelete: Cascade, map: "event_theme_relations_theme_id_fk")
-//
-//   @@unique([eventId, themeId], map: "event_theme_relations_event_id_theme_id_uq")
-//   @@index([eventId], map: "event_theme_relations_event_id_fk")
-//   @@index([themeId], map: "event_theme_relations_theme_id_fk")
-//   @@map("events_themes_relations")
-// }
+// Event Themes Relations model
+model EventThemeRelation {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @map("event_id")
+  themeId   Int      @map("theme_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  event Event      @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_theme_relations_event_id_fk")
+  theme EventTheme @relation(fields: [themeId], references: [id], onDelete: Cascade, map: "event_theme_relations_theme_id_fk")
+
+  @@unique([eventId, themeId], map: "event_theme_relations_event_id_theme_id_uq")
+  @@index([eventId], map: "event_theme_relations_event_id_fk")
+  @@index([themeId], map: "event_theme_relations_theme_id_fk")
+  @@map("events_themes_relations")
+}
 //
 // // Subscriptions model
 // model Subscription {
@@ -317,6 +321,11 @@ model Ticket {
 // }
 //
 // // Enums
+enum UserRole {
+  USER  @map("user")
+  ADMIN @map("admin")
+}
+
 enum AttendeeVisibility {
   EVERYONE       @map("everyone")
   ATTENDEES_ONLY @map("attendees_only")
@@ -331,6 +340,7 @@ enum EventStatus {
   FINISHED      @map("finished")
   CANCELLED     @map("cancelled")
 }
+
 //
 enum TicketStatus {
   SOLD      @map("sold")
@@ -338,6 +348,7 @@ enum TicketStatus {
   AVAILABLE @map("available")
   UNAVAILABLE @map("unavailable")
 }
+
 //
 // enum PaymentStatus {
 //   PENDING  @map("pending")
