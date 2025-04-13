@@ -1,4 +1,3 @@
-// src/models/events/events.controller.ts
 import {
     Controller,
     Get,
@@ -8,21 +7,30 @@ import {
     Patch,
     Delete,
     HttpStatus,
+    Query,
+    NotImplementedException,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
+import { TicketsService } from '../tickets/tickets.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Event } from './entities/event.entity';
 import { Public } from '../../common/decorators/public.decorator';
 import {
     ApiBody,
+    ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
     ApiResponse,
     ApiSecurity,
     ApiTags,
+    ApiQuery,
 } from '@nestjs/swagger';
 import { UserId } from '../../common/decorators/user.decorator';
+import { CreateTicketDto } from '../tickets/dto/create-ticket.dto';
+import { Ticket } from '../tickets/entities/ticket.entity';
+import { TicketStatus } from '@prisma/client';
+import { FindAllTicketsQueryDto } from '../tickets/dto/find-all-tickets-query.dto';
 import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 
 @Controller('events')
@@ -30,7 +38,7 @@ import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 @ApiSecurity('JWT')
 export class EventsController {
     constructor(private readonly eventsService: EventsService) {}
-
+  
     @Post()
     @ApiOperation({ summary: 'Event creation' })
     @ApiBody({
@@ -92,6 +100,33 @@ export class EventsController {
         return this.eventsService.create(dto);
     }
 
+    @Post(':id/tickets')
+    @ApiOperation({ summary: 'Create tickets for an event' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: Number,
+        description: 'Event ID',
+        example: 1,
+    })
+    @ApiBody({
+        type: CreateTicketDto,
+        description: 'Ticket creation data',
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Tickets successfully created',
+        isArray: true,
+        type: Ticket,
+    })
+    async createTicket(
+        @Body() dto: CreateTicketDto,
+        @Param('id') id: string,
+    ): Promise<Ticket[]> {
+        const eventIdParsed = id ? parseInt(id, 10) : undefined;
+        return this.ticketsService.createTickets(dto, eventIdParsed);
+    }
+
     @Public()
     @Get()
     @ApiOperation({ summary: 'Get all events data' })
@@ -105,48 +140,91 @@ export class EventsController {
     }
 
     @Public()
-    @Get(':id')
-    @ApiOperation({ summary: 'Get event data' })
+    @Get(':id/tickets')
+    @ApiOperation({ summary: 'Get all tickets for an event' })
     @ApiParam({
-        required: true,
         name: 'id',
-        type: 'number',
+        required: true,
+        type: Number,
         description: 'Event ID',
         example: 1,
     })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Successfully retrieve',
-        type: Event,
+    @ApiQuery({
+        name: 'title',
+        required: false,
+        description: 'Filter tickets by title',
+        type: String,
+        example: 'VIP Ticket',
+    })
+    @ApiQuery({
+        name: 'status',
+        required: false,
+        description: 'Filter tickets by status',
+        enum: TicketStatus,
+        example: TicketStatus.AVAILABLE,
     })
     @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Event not found',
+        status: HttpStatus.OK,
+        description: 'Tickets retrieved successfully',
         schema: {
             type: 'object',
             properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event not found',
-                },
+                items: { type: 'array', items: { $ref: '#/components/schemas/Ticket' } },
+                total: { type: 'number', example: 10 },
             },
         },
     })
-    async findOne(
-        @Param('id') id: number,
-        @UserId() userId: number,
-    ): Promise<Event> {
-        // TODO: Треба зробити по нормальному userId
-        return this.eventsService.findById(id);
+    async findAllTickets(
+        @Param('id') id: string,
+        @Query() query: FindAllTicketsQueryDto,
+    ): Promise<{ items: Ticket[]; total: number }> {
+        const eventIdParsed = id ? parseInt(id, 10) : undefined;
+        return this.ticketsService.findAllTickets({
+            eventId: eventIdParsed,
+            ...query,
+        });
+    }
+
+    @Public()
+    @Get(':id/tickets/:ticketId')
+    @ApiOperation({ summary: 'Get data of a specific ticket for an event' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: Number,
+        description: 'Event ID',
+        example: 1,
+    })
+    @ApiParam({
+        name: 'ticketId',
+        required: true,
+        type: Number,
+        description: 'Ticket ID',
+        example: 123,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Ticket retrieved successfully',
+        type: Ticket,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Ticket not found',
+    })
+    async findOneTicket(
+      @Param('id') id: number,
+      @Param('ticketId') ticketId: number,
+    ): Promise<Ticket> {
+        return this.ticketsService.findOneTicket(ticketId, id);
+        
     }
 
     @Patch(':id')
     @ApiOperation({ summary: 'Update event data' })
     @ApiParam({
-        required: true,
         name: 'id',
-        type: 'number',
+        required: true,
+        type: Number,
         description: 'Event ID',
         example: 1,
     })
@@ -157,8 +235,8 @@ export class EventsController {
     })
     @ApiResponse({
         status: HttpStatus.OK,
+        description: 'Event successfully updated',
         type: Event,
-        description: 'Successfully update',
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
@@ -213,29 +291,15 @@ export class EventsController {
     @Delete(':id')
     @ApiOperation({ summary: 'Delete event' })
     @ApiParam({
-        required: true,
         name: 'id',
-        type: 'number',
+        required: true,
+        type: Number,
         description: 'Event ID',
         example: 1,
     })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Event successfully deleted',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Event can be deleted only by its owner',
-                },
-            },
-        },
     })
     async remove(
         @Param('id') id: number,

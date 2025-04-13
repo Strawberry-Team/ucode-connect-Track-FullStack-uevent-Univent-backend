@@ -129,7 +129,7 @@ model Event {
   company Company     @relation(fields: [companyId], references: [id], onDelete: Restrict, map: "events_company_id_fk")
   format  EventFormat @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   // attendees      EventAttendee[]
-  // tickets        Ticket[]
+  tickets        Ticket[]
   // promoCodes     PromoCode[]
   themesRelation EventThemeRelation[]
   // subscriptions  Subscription[]
@@ -171,7 +171,7 @@ model Ticket {
   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // // Relations
-  // event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
   // orderItems OrderItem[]
 
   @@index([eventId], map: "tickets_event_id_fk")

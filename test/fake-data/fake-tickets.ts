@@ -14,7 +14,11 @@ export function generateFakeTicket(): Ticket {
         title: faker.lorem.words(3),
         number: `TICKET-${faker.number.int({ min: 1, max: 100 })}-${faker.date.anytime()}`,
         price: faker.number.float({ min: 1, max: 100 }),
-        status: faker.helpers.arrayElement(Object.values(TicketStatus)),
+        status: faker.helpers.arrayElement(
+            Object.values(TicketStatus).filter(
+                (status) => status === TicketStatus.AVAILABLE || status === TicketStatus.UNAVAILABLE
+            )
+        ),
         createdAt: new Date(),
         updatedAt: new Date(),
     };

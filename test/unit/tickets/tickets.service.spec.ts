@@ -16,7 +16,6 @@ describe('TicketsService', () => {
 
     const fakeTicket: Ticket = generateFakeTicket();
     const fakeCreateTicketDto: CreateTicketDto = {
-        eventId: fakeTicket.eventId,
         title: fakeTicket.title,
         price: fakeTicket.price,
         status: fakeTicket.status,
@@ -66,13 +65,14 @@ describe('TicketsService', () => {
             jest.spyOn(repository, 'findOneByNumber').mockResolvedValue(null);
             jest.spyOn(repository, 'create').mockResolvedValue(fakeTicket);
 
-            const result = await service.createTicket(fakeCreateTicketDto, 1);
+            const result = await service.createTicket(fakeCreateTicketDto, fakeTicket.eventId);
 
             expect(repository.findOneByNumber).toHaveBeenCalledWith(fakeTicket.number);
 
             expect(repository.create).toHaveBeenCalledWith({
                 ...fakeCreateTicketDto,
                 number: fakeTicket.number,
+                eventId: fakeTicket.eventId
             });
 
             expect(result).toEqual(
@@ -152,8 +152,7 @@ describe('TicketsService', () => {
 
             const result = await service.updateTicket(
                 fakeTicket.id,
-                fakeUpdateTicketDto,
-                1,
+                fakeUpdateTicketDto
             );
             expect(repository.findOne).toHaveBeenCalledWith(fakeTicket.id);
             expect(repository.update).toHaveBeenCalledWith(
@@ -171,7 +170,7 @@ describe('TicketsService', () => {
             jest.spyOn(repository, 'findOne').mockResolvedValue(null);
 
             await expect(
-                service.updateTicket(fakeTicket.id, fakeUpdateTicketDto, 1),
+                service.updateTicket(fakeTicket.id, fakeUpdateTicketDto),
             ).rejects.toThrow(NotFoundException);
         });
     });
@@ -181,7 +180,7 @@ describe('TicketsService', () => {
             jest.spyOn(repository, 'findOne').mockResolvedValue(fakeTicket);
             jest.spyOn(repository, 'delete');
 
-            await service.deleteTicket(fakeTicket.id, 1);
+            await service.deleteTicket(fakeTicket.id);
             expect(repository.findOne).toHaveBeenCalledWith(fakeTicket.id);
             expect(repository.delete).toHaveBeenCalledWith(fakeTicket.id);
         });
@@ -189,7 +188,7 @@ describe('TicketsService', () => {
         it('Should throw NotFoundException when Ticket not found on removal', async () => {
             jest.spyOn(repository, 'findOne').mockResolvedValue(null);
 
-            await expect(service.deleteTicket(fakeTicket.id, 1)).rejects.toThrow(
+            await expect(service.deleteTicket(fakeTicket.id)).rejects.toThrow(
                 NotFoundException,
             );
         });
