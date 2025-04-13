@@ -1,28 +1,31 @@
 // src/models/events/events.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventsRepository } from './events.repository';
-import { Event, SERIALIZATION_GROUPS } from './entities/event.entity';
+import { Event, EventWithRelations, SERIALIZATION_GROUPS } from './entities/event.entity';
 import { plainToInstance } from 'class-transformer';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 
 @Injectable()
 export class EventsService {
     constructor(private readonly eventsRepository: EventsRepository) {}
 
-    async createEvent(eventDto: CreateEventDto): Promise<Event> {
-        const event = {
-            ...eventDto,
-        };
-
-        return this.eventsRepository.create(event);
+    async create(eventDto: CreateEventDto): Promise<Event> {
+        const event = await this.eventsRepository.create(eventDto);
+        return plainToInstance(Event, event, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
-    async findAllEvents(): Promise<Event[]> {
-        return this.eventsRepository.findAll();
+    async findAll(): Promise<EventWithRelations[]> {
+        const events = await this.eventsRepository.findAll();
+        return plainToInstance(Event, events, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
-    async findEventById(id: number): Promise<Event> {
+    async findById(id: number): Promise<EventWithRelations> {
         const event = await this.eventsRepository.findById(id);
         if (!event) {
             throw new NotFoundException('Event not found');
@@ -32,30 +35,36 @@ export class EventsService {
         });
     }
 
-    async findEventByCompanyId(companyId: number): Promise<Event[]> {
-        return this.eventsRepository.findByCompanyId(companyId);
+    async findByCompanyId(companyId: number): Promise<EventWithRelations[]> {
+        const events = await this.eventsRepository.findByCompanyId(companyId);
+        return plainToInstance(Event, events, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
-    async updateEvent(id: number, eventDto: UpdateEventDto): Promise<Event> {
-        const event = await this.eventsRepository.findById(id);
+    async update(id: number, eventDto: UpdateEventDto): Promise<Event> {
+        let event = await this.eventsRepository.findById(id);
         if (!event) {
             throw new NotFoundException('Event not found');
         }
 
-        const updatedEvent = {
-            ...event,
-            ...eventDto,
-        };
-
-        return this.eventsRepository.update(id, updatedEvent);
+        event = await this.eventsRepository.update(id, {...event, ...eventDto });
+        return plainToInstance(Event, event, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
     }
 
-    async deleteEvent(id: number): Promise<void> {
+    async delete(id: number): Promise<void> {
         const event = await this.eventsRepository.findById(id);
         if (!event) {
             throw new NotFoundException('Event not found');
         }
 
         return this.eventsRepository.delete(id);
+    }
+
+    async syncThemes(eventId: number, eventThemesDto: CreateEventThemesDto): Promise<void> {
+        const event = await this.findById(eventId);
+        return this.eventsRepository.syncThemes(event.id, eventThemesDto.themes.map(theme => theme.id));
     }
 }

@@ -84,7 +84,7 @@ export class UsersController {
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: User,
+        type: () => OmitType(User, ['role']),
         description: 'Successfully retrieve',
     })
     @ApiResponse({
@@ -140,7 +140,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Get all users' })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: User,
+        type: () => OmitType(User, ['role']),
         isArray: true,
         description: 'Successfully retrieve',
     })

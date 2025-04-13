@@ -5,6 +5,20 @@ import { EventThemesService } from 'src/models/events/themes/event-themes.servic
 import { EventTheme } from 'src/models/events/themes/entities/event-theme.entity';
 import { NotFoundException } from '@nestjs/common';
 
+// TODO: Створити фабрику для генерації тестових даних тем
+// - Перенести mockTheme в окремий файл fake-themes.ts
+// - Додати генерацію різних варіантів тестових даних
+
+// TODO: Додати тести для перевірки валідації:
+// - Унікальність назви теми
+// - Обмеження на довжину назви
+// - Формат назви (якщо є обмеження)
+
+// TODO: Додати тести для перевірки прав доступу:
+// - Перевірка ролей користувача
+// - Перевірка власника теми
+// - Перевірка публічного доступу
+
 describe('ThemesController', () => {
   let controller: EventThemesController;
   let service: EventThemesService;
@@ -13,6 +27,10 @@ describe('ThemesController', () => {
     id: 1,
     title: 'Gaming',
   };
+
+  // TODO: Додати більше тестових даних:
+  // const invalidTheme = { title: '' };
+  // const duplicateTheme = { title: 'Gaming' };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -25,6 +43,10 @@ describe('ThemesController', () => {
             findById: jest.fn().mockResolvedValue(mockTheme),
           },
         },
+        // TODO: Додати провайдери для:
+        // - Guards (AuthGuard, RolesGuard)
+        // - Interceptors (TransformInterceptor, CacheInterceptor)
+        // - Pipes (ValidationPipe)
       ],
     }).compile();
 
@@ -37,15 +59,31 @@ describe('ThemesController', () => {
   });
 
   describe('findAll', () => {
+    // TODO: Додати тести для перевірки:
+    // - Пагінації результатів
+    // - Фільтрації за параметрами
+    // - Сортування результатів
+    // - Кешування результатів
+
     it('should return all formats', async () => {
       const result = await controller.findAll();
 
       expect(result).toEqual([mockTheme]);
       expect(service.findAll).toHaveBeenCalled();
     });
+
+    // TODO: Додати тести для перевірки помилок:
+    // - Помилка бази даних
+    // - Помилка сервісу
+    // - Таймаут запиту
   });
 
   describe('findById', () => {
+    // TODO: Додати тести для перевірки:
+    // - Валідації параметра id
+    // - Обробки некоректного формату id
+    // - Кешування результату
+
     it('should return a format by ID', async () => {
       const result = await controller.findOne(1);
 
@@ -59,5 +97,16 @@ describe('ThemesController', () => {
       await expect(controller.findOne(999)).rejects.toThrow(NotFoundException);
       expect(service.findById).toHaveBeenCalledWith(999);
     });
+
+    // TODO: Додати тести для інших типів помилок:
+    // - Помилка валідації
+    // - Помилка авторизації
+    // - Помилка бази даних
   });
+
+  // TODO: Додати тести для інших методів контролера:
+  // - create
+  // - update
+  // - delete
+  // - bulk operations (якщо є)
 });
