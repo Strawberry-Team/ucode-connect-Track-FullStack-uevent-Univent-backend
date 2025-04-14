@@ -30,7 +30,7 @@ async function bootstrap() {
     const csrfConfig = configService.get('app.csrf');
     const corsConfig = configService.get('app.cors');
     const nodeEnv = String(configService.get('app.nodeEnv'));
-    const enableCsrfProtection = nodeEnv === 'production';
+    // const enableCsrfProtection = nodeEnv === 'production';
 
     app.useGlobalFilters(new CsrfExceptionFilter());
     app.setGlobalPrefix(globalPrefix);
@@ -43,29 +43,25 @@ async function bootstrap() {
         credentials: corsConfig.credentials, // Required to send cookies cross-origin
     });
 
-    if (enableCsrfProtection) {
-        console.log('⚠️ CSRF protection is enabled');
-        app.use(
-            csurf({
-                cookie: {
-                    key: csrfConfig.cookie.key,
-                    httpOnly: csrfConfig.cookie.httpOnly, //Not available via JS
-                    secure: nodeEnv === 'production', //Cookies are only transmitted via HTTPS
-                    sameSite: csrfConfig.cookie.sameSite, //Cookies will only be sent for requests originating from the same domain (site)
-                },
-                ignoreMethods: csrfConfig.ignoreMethods,
-            }),
-        );
-        app.use((err: any, req: any, res: any, next: any) => {
-            if (err && err.code === 'EBADCSRFTOKEN') {
-                next(new CsrfError());
-            } else {
-                next(err);
-            }
-        });
-    } else {
-        console.log('⚠️ CSRF protection is disabled.');
-    }
+    app.use(
+        csurf({
+            cookie: {
+                key: csrfConfig.cookie.key,
+                httpOnly: csrfConfig.cookie.httpOnly, //Not available via JS
+                secure: nodeEnv === 'production', //Cookies are only transmitted via HTTPS
+                sameSite: csrfConfig.cookie.sameSite, //Cookies will only be sent for requests originating from the same domain (site)
+            },
+            ignoreMethods: csrfConfig.ignoreMethods,
+        }),
+    );
+    app.use((err: any, req: any, res: any, next: any) => {
+        if (err && err.code === 'EBADCSRFTOKEN') {
+            next(new CsrfError());
+        } else {
+            next(err);
+        }
+    });
+
     app.useGlobalPipes(
         new ValidationPipe({
             transform: true, // Automatically convert incoming primitive values into instances of classes specified in the DTO
@@ -116,25 +112,39 @@ async function bootstrap() {
 
     applySwaggerSecurity(app, document, globalPrefix);
 
-    SwaggerModule.setup('api-docs', app, document, {
+    SwaggerModule.setup('api', app, document, {
         swaggerOptions: {
             persistAuthorization: true,
             tagsSorter: 'alpha',
             operationsSorter: 'alpha',
-            docExpansion: 'none',
+            ...(nodeEnv !== 'production' && { docExpansion: 'none' }),
             filter: true,
-            tryItOutEnabled: true,
+            withTryItOutOption: true, // whether to display the button at all
+            tryItOutEnabled: false, // whether to activate the test mode automatically
             displayRequestDuration: true,
         },
-        customSiteTitle: 'uevent API',
-        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'Uevent API',
         customfavIcon: './project/logo.png',
     });
+
+    app.use(
+        '/',
+        (
+            req: { originalUrl: string },
+            res: { redirect: (arg0: string) => any },
+            next: () => void,
+        ) => {
+            if (req.originalUrl === '/' || req.originalUrl === '') {
+                return res.redirect('/api');
+            }
+            next();
+        },
+    );
 
     await app.listen(port);
 
     console.log(`\n✔ Application is running on: ${baseUrl}`);
-    console.log(`\n✔ API Docs is available on: ${baseUrl}/${globalPrefix}-docs\n`);
+    console.log(`\n✔ API Docs is available on: ${baseUrl}/${globalPrefix}\n`);
 }
 
 bootstrap();
