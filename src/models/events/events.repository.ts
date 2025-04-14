@@ -1,6 +1,8 @@
 // src/models/events/events.repository.ts
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../db/database.service';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 import { Event, EventWithRelations } from './entities/event.entity';
 import { Prisma } from '@prisma/client';
 
@@ -10,6 +12,30 @@ export class EventsRepository {
 
     async create(event: Partial<Event>): Promise<Event> {
         return this.db.event.create({ data: event as Prisma.EventCreateInput });
+    }
+
+    async createWithThemes(event: CreateEventDto) {
+        const { themes, ...eventData } = event as CreateEventDto & { themes?: number[] };
+        
+        return this.db.event.create({
+            data: {
+                ...eventData,
+                themesRelation: themes ? {
+                    create: themes.map(themeId => ({
+                        theme: {
+                            connect: { id: themeId }
+                        }
+                    }))
+                } : undefined
+            },
+            include: {
+                themesRelation: {
+                    include: {
+                        theme: true
+                    }
+                }
+            }
+        });
     }
 
     async findAll(): Promise<EventWithRelations[]> {

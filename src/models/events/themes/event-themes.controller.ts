@@ -1,5 +1,5 @@
 // src/models/events/themes/themes.controller.ts
-import { Controller, Get, HttpStatus, Param } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, UseGuards } from '@nestjs/common';
 import { EventThemesService } from './event-themes.service';
 import { EventTheme } from './entities/event-theme.entity';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';

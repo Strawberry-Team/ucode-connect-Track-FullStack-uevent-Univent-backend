@@ -8,11 +8,12 @@
     "scripts": {
         "setup:db": "ts-node src/setupdb.ts",
 
-        "migrate": "dotenv -e .env.development -- npx prisma migrate deploy && npm run migrate:generate",
+        "migrate": "dotenv -e .env.development -- npx prisma migrate deploy",
         "migrate:create": "dotenv -e .env.development -- npx prisma migrate dev",
         "migrate:generate": "dotenv -e .env.development -- npx prisma generate",
         "migrate:seed": "dotenv -e .env.development -- npx prisma db seed",
         "migrate:reset": "dotenv -e .env.development -- npx prisma migrate reset --force",
+        "migrate:refresh": "npm run migrate:reset && npm run migrate:generate",
 
         "start": "nest start",
         "start:prod": "node dist/main",

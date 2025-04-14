@@ -46,7 +46,7 @@ import { JwtAuthGuard } from '../auth/guards/auth.guards';
 
 @Controller('events')
 @ApiTags('Events')
-@ApiSecurity('JWT')
+@UseGuards(JwtAuthGuard)
 export class EventsController {
     constructor(
         private readonly eventsService: EventsService,
@@ -55,7 +55,6 @@ export class EventsController {
     ) {}
 
     @Post()
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Event creation' })
     @ApiBody({
         required: true,
@@ -124,14 +123,13 @@ export class EventsController {
         return await this.eventsService.create(dto);
     }
 
-    @Post(':event_id/news')
-    @UseGuards(JwtAuthGuard)
+    @Post(':id/news')
     @ApiOperation({
         summary: 'Create event news item',
     })
     @ApiParam({
         required: true,
-        name: 'event_id',
+        name: 'id',
         type: 'number',
         description: 'Event identifier',
         example: 1,
@@ -243,15 +241,14 @@ export class EventsController {
         },
     })
     async createNews(
-        @Param('event_id') eventId: number,
+        @Param('id') id: number,
         @Body() dto: CreateNewsDto,
         @UserId() userId: number,
     ) {
-        return await this.newsService.create(dto, userId, undefined, eventId);
+        return await this.newsService.create(dto, userId, undefined, id);
     }
 
     @Post(':id/tickets')
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Create tickets for an event' })
     @ApiParam({
         name: 'id',
@@ -290,11 +287,11 @@ export class EventsController {
         return await this.eventsService.findAll();
     }
 
-    @Get(':event_id/news')
+    @Get(':id/news')
     @Public()
     @ApiParam({
         required: true,
-        name: 'event_id',
+        name: 'id',
         type: 'number',
         description: 'Event identifier',
         example: 1,
@@ -305,8 +302,8 @@ export class EventsController {
         description: 'List of event news',
         type: [EventNewsDto],
     })
-    async findAllNews(@Param('event_id') eventId: number) {
-        return await this.newsService.findByEventId(eventId);
+    async findAllNews(@Param('id') id: number) {
+        return await this.newsService.findByEventId(id);
     }
 
     @Get(':id/tickets')
@@ -358,8 +355,8 @@ export class EventsController {
         });
     }
 
-    @Public()
     @Get(':id/tickets/:ticketId')
+    @Public()
     @ApiOperation({ summary: 'Get data of a specific ticket for an event' })
     @ApiParam({
         name: 'id',
@@ -391,8 +388,8 @@ export class EventsController {
         return await this.ticketsService.findOneTicket(ticketId, id);
     }
 
-    @Public()
     @Get(':id')
+    @Public()
     @ApiOperation({ summary: 'Get event data' })
     @ApiParam({
         required: true,
@@ -426,7 +423,6 @@ export class EventsController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Update event data' })
     @ApiParam({
         name: 'id',
@@ -520,7 +516,6 @@ export class EventsController {
     }
 
     @Post(':id/upload-poster')
-    @UseGuards(JwtAuthGuard)
     @UseInterceptors(
         createFileUploadInterceptor({
             destination: './public/uploads/event-posters',
@@ -672,7 +667,6 @@ export class EventsController {
     }
 
     @Post(':id/themes')
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Sync event themes' })
     @ApiParam({
         required: true,
@@ -754,7 +748,6 @@ export class EventsController {
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Event deletion' })
     @ApiParam({
         required: true,

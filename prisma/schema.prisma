@@ -291,8 +291,6 @@ model News {
   company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull, map: "news_company_id_fk")
   event   Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull, map: "news_event_id_fk")
 
-  @@unique([eventId, authorId], map: "news_event_id_author_id_uq")
-  @@unique([companyId, authorId], map: "news_company_id_author_id_uq")
   @@index([authorId], map: "news_user_id_fk")
   @@index([companyId], map: "news_company_id_fk")
   @@index([eventId], map: "news_event_id_fk")

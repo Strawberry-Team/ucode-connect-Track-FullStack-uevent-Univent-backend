@@ -26,6 +26,13 @@ export class EventsService {
         });
     }
 
+    async createWithThemes(eventDto: CreateEventDto & { themes?: number[] }): Promise<Event> {
+        const event = await this.eventsRepository.createWithThemes(eventDto);
+        return plainToInstance(Event, event, {
+            groups: SERIALIZATION_GROUPS.BASIC,
+        });
+    }
+
     async findAll(): Promise<EventWithRelations[]> {
         const events = await this.eventsRepository.findAll();
         return plainToInstance(Event, events, {
