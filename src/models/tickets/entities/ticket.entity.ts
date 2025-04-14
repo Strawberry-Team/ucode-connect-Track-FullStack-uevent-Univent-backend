@@ -8,7 +8,7 @@ export const SERIALIZATION_GROUPS = {
     SYSTEMIC: ['basic', 'systemic'],
 };
 
-type TicketWithNumberPrice = Omit<Ticket, 'price'> & {
+type TicketWithNumberPrice = Omit<PrismaTicket, 'price'> & {
     price: number;
 };
 
