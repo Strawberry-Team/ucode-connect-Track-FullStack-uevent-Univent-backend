@@ -21,6 +21,7 @@ Table "refresh_token_nonces" {
   "user_id" INT [not null]
   "nonce" CHAR(32) [not null]
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  
   Indexes {
     user_id [name: "idx_refresh_token_nonces_user_id"]
     (user_id, nonce) [name: "idx_refresh_token_nonces_user_id_nonce"]
@@ -134,11 +135,11 @@ Table promo_codes {
 // Companies
 Table companies {
   "id" INT [pk, increment]
-  "owner_id" INT [not null]
+  "owner_id" INT [not null, unique]
   "title" VARCHAR(100) [not null]
   "email" VARCHAR(255) [unique, not null]
   "description" TEXT [not null]
-  "logoName" VARCHAR(255) [not null, default: 'default-logo.png']
+  "logo_name" VARCHAR(255) [not null, default: 'default-logo.png']
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
   "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
 
@@ -227,25 +228,23 @@ Table news {
     company_id [name: "news_company_id_fk"]
     event_id [name: "news_event_id_fk"]
     author_id [name: "news_user_id_fk"]
-    (event_id, author_id) [unique, name: "news_event_id_author_id_uq"]
-    (company_id, author_id) [unique, name: "news_company_id_author_id_uq"]
   }
 }
 
 // Foreign key relationships with proper naming and cascade actions
 // Users relationships
-Ref: "users"."id" < "refresh_token_nonces"."user_id" [delete: cascade]
+Ref: "users"."id" < "refresh_token_nonces"."user_id" [delete: cascade, update: cascade]
 
 // Events relationships
-Ref: "events"."company_id" > "companies"."id" [delete: restrict]
-Ref: "events"."format_id" > "event_formats"."id" [delete: restrict]
+Ref: "events"."company_id" > "companies"."id" [delete: restrict, update: cascade]
+Ref: "events"."format_id" > "event_formats"."id" [delete: restrict, update: cascade]
 
 // Event attendees relationships
 Ref: "event_attendees"."event_id" > "events"."id" [delete: cascade]
 Ref: "event_attendees"."user_id" > "users"."id" [delete: cascade]
 
 // Tickets relationships
-Ref: "tickets"."event_id" > "events"."id" [delete: cascade]
+Ref: "tickets"."event_id" > "events"."id" [delete: cascade, update: cascade]
 
 // Orders relationships
 Ref: "orders"."user_id" > "users"."id" [delete: restrict]
@@ -259,11 +258,11 @@ Ref: "order_items"."ticket_id" > "tickets"."id" [delete: restrict]
 Ref: "promo_codes"."event_id" > "events"."id" [delete: cascade]
 
 // Companies relationships
-Ref: "companies"."owner_id" > "users"."id" [delete: restrict]
+Ref: "companies"."owner_id" > "users"."id" [delete: restrict, update: cascade]
 
 // Events themes relations relationships
-Ref: "events_themes_relations"."event_id" > "events"."id" [delete: cascade]
-Ref: "events_themes_relations"."theme_id" > "event_themes"."id" [delete: cascade]
+Ref: "events_themes_relations"."event_id" > "events"."id" [delete: cascade, update: cascade]
+Ref: "events_themes_relations"."theme_id" > "event_themes"."id" [delete: cascade, update: cascade]
 
 // Subscriptions relationships
 Ref: "subscriptions"."user_id" > "users"."id" [delete: cascade]
@@ -274,6 +273,6 @@ Ref: "subscriptions"."company_id" > "companies"."id" [delete: set null]
 Ref: "notifications"."user_id" > "users"."id" [delete: cascade]
 
 // News relationships
-Ref: "news"."author_id" > "users"."id" [delete: cascade]
-Ref: "news"."company_id" > "companies"."id" [delete: set null]
-Ref: "news"."event_id" > "events"."id" [delete: set null]
+Ref: "news"."author_id" > "users"."id" [delete: cascade, update: cascade]
+Ref: "news"."company_id" > "companies"."id" [delete: set null, update: cascade]
+Ref: "news"."event_id" > "events"."id" [delete: set null, update: cascade]

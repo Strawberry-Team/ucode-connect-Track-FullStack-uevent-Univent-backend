@@ -41,7 +41,7 @@ import { NewsOwnerGuard } from '../news/guards/news-owner.guard';
 
 @Controller('companies')
 @ApiTags('Companies')
-@ApiSecurity('JWT')
+@UseGuards(JwtAuthGuard)
 export class CompaniesController {
     constructor(
         private readonly companyService: CompaniesService,
@@ -49,7 +49,6 @@ export class CompaniesController {
     ) {}
 
     @Post()
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Company creation' })
     @ApiBody({
         required: true,
@@ -137,7 +136,6 @@ export class CompaniesController {
     }
 
     @Post(':company_id/news')
-    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard, NewsOwnerGuard)
     @ApiOperation({
         summary: 'Create company news item',
@@ -295,7 +293,6 @@ export class CompaniesController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Update company data' })
     @ApiParam({
@@ -414,7 +411,6 @@ export class CompaniesController {
     }
 
     @Post(':id/upload-logo')
-    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
     @UseInterceptors(
         createFileUploadInterceptor({
@@ -567,7 +563,6 @@ export class CompaniesController {
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
     @UseGuards(CompanyOwnerGuard)
     @ApiOperation({ summary: 'Company deletion' })
     @ApiParam({

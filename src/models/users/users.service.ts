@@ -1,5 +1,6 @@
 // src/models/users/users.service.ts
 import {
+    BadRequestException,
     ConflictException,
     Injectable,
     NotFoundException,
@@ -148,6 +149,26 @@ export class UsersService {
         if (!result) {
             throw new NotFoundException('User not found');
         }
+        return plainToInstance(User, result, {
+            groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+        });
+    }
+
+    async updateUserRole(id: number, role: string): Promise<User> {
+        const validRoles = Object.values(UserRole);
+
+        if (!validRoles.includes(role as UserRole)) {
+            throw new BadRequestException('Role not found');
+        }
+
+        const result = await this.usersRepository.update(id, {
+            role: role as UserRole,
+        });
+
+        if (!result) {
+            throw new NotFoundException('User not found');
+        }
+        
         return plainToInstance(User, result, {
             groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
         });

@@ -55,8 +55,7 @@ In the examples of all commands in the text `<env>` is the name of the environme
    ```bash
    npm run build
    ```
-8. Seeds help you fill your database with initial data for a presentation or project launch. To start creating test
-   data, run the command.
+8. Seeds help you fill your database with initial data for a presentation or project launch. To start creating test data, run the command:
     ```bash
     npm run migrate:seed
     ```
@@ -84,7 +83,7 @@ Default credentials you can find in `.env.development.example` file or:
 
 ## 🔁 REST API documentation
 
-The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api).
+The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api). 
 The [Swagger](https://swagger.io/) library is used.
 
 ## Migrations
@@ -92,6 +91,10 @@ The [Swagger](https://swagger.io/) library is used.
 1. To create new migration run command:
     ```bash
     npm run migrate:create --name <migration_name>
+    ```
+2. To refresh all data at the database run command:
+    ```bash
+    npm run migrate:refresh
     ```
 
 ## 🪲 Testing
@@ -121,3 +124,24 @@ For all commands in the text below, the environment is a `test` that uses the va
    ```bash
    npm run test
    ```
+
+## 👤 Fake Data
+To fill the database with demo data of users, companies, events and tickets, run the following command:
+```bash
+npm run migarte:seed
+```
+Here is the fake data for presentations. 
+
+User data for testing:
+* full name:
+   ```text
+   Test User
+   ```
+* email:
+  ```text
+  test.user@uevent.com
+  ```
+All users have a password:
+```text
+Password123!$
+```

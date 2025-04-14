@@ -1,21 +1,97 @@
 // prisma/seeds/formats.ts
-export const initialFormats = [
-    {
-      title: 'Conference',
-    },
-    {
-      title: 'Masterclass',
-    },
-    {
-      title: 'Hackathon',
-    },
-    {
-        title: 'Forum',
-    },
-    {
-        title: 'Workshop',
-    },
-    {
-        title: 'Webinar',
-    },
-  ];
+import { faker } from '@faker-js/faker';
+import { SEED_COUNTS } from './seed-constants';
+
+const formatTypes = [
+  'Webinar',
+  'Workshop',
+  'Conference',
+  'Seminar',
+  'Lecture',
+  'Panel discussion',
+  'Q&A session',
+  'Networking event',
+  'Meetup',
+  'Concert',
+  'Festival',
+  'Exhibition',
+  'Trade show',
+  'Summit',
+  'Hackathon',
+  'Masterclass',
+  'Training session',
+  'Roundtable',
+  'Symposium',
+  'Gala',
+  'Charity event',
+  'Product launch',
+  'Press conference',
+  'Screening',
+  'Performance',
+  'Play',
+  'Musical',
+  'Opera',
+  'Ballet',
+  'Comedy show',
+  'Magic show',
+  'Art exhibition',
+  'Fashion show',
+  'Sports event',
+  'Tournament',
+  'Match',
+  'Race',
+  'Marathon',
+  'Retreat',
+  'Camp',
+  'Field trip',
+  'Tour',
+  'Party',
+  'Club night',
+  'DJ set',
+  'Live stream',
+  'Virtual tour',
+  'Online course',
+  'e-Conference',
+  'Virtual summit',
+  'Livestream concert',
+  'Interactive session',
+  'AMA (Ask Me Anything)',
+  'Demo day',
+  'Pitch event',
+  'Career fair',
+  'Job fair',
+  'Open house',
+  'Pop-up event',
+  'Tasting event',
+  'Wine tasting',
+  'Food festival',
+  'Cooking class',
+  'Yoga session',
+  'Meditation session',
+  'Fitness class',
+  'Dance class',
+  'Art workshop',
+  'Photography walk',
+  'Book reading',
+  'Poetry slam',
+  'Trivia night',
+  'Game night',
+  'Escape room',
+  'Scavenger hunt',
+  'Cultural festival',
+  'Religious gathering',
+  'Community event',
+  'Farmers market',
+  'Craft fair',
+];
+
+const formatTitles = new Set<string>();
+
+while (formatTitles.size < SEED_COUNTS.FORMATS) {
+    formatTitles.add(faker.helpers.arrayElement(formatTypes));
+}
+
+export const initialFormats = Array.from(formatTitles).map((title, index) => ({
+    id: index + 1,
+    title,
+}));

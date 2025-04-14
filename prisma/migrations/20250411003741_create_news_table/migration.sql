@@ -12,8 +12,6 @@ CREATE TABLE `news` (
     INDEX `news_company_id_fk`(`company_id`),
     INDEX `news_event_id_fk`(`event_id`),
     INDEX `news_user_id_fk`(`author_id`),
-    UNIQUE INDEX `news_event_id_author_id_uq`(`event_id`, `author_id`),
-    UNIQUE INDEX `news_company_id_author_id_uq`(`company_id`, `author_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

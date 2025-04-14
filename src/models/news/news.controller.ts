@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { NewsService } from './news.service';
 import { UpdateNewsDto } from './dto/update-news.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '../../common/decorators/public.decorator';
 import { CompanyNewsDto } from './dto/company-news.dto';
 import { EventNewsDto } from './dto/event-news.dto';
@@ -19,6 +19,8 @@ import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { NewsOwnerGuard } from './guards/news-owner.guard';
 
 @Controller('news')
+@ApiTags('News')
+@UseGuards(JwtAuthGuard)
 export class NewsController {
     constructor(private readonly newsService: NewsService) {}
 
@@ -97,7 +99,6 @@ export class NewsController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard)
     @UseGuards(NewsOwnerGuard)
     @ApiOperation({ summary: 'Update news data' })
     @ApiParam({
@@ -216,7 +217,6 @@ export class NewsController {
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
     @UseGuards(NewsOwnerGuard)
     @ApiOperation({ summary: 'News item deletion' })
     @ApiParam({
