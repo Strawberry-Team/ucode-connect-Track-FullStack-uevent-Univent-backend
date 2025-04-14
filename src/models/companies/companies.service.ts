@@ -143,7 +143,7 @@ export class CompaniesService {
         });
     }
 
-    async delete(id: number): Promise<void> {
+    async delete(id: number): Promise<{ message: string }> {
         let existingCompany = await this.companyRepository.findById(id, {
             events: true,
         });
@@ -152,12 +152,14 @@ export class CompaniesService {
             throw new NotFoundException(`Company not found`);
         }
 
-        if (existingCompany.events) {
+        if (existingCompany.events?.length !== 0) {
             throw new BadRequestException(
                 `Unable to delete a company with existing events`,
             );
         }
 
         await this.companyRepository.delete(id);
+
+        return { message: 'Company successfully deleted' };
     }
 }

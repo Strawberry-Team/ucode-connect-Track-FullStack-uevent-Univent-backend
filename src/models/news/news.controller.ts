@@ -24,37 +24,6 @@ import { NewsOwnerGuard } from './guards/news-owner.guard';
 export class NewsController {
     constructor(private readonly newsService: NewsService) {}
 
-    @Get()
-    @Public()
-    @ApiOperation({ summary: 'Get all news data' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'List of news',
-        type: [EventNewsDto],
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Unauthorized',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 401,
-                },
-            },
-        },
-    })
-    async findAll() {
-        return await this.newsService.findAll();
-    }
-
     @Get(':id')
     @Public()
     @ApiOperation({ summary: 'Get news item by id' })
@@ -229,6 +198,16 @@ export class NewsController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successfully deletion',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Success message',
+                    example: 'News item successfully deleted',
+                }
+            },
+        },
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,

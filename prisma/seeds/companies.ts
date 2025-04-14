@@ -9,12 +9,7 @@ export const initialCompanies = [
         
         return {
             ownerId: userId,
-            email: faker.internet.email({
-                firstName: 'customer',
-                lastName: 'support',
-                provider: title.toLowerCase().replace(/\s+/g, ''),
-                allowSpecialCharacters: false,
-            }),
+            email: `support@${title.toLowerCase().replace(/\s+/g, '')}.com`,
             title: title,
             description: Array.from(
                 { length: SEED_COUNTS.COMPANIES.DESCRIPTION_PHRASES }, 

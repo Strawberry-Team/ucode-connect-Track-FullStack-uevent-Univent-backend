@@ -13,6 +13,7 @@ import {
     HttpStatus,
     Delete,
     NotFoundException,
+    Query,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { Company } from './entities/company.entity';
@@ -28,6 +29,7 @@ import {
     ApiConsumes,
     ApiOperation,
     ApiParam,
+    ApiQuery,
     ApiResponse,
     ApiSecurity,
     ApiTags,
@@ -135,14 +137,14 @@ export class CompaniesController {
         return await this.companyService.create(dto, userId);
     }
 
-    @Post(':company_id/news')
-    @UseGuards(CompanyOwnerGuard, NewsOwnerGuard)
+    @Post(':id/news')
+    @UseGuards(CompanyOwnerGuard)
     @ApiOperation({
         summary: 'Create company news item',
     })
     @ApiParam({
         required: true,
-        name: 'company_id',
+        name: 'id',
         type: 'number',
         description: 'Company identifier',
         example: 1,
@@ -254,11 +256,11 @@ export class CompaniesController {
         },
     })
     async createNews(
-        @Param('company_id') companyId: number,
+        @Param('id') id: number,
         @Body() dto: CreateNewsDto,
         @UserId() userId: number,
     ) {
-        return await this.newsService.create(dto, userId, companyId, undefined);
+        return await this.newsService.create(dto, userId, id, undefined);
     }
 
     @Get()
@@ -273,11 +275,54 @@ export class CompaniesController {
         return await this.companyService.findAll();
     }
 
-    @Get(':company_id/news')
+    @Get(':id')
+    @Public()
+    @ApiOperation({ summary: 'Get company data by id' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: 'number',
+        description: 'Company identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Successfully retrieve',
+        type: Company,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Company not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Company not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
+    async findOne(@Param('id') id: number) {
+        return await this.companyService.findById(id);
+    }
+
+    @Get(':id/news')
     @Public()
     @ApiParam({
         required: true,
-        name: 'company_id',
+        name: 'id',
         type: 'number',
         description: 'Company identifier',
         example: 1,
@@ -288,8 +333,8 @@ export class CompaniesController {
         description: 'List of company news',
         type: [CompanyNewsDto],
     })
-    async findAllNews(@Param('company_id') companyId: number) {
-        return await this.newsService.findByCompanyId(companyId);
+    async findAllNews(@Param('id') id: number) {
+        return await this.newsService.findByCompanyId(id);
     }
 
     @Patch(':id')
@@ -575,6 +620,16 @@ export class CompaniesController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successfully deletion',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Success message',
+                    example: 'Company successfully deleted',
+                }
+            },
+        },
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
