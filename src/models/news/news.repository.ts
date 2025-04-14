@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { News } from './entities/news.entity';
 import { DatabaseService } from '../../db/database.service';
 import { NewsIncludeOptions } from './interfaces/news-include-options.interface';
+import * as events from 'node:events';
 
 @Injectable()
 export class NewsRepository {
@@ -16,7 +17,7 @@ export class NewsRepository {
     };
 
     private async findNews(
-        where: Prisma.NewsWhereInput,
+        where: Prisma.NewsWhereInput | null,
         includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
     ): Promise<News[]> {
         const include: Prisma.NewsInclude = {
@@ -29,9 +30,9 @@ export class NewsRepository {
         }>;
 
         const news = await this.db.news.findMany({
-            where,
+            where: where ?? undefined,
             include,
-            orderBy: { createdAt: 'desc' },
+            orderBy: { id: 'desc' },
         });
 
         return news as NewsWithIncludes[] as News[];
@@ -54,10 +55,21 @@ export class NewsRepository {
         return news as NewsWithIncludes as News;
     }
 
-    async findAll(
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
-    ): Promise<News[]> {
-        return this.findNews({}, includeOptions);
+    async findAll(): Promise<News[]> {
+        type NewsWithIncludes = Prisma.NewsGetPayload<{
+            include: {
+                author: false;
+                company: true;
+                event: true;
+            };
+        }>;
+
+        const news = await this.db.news.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: { company: true, event: true },
+        });
+
+        return news as NewsWithIncludes[] as News[];
     }
 
     async findById(

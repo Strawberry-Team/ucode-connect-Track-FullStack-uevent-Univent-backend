@@ -61,16 +61,6 @@ export class NewsService {
         });
     }
 
-    public async findAll(): Promise<News[][]> {
-        const news = await this.newsRepository.findAll();
-
-        return news.map((company) =>
-            plainToInstance(News, news, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            }),
-        );
-    }
-
     public async findById(id: number): Promise<News> {
         const news = await this.newsRepository.findById(id);
 
@@ -139,7 +129,7 @@ export class NewsService {
         });
     }
 
-    async delete(id: number): Promise<void> {
+    async delete(id: number): Promise<{ message: string }> {
         let existingNews = await this.newsRepository.findById(id);
 
         if (!existingNews) {
@@ -147,5 +137,7 @@ export class NewsService {
         }
 
         await this.newsRepository.delete(id);
+
+        return { message: 'News item successfully deleted' };
     }
 }
