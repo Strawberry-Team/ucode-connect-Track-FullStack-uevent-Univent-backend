@@ -4,7 +4,6 @@ import { PromoCode } from './entities/promo-code.entity';
 import { CreatePromoCodeDto } from './dto/create-promo-code.dto';
 import { UpdatePromoCodeDto } from './dto/update-promo-code.dto';
 import { DatabaseService } from '../../db/database.service';
-import { Ticket } from '../tickets/entities/ticket.entity';
 
 @Injectable()
 export class PromoCodesRepository {
@@ -36,30 +35,6 @@ export class PromoCodesRepository {
 
         const { discountPercent, ...promoCodeWithoutDiscountPercent } =
             promoCode;
-        return {
-            ...promoCodeWithoutDiscountPercent,
-            discountPercent: Number(discountPercent),
-        };
-    }
-
-    async findOneByEventIdAndCode(
-        eventId: number,
-        code: string,
-    ): Promise<PromoCode | null> {
-        const promoCode = await this.db.promoCode.findUnique({
-            where: {
-                eventId_code: {
-                    eventId,
-                    code
-                }
-            },
-        });
-
-        if (!promoCode) {
-            return null;
-        }
-
-        const { discountPercent, ...promoCodeWithoutDiscountPercent } = promoCode;
         return {
             ...promoCodeWithoutDiscountPercent,
             discountPercent: Number(discountPercent),

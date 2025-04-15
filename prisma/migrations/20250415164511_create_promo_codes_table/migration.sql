@@ -3,7 +3,7 @@ CREATE TABLE `promo_codes` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `event_id` INTEGER NOT NULL,
     `title` VARCHAR(100) NOT NULL,
-    `code` VARCHAR(30) NOT NULL,
+    `code` VARCHAR(255) NOT NULL,
     `discount_percent` DECIMAL(5, 4) NOT NULL,
     `is_active` BOOLEAN NOT NULL DEFAULT true,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),

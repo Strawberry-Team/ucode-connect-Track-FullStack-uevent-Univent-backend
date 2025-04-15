@@ -95,6 +95,14 @@ export const SEEDS = {
             MAX_PARAGRAPHS: 10,
         },
     },
+    PROMO_CODES: {
+        CODES: ['WELCOME10', 'SUMMER20', 'VIP30'],
+        DISCOUNT: {
+            MIN: 0.1,
+            MAX: 0.5,
+        },
+        TITLE_PREFIX: 'Exclusive Promo for Event',
+    },
     EVENT_ATTENDEES: {
         MIN_PER_EVENT: 1,
         MAX_PER_EVENT: 5,

@@ -22,6 +22,10 @@ import { UserRole } from '@prisma/client';
 import { NewsRepository } from '../../src/models/news/news.repository';
 import { initialNews } from './news';
 import { HashingService } from '../../src/common/services/hashing.service';
+import { PromoCodesRepository } from 'src/models/promo-codes/promo-codes.repository';
+import { initialPromoCodes } from './promo-codes';
+import { PromoCodesService } from '../../src/models/promo-codes/promo-codes.service';
+import { HashingPromoCodesService } from 'src/models/promo-codes/hashing-promo-codes.service';
 import { EventAttendeesRepository } from '../../src/models/events/event-attendees/event-attendees.repository';
 import { generateEventAttendees } from './event-attendees';
 
@@ -42,6 +46,8 @@ class Seeder {
         private readonly eventsService: EventsService,
         private readonly ticketsRepository: TicketsRepository,
         private readonly newsRepository: NewsRepository,
+        private readonly promoCodesRepository: PromoCodesRepository,
+        private readonly hashingPromoCodesService: HashingPromoCodesService,
         private readonly eventAttendeesRepository: EventAttendeesRepository,
     ) {}
 
@@ -62,6 +68,8 @@ class Seeder {
         console.log('Tickets were created 🎫');
         await this.seedNews();
         console.log('News were created 📰');
+        await this.seedPromoCodes();
+        console.log('Promo codes were created 🎟️');
         console.log('Seeding completed 🍹');
     }
 
@@ -111,6 +119,12 @@ class Seeder {
         }
     }
 
+    async seedPromoCodes() {
+        for (const promoCode of initialPromoCodes) {
+            await this.promoCodesRepository.create({ ...promoCode, code: await this.hashingPromoCodesService.hash(promoCode.code) });
+        }
+    }
+
     async seedEventAttendees() {
         const attendees = await generateEventAttendees();
         for (const attendee of attendees) {
@@ -130,6 +144,9 @@ async function start() {
         const configService = new ConfigService();
         const hashingService = new HashingService(configService);
         const passwordService = new HashingPasswordsService(hashingService);
+        const hashingPromoCodesService = new HashingPromoCodesService(
+            hashingService,
+        );
 
         const companiesRepository = new CompaniesRepository(dbService);
         const mockCompaniesService = new MockCompaniesService(
@@ -138,6 +155,7 @@ async function start() {
         const eventsRepository = new EventsRepository(dbService);
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);
+        const promoCodesRepository = new PromoCodesRepository(dbService);
         const eventAttendeesRepository = new EventAttendeesRepository(dbService);
 
         const seeder = new Seeder(
@@ -153,6 +171,8 @@ async function start() {
             ticketsRepository,
             newsRepository,
             eventAttendeesRepository,
+            promoCodesRepository,
+            hashingPromoCodesService,
         );
 
         await seeder.start();

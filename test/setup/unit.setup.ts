@@ -2,3 +2,8 @@
 afterEach(() => {
     jest.clearAllMocks();
 });
+
+afterAll(() => {
+    jest.resetModules();
+    jest.resetAllMocks();
+});

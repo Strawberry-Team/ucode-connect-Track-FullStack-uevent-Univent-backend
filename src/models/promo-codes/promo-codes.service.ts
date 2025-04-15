@@ -1,5 +1,6 @@
 // src/models/promo-codes/promo-codes.service.ts
 import {
+    ConflictException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -18,9 +19,19 @@ export class PromoCodesService {
     ) {}
 
     async create(dto: CreatePromoCodeDto, eventId: number): Promise<PromoCode> {
+        try {
+            await this.findOneByEventIdAndCode(eventId, dto.code);
+
+            throw new ConflictException('Promo code with this code already exists for this event');
+        } catch (error) {
+            if (!(error instanceof NotFoundException)) {
+                throw error;
+            }
+        }
+
         const hashedCode = await this.hashingPromoCodesService.hash(dto.code);
 
-        if (!dto.isActive) {
+        if (dto.isActive === undefined) {
             dto.isActive = true;
         }
 
@@ -53,25 +64,27 @@ export class PromoCodesService {
         promoCode: PromoCode;
         explanationMessage?: string;
     }> {
-        const hashedCode = await this.hashingPromoCodesService.hash(code);
+        const allCodes = await this.promoCodesRepository.findAllByEventId(eventId);
 
-        const promoCode =
-            await this.promoCodesRepository.findOneByEventIdAndCode(
-                eventId,
-                hashedCode,
-            );
+        let matchingPromoCode: PromoCode | null = null;
+        for (const promoCode of allCodes) {
+            if (await this.hashingPromoCodesService.compare(code, promoCode.code)) {
+                matchingPromoCode = promoCode;
+                break;
+            }
+        }
 
-        if (!promoCode) {
-            throw new NotFoundException('Promo code not found');
+        if (!matchingPromoCode) {
+            throw new NotFoundException('Promo code not found of this event');
         }
 
         const result = {
-            promoCode: plainToInstance(PromoCode, promoCode, {
+            promoCode: plainToInstance(PromoCode, matchingPromoCode, {
                 groups: SERIALIZATION_GROUPS.BASIC,
             }),
         };
 
-        if (!promoCode.isActive) {
+        if (!matchingPromoCode.isActive) {
             return {
                 ...result,
                 explanationMessage: 'Promo code is not active'
@@ -108,6 +121,10 @@ export class PromoCodesService {
 
     async update(id: number, dto: UpdatePromoCodeDto): Promise<PromoCode> {
         await this.findOne(id);
-        return await this.promoCodesRepository.update(id, dto);
+        const promoCode =  await this.promoCodesRepository.update(id, dto);
+
+        return plainToInstance(PromoCode, promoCode, {
+            groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+        });
     }
 }

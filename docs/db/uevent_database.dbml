@@ -122,7 +122,7 @@ Table promo_codes {
   "id" INT [pk, increment]
   "event_id" INT [not null]
   "title" VARCHAR(100) [not null]
-  "code" VARCHAR(30) [not null]
+  "code" VARCHAR(255) [not null]
   "discount_percent" DECIMAL(5, 4) [not null]
   "is_active" BOOL [default: 1, not null]
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]

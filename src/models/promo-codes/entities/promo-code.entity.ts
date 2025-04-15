@@ -3,17 +3,19 @@ import {
     PromoCode as PrismaPromoCode,
 } from '@prisma/client';
 import { Expose } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 
 type PromoCodeWithDiscountPercent = Omit<PrismaPromoCode, 'discountPercent'> & {
     discountPercent: number;
 };
 
 export const SERIALIZATION_GROUPS = {
-    BASIC: ['basic'], //ті, які потрапляють на фронт усім
-    CONFIDENTIAL: ['basic', 'confidential'], //ті, які може бачити тільки власник(або роль певна). На прикладі user це role
-    PRIVATE: ['basic', 'confidential', 'private'], //ті, які ніколи не потрапляють на фронтенд. На прикладі user це password, updated_at
+    BASIC: ['basic'],
+    CONFIDENTIAL: ['basic', 'confidential'],
+    PRIVATE: ['basic', 'confidential', 'private'],
 };
+
+// export type PromoCodeWithBasic = Pick<PromoCode, 'eventId' | 'discountPercent' | 'isActive'>;
 
 export class PromoCode implements PromoCodeWithDiscountPercent {
     @Expose({ groups: ['confidential'] })
@@ -62,13 +64,22 @@ export class PromoCode implements PromoCodeWithDiscountPercent {
         description: 'Whether the promo code is active',
         nullable: false,
         type: 'boolean',
-        example: true,
+        example: false,
     })
     isActive: boolean;
 
     @Expose({ groups: ['confidential'] })
+    @ApiProperty({
+        description: 'When the promo code was created',
+        nullable: false,
+        type: 'string',
+        example: '2023-07-01T00:00:00.000Z',
+    })
     createdAt: Date;
 
     @Expose({ groups: ['private'] })
     updatedAt: Date;
 }
+
+export class PromoCodeWithBasic extends PickType(PromoCode, ['eventId', 'discountPercent', 'isActive']) {}
+

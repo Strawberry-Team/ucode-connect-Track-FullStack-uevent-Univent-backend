@@ -15,6 +15,7 @@ const baseConfig: Config = {
         "**/*.(t|j)s"
     ],
     coverageDirectory: "../coverage",
+    globalTeardown: '<rootDir>/test/setup/global.teardown.ts',
 };
 
 export default baseConfig;

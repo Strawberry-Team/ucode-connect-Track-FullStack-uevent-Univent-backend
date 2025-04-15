@@ -6,7 +6,6 @@ import { PromoCodesRepository } from './promo-codes.repository';
 import { HashingPromoCodesService } from './hashing-promo-codes.service';
 import { HashingService } from '../../common/services/hashing.service';
 import { UsersModule } from '../users/users.module';
-import { EventsModule } from '../events/events.module';
 
 @Module({
     imports: [forwardRef(() => UsersModule)],

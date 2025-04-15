@@ -1,5 +1,5 @@
 // src/models/promo-codes/dto/update-promo-code.dto.ts
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType } from '@nestjs/swagger';
 import { CreatePromoCodeDto } from './create-promo-code.dto';
 import { OmitType } from '@nestjs/swagger';
 
