@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client';
 import { News } from './entities/news.entity';
 import { DatabaseService } from '../../db/database.service';
 import { NewsIncludeOptions } from './interfaces/news-include-options.interface';
-import * as events from 'node:events';
 
 @Injectable()
 export class NewsRepository {

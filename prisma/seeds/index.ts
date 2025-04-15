@@ -21,6 +21,8 @@ import { initialTickets } from './tickets';
 import { UserRole } from '@prisma/client';
 import { NewsRepository } from '../../src/models/news/news.repository';
 import { initialNews } from './news';
+import { EventAttendeesRepository } from '../../src/models/events/event-attendees/event-attendees.repository';
+import { generateEventAttendees } from './event-attendees';
 
 class MockCompaniesService {
     constructor(private readonly repository: CompaniesRepository) {}
@@ -39,6 +41,7 @@ class Seeder {
         private readonly eventsService: EventsService,
         private readonly ticketsRepository: TicketsRepository,
         private readonly newsRepository: NewsRepository,
+        private readonly eventAttendeesRepository: EventAttendeesRepository,
     ) {}
 
     async start() {
@@ -52,6 +55,8 @@ class Seeder {
         console.log('Themes were created 🌈');
         await this.seedEvents();
         console.log('Events were created 🎪');
+        await this.seedEventAttendees();
+        console.log('Event attendees were created 🦆');
         await this.seedTickets();
         console.log('Tickets were created 🎫');
         await this.seedNews();
@@ -104,6 +109,17 @@ class Seeder {
             await this.newsRepository.create(news);
         }
     }
+
+    async seedEventAttendees() {
+        const attendees = await generateEventAttendees();
+        for (const attendee of attendees) {
+            try {
+                await this.eventAttendeesRepository.create(attendee);
+            } catch (error) {
+                throw error;
+            }
+        }
+    }
 }
 
 async function start() {
@@ -118,6 +134,7 @@ async function start() {
         const eventsRepository = new EventsRepository(dbService);
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);
+        const eventAttendeesRepository = new EventAttendeesRepository(dbService);
 
         const seeder = new Seeder(
             new UsersService(
@@ -131,6 +148,7 @@ async function start() {
             new EventsService(eventsRepository),
             ticketsRepository,
             newsRepository,
+            eventAttendeesRepository,
         );
 
         await seeder.start();
