@@ -5,7 +5,7 @@ import { EventAttendeesRepository } from '../../../../src/models/events/event-at
 import { DatabaseService } from '../../../../src/db/database.service';
 import { UsersService } from '../../../../src/models/users/users.service';
 import { EventsService } from '../../../../src/models/events/events.service';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { EventAttendee } from '../../../../src/models/events/event-attendees/entities/event-attendee.entities';
 import { AttendeeVisibility, EventStatus, User } from '@prisma/client';
 import { EventWithRelations } from '../../../../src/models/events/entities/event.entity';

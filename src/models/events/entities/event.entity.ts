@@ -143,8 +143,8 @@ export class Event implements PrismaEvent {
         description: 'Event attendee visibility setting',
         nullable: false,
         type: 'string',
-        enum: ['PUBLIC', 'PRIVATE', 'RESTRICTED'],
-        example: 'PUBLIC',
+        enum: ['EVERYONE', 'ATTENDEES_ONLY', 'NOBODY'],
+        example: 'EVERYONE',
     })
     attendeeVisibility: AttendeeVisibility;
 
@@ -153,7 +153,7 @@ export class Event implements PrismaEvent {
         description: 'Event status',
         nullable: false,
         type: 'string',
-        enum: ['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED'],
+        enum: ['DRAFT', 'PUBLISHED', 'SALES_STARTED', 'ONGOING', 'FINISHED', 'CANCELLED'],
         example: 'PUBLISHED',
     })
     status: EventStatus;

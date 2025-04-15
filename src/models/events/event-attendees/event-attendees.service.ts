@@ -7,7 +7,8 @@ import { UpdateEventAttendeeDto } from './dto/update-event-attendee.dto';
 import { EventAttendeesRepository } from './event-attendees.repository';
 import { UsersService } from 'src/models/users/users.service';
 import { EventsService } from '../events.service';
-import { log } from 'console';
+import { AttendeeVisibility as EventAttendeeVisibility } from '@prisma/client';
+
 @Injectable()
 export class EventAttendeesService {
     constructor(
@@ -91,10 +92,10 @@ export class EventAttendeesService {
         }
       
         switch (event.attendeeVisibility) {
-            case 'EVERYONE':
+            case EventAttendeeVisibility.EVERYONE:
                 return this.getVisibleAttendees(eventId);
       
-            case 'ATTENDEES_ONLY':
+            case EventAttendeeVisibility.ATTENDEES_ONLY:
                 if (!currentUserId) {
                     return [];
                 }
@@ -106,7 +107,7 @@ export class EventAttendeesService {
       
                 return this.getVisibleAttendees(eventId);
       
-            case 'NOBODY':
+            case EventAttendeeVisibility.NOBODY:
                 return [];
       
             default:
