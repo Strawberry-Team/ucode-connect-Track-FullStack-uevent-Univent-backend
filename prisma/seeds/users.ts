@@ -1,29 +1,29 @@
 // prisma/seeds/users.ts
 import { faker } from '@faker-js/faker';
 import { UserRole } from '@prisma/client';
-import { SEED_COUNTS } from './seed-constants';
+import { SEEDS } from './seed-constants';
 
 export const createInitialUsers = async () => {
     return [
         {
             firstName: 'Admin',
             lastName: 'System',
-            email: `admin@${SEED_COUNTS.PRODUCT.DOMAIN}`,
-            password: 'Password123!$',
+            email: `admin@${SEEDS.PRODUCT.DOMAIN}`,
+            password: SEEDS.USERS.PASSWORD,
             role: UserRole.ADMIN,
             isEmailVerified: true,
-            profilePictureName: 'default-avatar.png',
+            profilePictureName: SEEDS.USERS.PROFILE_PICTURE,
         },
         {
             firstName: 'Test',
             lastName: 'User',
-            email: `test.user@${SEED_COUNTS.PRODUCT.DOMAIN}`,
-            password: 'Password123!$',
+            email: `test.user@${SEEDS.PRODUCT.DOMAIN}`,
+            password: SEEDS.USERS.PASSWORD,
             role: UserRole.USER,
             isEmailVerified: true,
-            profilePictureName: 'default-avatar.png',
+            profilePictureName: SEEDS.USERS.PROFILE_PICTURE,
         },
-        ...Array.from({ length: SEED_COUNTS.USERS.TOTAL - 2 }, () => {
+        ...Array.from({ length: SEEDS.USERS.TOTAL - 2 }, () => {
             const firstName = faker.person.firstName();
             const lastName = faker.person.lastName();
 
@@ -31,16 +31,17 @@ export const createInitialUsers = async () => {
                 firstName,
                 lastName,
                 email: faker.internet.email({
-                    firstName, 
-                    lastName, 
-                    provider: SEED_COUNTS.PRODUCT.DOMAIN,
+                    firstName,
+                    lastName,
+                    provider: SEEDS.PRODUCT.DOMAIN,
                     allowSpecialCharacters: false,
-                }).toLowerCase(),
-                password: 'Password123!$',
+                })
+                .toLowerCase(),
+                password: SEEDS.USERS.PASSWORD,
                 role: UserRole.USER,
                 isEmailVerified: true,
-                profilePictureName: 'default-avatar.png',
-            }
+                profilePictureName: SEEDS.USERS.PROFILE_PICTURE,
+            };
         }),
     ];
-}; 
+};

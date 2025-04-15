@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { initialCompanies } from './companies';
 import { initialEvents } from './events';
 import { initialFormats } from './formats';
-import { SEED_COUNTS } from './seed-constants';
+import { SEEDS } from './seed-constants';
 
 function generateNewsTitle(formatId: number): string {
     const actions = [
@@ -20,9 +20,10 @@ function generateNewsTitle(formatId: number): string {
     if (formatId === 0) {
         formatTitle = 'company';
     } else {
-        formatTitle = initialFormats
-        .find(format => format.id === formatId)?.title 
-        || `Test format ${formatId}`;
+        formatTitle =
+            initialFormats.find((format) =>
+                format.id === formatId)?.title ||
+            `Test format ${formatId}`;
     }
 
     return `${faker.helpers.arrayElement(actions)} ${formatTitle.toLowerCase()}`;
@@ -30,22 +31,24 @@ function generateNewsTitle(formatId: number): string {
 
 function generateNewsDescription(): string {
     const paragraphs = Array.from(
-        { length: faker.number.int({ 
-            min: SEED_COUNTS.NEWS.DESCRIPTION.MIN_PARAGRAPHS, 
-            max: SEED_COUNTS.NEWS.DESCRIPTION.MAX_PARAGRAPHS 
-        }) },
-        () => faker.lorem.paragraph()
+        {
+            length: faker.number.int({
+                min: SEEDS.NEWS.DESCRIPTION.MIN_PARAGRAPHS,
+                max: SEEDS.NEWS.DESCRIPTION.MAX_PARAGRAPHS,
+            }),
+        },
+        () => faker.lorem.paragraph(),
     );
-    
-    return paragraphs.join('\n\n');
+
+    return paragraphs.join('. ');
 }
 
 const companyNews = initialCompanies.flatMap((company, index) => {
-    const newsCount = faker.number.int({ 
-        min: SEED_COUNTS.NEWS.MIN_PER_COMPANY, 
-        max: SEED_COUNTS.NEWS.MAX_PER_COMPANY 
+    const newsCount = faker.number.int({
+        min: SEEDS.NEWS.MIN_PER_COMPANY,
+        max: SEEDS.NEWS.MAX_PER_COMPANY,
     });
-    
+
     return Array.from({ length: newsCount }, () => ({
         authorId: company.ownerId,
         companyId: index + 1,
@@ -56,14 +59,14 @@ const companyNews = initialCompanies.flatMap((company, index) => {
 });
 
 const eventNews = initialEvents.flatMap((event, index) => {
-    const newsCount = faker.number.int({ 
-        min: SEED_COUNTS.NEWS.MIN_PER_EVENT, 
-        max: SEED_COUNTS.NEWS.MAX_PER_EVENT 
+    const newsCount = faker.number.int({
+        min: SEEDS.NEWS.MIN_PER_EVENT,
+        max: SEEDS.NEWS.MAX_PER_EVENT,
     });
-    
+
     const company = initialCompanies[event.companyId - 1];
     if (!company) return [];
-    
+
     return Array.from({ length: newsCount }, () => ({
         authorId: company.ownerId,
         companyId: null,
@@ -73,4 +76,4 @@ const eventNews = initialEvents.flatMap((event, index) => {
     }));
 });
 
-export const initialNews = [...companyNews, ...eventNews]; 
+export const initialNews = [...companyNews, ...eventNews];

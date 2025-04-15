@@ -1,66 +1,98 @@
 // prisma/seeds/seed-constants.ts
-export const SEED_COUNTS = {
-  PRODUCT:{
-    DOMAIN: 'uevent.com',
-  },
-  USERS: {
-    TOTAL: 30,
-    ADMINS: 1,
-  },
-  COMPANIES: {
-    TOTAL: 10,
-    DESCRIPTION_PHRASES: 7,
-  },
-  EVENTS: {
-    TOTAL: 30,
-    MIN_THEMES_PER_EVENT: 1,
-    MAX_THEMES_PER_EVENT: 3,
-    DESCRIPTION_PHRASES: 3,
-    START_DATE: {
-      MIN_DAYS: 10,
-      MAX_DAYS: 30,
+export const SEEDS = {
+    PRODUCT: {
+        DOMAIN: 'uevent.com',
     },
-    START_TIME: {
-      MIN_HOUR: 12,
-      MAX_HOUR: 20,
+    USERS: {
+        TOTAL: 30,
+        ADMINS: 1,
+        PASSWORD: 'Password123!$',
+        PROFILE_PICTURE: 'default-avatar.png',
     },
-    DURATION: {
-      MIN_HOURS: 1,
-      MAX_HOURS: 4,
+    COMPANIES: {
+        TOTAL: 10,
+        EMAIL_LOCAL: 'support',
+        DESCRIPTION_PHRASES: 7,
+        LOGO: 'default-logo.png'
     },
-    TICKETS_AVAILABLE: {
-      MIN_DAYS_BEFORE: 1,
-      MAX_DAYS_BEFORE: 8,
+    EVENTS: {
+        TOTAL: 30,
+        POSTER: 'default-poster.png',
+        MIN_THEMES_PER_EVENT: 1,
+        MAX_THEMES_PER_EVENT: 3,
+        DESCRIPTION_PHRASES: 3,
+        START_DATE: {
+            MIN_DAYS: 10,
+            MAX_DAYS: 30,
+        },
+        START_TIME: {
+            MIN_HOUR: 12,
+            MAX_HOUR: 20,
+        },
+        DURATION: {
+            MIN_HOURS: 1,
+            MAX_HOURS: 4,
+        },
+        TICKETS_AVAILABLE: {
+            MIN_DAYS_BEFORE: 1,
+            MAX_DAYS_BEFORE: 8,
+        },
+        STATUS_WEIGHTS: {
+            DRAFT: 5,
+            PUBLISHED: 10,
+            SALES_STARTED: 60,
+            ONGOING: 10,
+            FINISHED: 10,
+            CANCELLED: 5,
+        },
+        ATTENDEE_VISIBILITY_WEIGHTS: {
+            EVERYONE: 60,
+            ATTENDEES_ONLY: 20,
+            NOBODY: 20,
+        },
     },
-  },
-  FORMATS: 8,
-  THEMES: 8,
-  TICKETS: {
-    MIN_PER_EVENT: 10,
-    MAX_PER_EVENT: 100,
-    TYPES: {
-      STANDARD: {
-        MIN_PRICE: 200,
-        MAX_PRICE: 500,
-      },
-      VIP: {
-        MIN_PRICE: 800,
-        MAX_PRICE: 2000,
-      },
-      PREMIUM: {
-        MIN_PRICE: 2500,
-        MAX_PRICE: 5000,
-      },
+    FORMATS: {
+        TOTAL: 15,
     },
-  },
-  NEWS: {
-    MIN_PER_COMPANY: 1,
-    MAX_PER_COMPANY: 5,
-    MIN_PER_EVENT: 0,
-    MAX_PER_EVENT: 3,
-    DESCRIPTION: {
-      MIN_PARAGRAPHS: 2,
-      MAX_PARAGRAPHS: 4,
+    THEMES: {
+        TOTAL: 50,
     },
-  },
-} as const; 
+    TICKETS: {
+        NUMBER_PREFIX: 'TICKET',
+        MIN_PER_EVENT: 10,
+        MAX_PER_EVENT: 100,
+        TYPES: {
+            STANDARD: {
+                TITLE: 'Standard',
+                MIN_PRICE: 200,
+                MAX_PRICE: 500,
+            },
+            VIP: {
+                TITLE: 'VIP',
+                MIN_PRICE: 800,
+                MAX_PRICE: 2000,
+            },
+            PREMIUM: {
+                TITLE: 'Premium',
+                MIN_PRICE: 2500,
+                MAX_PRICE: 5000,
+            },
+        },
+        STATUS_WEIGHTS: {
+            AVAILABLE: 75,
+            RESERVED: 5,
+            SOLD: 15,
+            UNAVAILABLE: 5,
+        },
+    },
+    NEWS: {
+        MIN_PER_COMPANY: 1,
+        MAX_PER_COMPANY: 5,
+        MIN_PER_EVENT: 0,
+        MAX_PER_EVENT: 3,
+        DESCRIPTION: {
+            MIN_PARAGRAPHS: 5,
+            MAX_PARAGRAPHS: 10,
+        },
+    },
+} as const;

@@ -1,6 +1,6 @@
 // prisma/seeds/themes.ts
 import { faker } from '@faker-js/faker';
-import { SEED_COUNTS } from './seed-constants';
+import { SEEDS } from './seed-constants';
 
 const themeTypes = [
     'Technology',
@@ -126,7 +126,7 @@ const themeTypes = [
 
 const themeTitles = new Set<string>();
 
-while (themeTitles.size < SEED_COUNTS.THEMES) {
+while (themeTitles.size < SEEDS.THEMES.TOTAL) {
     themeTitles.add(faker.helpers.arrayElement(themeTypes));
 }
 

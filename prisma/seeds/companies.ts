@@ -1,21 +1,33 @@
 // prisma/seeds/companies.ts
 import { faker } from '@faker-js/faker';
-import { SEED_COUNTS } from './seed-constants';
+import { SEEDS } from './seed-constants';
 
-export const initialCompanies = [
-    ...Array.from({ length: SEED_COUNTS.COMPANIES.TOTAL }, (_, index) => {
+function generateUniqueCompanyTitles(count: number): string[] {
+    const titles = new Set<string>();
+
+    while (titles.size < count) {
+        titles.add(faker.company.catchPhraseAdjective());
+    }
+
+    return Array.from(titles);
+}
+
+export const initialCompanies = (() => {
+    const companyTitles = generateUniqueCompanyTitles(SEEDS.COMPANIES.TOTAL);
+
+    return companyTitles.map((title, index) => {
         const userId = index + 2;
-        const title = faker.company.catchPhraseAdjective();
-        
+
         return {
             ownerId: userId,
-            email: `support@${title.toLowerCase().replace(/\s+/g, '')}.com`,
+            email: `${SEEDS.COMPANIES.EMAIL_LOCAL}@${title.toLowerCase().replace(/[^\w]/g, '.')}.com`,
             title: title,
-            description: Array.from(
-                { length: SEED_COUNTS.COMPANIES.DESCRIPTION_PHRASES }, 
-                () => faker.company.catchPhrase()
-            ).join('. ') + '.',
-            logoName: 'default-logo.png',
+            description:
+                Array.from(
+                    { length: SEEDS.COMPANIES.DESCRIPTION_PHRASES },
+                    () => faker.company.catchPhrase(),
+                ).join('. ') + '.',
+            logoName: SEEDS.COMPANIES.LOGO,
         };
-    }),
-]; 
+    });
+})();
