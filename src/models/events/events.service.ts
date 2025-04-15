@@ -66,7 +66,6 @@ export class EventsService {
         }
 
         event = await this.eventsRepository.update(id, {
-            ...event,
             ...eventDto,
         });
         return plainToInstance(Event, event, {
