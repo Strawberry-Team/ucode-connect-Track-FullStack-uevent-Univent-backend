@@ -55,6 +55,14 @@ export class TicketsService {
     ): Promise<Ticket[]> {
         const tickets: Ticket[] = [];
 
+        const foundTickets: Ticket[] = await this.ticketsRepository.findAll({eventId: eventId, title: createTicketDto.title});
+        if(foundTickets.length > 0 &&
+            foundTickets.every(ticket => ticket.price === foundTickets[0].price) &&
+            foundTickets[0].price !== createTicketDto.price
+        ) {
+            throw new ConflictException("The ticket price should be equal for all of them")
+        }
+
         if(!createTicketDto.quantity) createTicketDto.quantity = 1;
 
         if(!eventId) throw new ConflictException('You must provide an eventId');

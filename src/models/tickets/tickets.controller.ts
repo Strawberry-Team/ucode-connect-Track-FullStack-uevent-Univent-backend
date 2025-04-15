@@ -7,9 +7,9 @@ import {
     HttpCode,
     HttpStatus,
 } from '@nestjs/common';
-import { TicketsService } from '../tickets/tickets.service';
-import { Ticket } from '../tickets/entities/ticket.entity';
-import { UpdateTicketDto } from '../tickets/dto/update-ticket.dto';
+import { TicketsService } from './tickets.service';
+import { Ticket } from './entities/ticket.entity';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UserId } from '../../common/decorators/user.decorator';
 import {
     ApiOperation,
