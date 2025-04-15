@@ -44,6 +44,9 @@ import { EventNewsDto } from '../news/dto/event-news.dto';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { EventAttendeesService } from './event-attendees/event-attendees.service';
 import { EventAttendee } from './event-attendees/entities/event-attendee.entities';
+import { CreatePromoCodeDto } from '../promo-codes/dto/create-promo-code.dto';
+import { PromoCode } from '../promo-codes/entities/promo-code.entity';
+import { PromoCodesService } from '../promo-codes/promo-codes.service';
 
 @Controller('events')
 @ApiTags('Events')
@@ -54,6 +57,7 @@ export class EventsController {
         private readonly newsService: NewsService,
         private readonly ticketsService: TicketsService,
         private readonly eventAttendeesService: EventAttendeesService,
+        private readonly promoCodesService: PromoCodesService,
     ) {}
 
     @Post()
@@ -277,6 +281,14 @@ export class EventsController {
         return await this.ticketsService.createTickets(dto, id);
     }
 
+    @Post(':id/promo-codes')
+    async createPromoCode(
+        @Body() dto: CreatePromoCodeDto,
+        @Param('id') id: number,
+    ): Promise<PromoCode> {
+        return await this.promoCodesService.create(dto, id);
+    }
+
     @Get()
     @Public()
     @ApiOperation({ summary: 'Get all events data' })
@@ -357,6 +369,11 @@ export class EventsController {
         });
     }
 
+    @Get(':id/promo-codes')
+    async findAllPromoCodes(@Param('id') id: number): Promise<PromoCode[]> {
+        return await this.promoCodesService.findAllByEventId(id);
+    }
+
     @Get(':id/tickets/:ticketId')
     @Public()
     @ApiOperation({ summary: 'Get data of a specific ticket for an event' })
@@ -388,6 +405,17 @@ export class EventsController {
         @Param('ticketId') ticketId: number,
     ): Promise<Ticket> {
         return await this.ticketsService.findOneTicket(ticketId, id);
+    }
+
+    @Get(':id/promo-codes/code/:code')
+    async findOnePromoCode(
+        @Param('id') id: number,
+        @Param('code') code: string,
+    ): Promise<{
+        promoCode: PromoCode;
+        explanationMessage?: string;
+    }> {
+        return await this.promoCodesService.findOneByEventIdAndCode(id, code);
     }
 
     @Get(':id')

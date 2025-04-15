@@ -8,7 +8,7 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { UsersService } from '../../../src/models/users/users.service';
 import { UsersRepository } from '../../../src/models/users/users.repository';
-import { PasswordService } from '../../../src/models/users/passwords.service';
+import { HashingPasswordsService } from '../../../src/models/users/hashing-passwords.service';
 import { SERIALIZATION_GROUPS, User } from '../../../src/models/users/entities/user.entity';
 import {
     generateFakeUser,
@@ -22,7 +22,7 @@ import {
 describe('UsersService', () => {
     let usersService: UsersService;
     let usersRepository: jest.Mocked<UsersRepository>;
-    let passwordService: jest.Mocked<PasswordService>;
+    let passwordService: jest.Mocked<HashingPasswordsService>;
 
     beforeEach(async () => {
         const usersRepositoryMock = {
@@ -43,15 +43,15 @@ describe('UsersService', () => {
             providers: [
                 UsersService,
                 { provide: UsersRepository, useValue: usersRepositoryMock },
-                { provide: PasswordService, useValue: passwordServiceMock },
+                { provide: HashingPasswordsService, useValue: passwordServiceMock },
             ],
         }).compile();
 
         usersService = module.get<UsersService>(UsersService);
         usersRepository = module.get(UsersRepository) as jest.Mocked<UsersRepository>;
         passwordService = module.get(
-            PasswordService
-        ) as jest.Mocked<PasswordService>;
+            HashingPasswordsService
+        ) as jest.Mocked<HashingPasswordsService>;
     });
 
     describe('findUserById', () => {

@@ -115,9 +115,9 @@ model Event {
   format         EventFormat              @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   themesRelation EventThemeRelation[]
   news           News[]                   @relation(map: "news_event_id_fk")
-  attendees      EventAttendee[]          @relation(map: "event_attendees_event_id_fk")
+  // attendees      EventAttendee[]
   tickets        Ticket[]                 @relation(map: "tickets_event_id_fk")
-  // promoCodes     PromoCode[]
+  promoCodes     PromoCode[]
   // subscriptions  Subscription[]
 
   @@index([companyId], map: "events_company_id_fk")
@@ -202,23 +202,24 @@ model Ticket {
 //   @@map("order_items")
 // }
 //
-// // Promo Codes model
-// model PromoCode {
-//   id              Int      @id @default(autoincrement())
-//   eventId         Int      @map("event_id")
-//   code            String   @db.VarChar(30)
-//   discountPercent Decimal  @map("discount_percent") @db.Decimal(5, 2)
-//   isActive        Boolean  @default(false) @map("is_active")
-//   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "promo_codes_event_id_fk")
-//   orders Order[]
-//
-//   @@unique([eventId, code], map: "promo_codes_event_id_code_uq")
-//   @@map("promo_codes")
-// }
+// Promo Codes model
+model PromoCode {
+  id              Int      @id @default(autoincrement())
+  eventId         Int      @map("event_id")
+  title           String   @db.VarChar(100)
+  code            String   @db.VarChar(30)
+  discountPercent Decimal  @map("discount_percent") @db.Decimal(5, 4)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "promo_codes_event_id_fk")
+  // orders Order[]
+
+  @@unique([eventId, code], map: "promo_codes_event_id_code_uq")
+  @@map("promo_codes")
+}
 
 model EventThemeRelation {
   id        Int      @id @default(autoincrement())

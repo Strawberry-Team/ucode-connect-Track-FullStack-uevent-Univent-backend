@@ -13,7 +13,7 @@ import { NewPasswordDto } from './dto/new-password.dto';
 import { UsersService } from 'src/models/users/users.service';
 import { RefreshTokenNoncesService } from 'src/models/refresh-token-nonces/refresh-token-nonces.service';
 import { JwtUtils } from '../../jwt/jwt-token.utils';
-import { PasswordService } from '../users/passwords.service';
+import { HashingPasswordsService } from '../users/hashing-passwords.service';
 import { convertToSeconds } from '../../common/utils/time.utils';
 import { EmailService } from 'src/email/email.service';
 import { ConfigService } from '@nestjs/config';
@@ -28,7 +28,7 @@ export class AuthService {
         private readonly usersService: UsersService,
         private readonly refreshTokenNonceService: RefreshTokenNoncesService,
         private readonly jwtUtils: JwtUtils,
-        private readonly passwordService: PasswordService,
+        private readonly passwordService: HashingPasswordsService,
         private readonly emailService: EmailService,
         private readonly configService: ConfigService,
         private readonly nonceUtils: NonceUtils,

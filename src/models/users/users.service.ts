@@ -10,7 +10,7 @@ import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SERIALIZATION_GROUPS, User } from './entities/user.entity';
-import { PasswordService } from './passwords.service';
+import { HashingPasswordsService } from './hashing-passwords.service';
 import { plainToInstance } from 'class-transformer';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { GetUsersDto } from './dto/get-users.dto';
@@ -23,7 +23,7 @@ export class UsersService {
     constructor(
         private readonly usersRepository: UsersRepository,
         private readonly companiesService: CompaniesService,
-        private readonly passwordService: PasswordService,
+        private readonly passwordService: HashingPasswordsService,
     ) {}
 
     async createUser(dto: CreateUserDto): Promise<User> {

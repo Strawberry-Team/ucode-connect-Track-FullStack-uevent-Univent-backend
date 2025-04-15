@@ -164,7 +164,7 @@ export class UsersController {
             },
         },
     })
-    async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
+    async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> { // TODO: переписать на findOne с email/:email
         return await this.usersService.findAllUsers(getUsersDto);
     }
 

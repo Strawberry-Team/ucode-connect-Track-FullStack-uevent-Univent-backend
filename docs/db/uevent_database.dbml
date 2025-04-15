@@ -21,7 +21,7 @@ Table "refresh_token_nonces" {
   "user_id" INT [not null]
   "nonce" CHAR(32) [not null]
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
-  
+
   Indexes {
     user_id [name: "idx_refresh_token_nonces_user_id"]
     (user_id, nonce) [name: "idx_refresh_token_nonces_user_id_nonce"]
@@ -121,9 +121,10 @@ Table order_items {
 Table promo_codes {
   "id" INT [pk, increment]
   "event_id" INT [not null]
+  "title" VARCHAR(100) [not null]
   "code" VARCHAR(30) [not null]
-  "discount_percent" DECIMAL(5, 2) [not null]
-  "is_active" BOOL [default: 0, not null]
+  "discount_percent" DECIMAL(5, 4) [not null]
+  "is_active" BOOL [default: 1, not null]
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
   "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
 

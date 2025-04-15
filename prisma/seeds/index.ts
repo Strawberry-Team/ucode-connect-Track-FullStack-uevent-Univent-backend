@@ -10,7 +10,7 @@ import { initialFormats } from './formats';
 import { initialThemes } from './themes';
 import { createInitialUsers } from './users';
 import { CompaniesRepository } from '../../src/models/companies/companies.repository';
-import { PasswordService } from '../../src/models/users/passwords.service';
+import { HashingPasswordsService } from '../../src/models/users/hashing-passwords.service';
 import { ConfigService } from '@nestjs/config';
 import { initialCompanies } from './companies';
 import { EventsService } from '../../src/models/events/events.service';
@@ -21,6 +21,7 @@ import { initialTickets } from './tickets';
 import { UserRole } from '@prisma/client';
 import { NewsRepository } from '../../src/models/news/news.repository';
 import { initialNews } from './news';
+import { HashingService } from '../../src/common/services/hashing.service';
 import { EventAttendeesRepository } from '../../src/models/events/event-attendees/event-attendees.repository';
 import { generateEventAttendees } from './event-attendees';
 
@@ -124,13 +125,16 @@ class Seeder {
 
 async function start() {
     try {
-        console.log('🌱 Seeding started 🌱');
+        console.log('Seeding started 🌱');
         const dbService = new DatabaseService();
         const configService = new ConfigService();
-        const passwordService = new PasswordService(configService);
+        const hashingService = new HashingService(configService);
+        const passwordService = new HashingPasswordsService(hashingService);
 
         const companiesRepository = new CompaniesRepository(dbService);
-        const mockCompaniesService = new MockCompaniesService(companiesRepository);
+        const mockCompaniesService = new MockCompaniesService(
+            companiesRepository,
+        );
         const eventsRepository = new EventsRepository(dbService);
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);

@@ -19,6 +19,7 @@ export default () => {
             passwordSaltRounds: parseInt(
                 String(validateEnv('APP_PASSWORD_BCRYPT_SALT_ROUNDS')),
             ),
+            promoCodeSaltRounds: 10,
             frontendProtocol,
             frontendHost,
             frontendPort,
