@@ -1,3 +1,4 @@
+// src/models/events/event-attendees/event-attendees.controller.ts
 import { Controller, HttpStatus, Param, Patch, UseGuards, Body } from '@nestjs/common';
 import { EventAttendeesService } from './event-attendees.service';
 import { ApiResponse } from '@nestjs/swagger';

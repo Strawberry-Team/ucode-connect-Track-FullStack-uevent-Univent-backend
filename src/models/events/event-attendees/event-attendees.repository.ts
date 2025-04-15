@@ -1,3 +1,4 @@
+// src/models/events/event-attendees/event-attendees.repository.ts
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../db/database.service';
 import { EventAttendee } from './entities/event-attendee.entities';

@@ -1,3 +1,4 @@
+// src/models/events/event-attendees/dto/update-event-attendee.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean } from 'class-validator';
 

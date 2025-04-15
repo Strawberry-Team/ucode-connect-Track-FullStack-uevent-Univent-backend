@@ -1,3 +1,4 @@
+// src/models/events/event-attendees/guards/attendee.guard.ts
 import {
   CanActivate,
   ExecutionContext,

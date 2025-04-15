@@ -1,3 +1,4 @@
+// src/models/events/event-attendees/event-attendees.service.ts
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { DatabaseService } from '../../../db/database.service';
 import { plainToInstance } from 'class-transformer';

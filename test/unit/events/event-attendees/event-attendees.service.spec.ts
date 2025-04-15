@@ -1,3 +1,4 @@
+// test/unit/events/event-attendees/event-attendees.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventAttendeesService } from '../../../../src/models/events/event-attendees/event-attendees.service';
 import { EventAttendeesRepository } from '../../../../src/models/events/event-attendees/event-attendees.repository';
