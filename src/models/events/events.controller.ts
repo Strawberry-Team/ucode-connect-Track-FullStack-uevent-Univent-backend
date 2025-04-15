@@ -269,10 +269,10 @@ export class EventsController {
     })
     async createTicket(
         @Body() dto: CreateTicketDto,
-        @Param('id') id: string,
+        @Param('id') id: number,
     ): Promise<Ticket[]> {
-        const eventIdParsed = id ? parseInt(id, 10) : undefined;
-        return await this.ticketsService.createTickets(dto, eventIdParsed);
+        // const eventIdParsed = id ? parseInt(id, 10) : undefined;
+        return await this.ticketsService.createTickets(dto, id);
     }
 
     @Get()
@@ -345,12 +345,12 @@ export class EventsController {
         },
     })
     async findAllTickets(
-        @Param('id') id: string,
+        @Param('id') id: number,
         @Query() query: FindAllTicketsQueryDto,
     ): Promise<{ items: Ticket[]; total: number }> {
-        const eventIdParsed = id ? parseInt(id, 10) : undefined;
+        // const eventIdParsed = id ? parseInt(id, 10) : undefined;
         return await this.ticketsService.findAllTickets({
-            eventId: eventIdParsed,
+            eventId: id,
             ...query,
         });
     }

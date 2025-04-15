@@ -1,4 +1,5 @@
-import { TicketStatus } from '@prisma/client';
+import { TicketStatus,
+        Ticket as PrismaTicket} from '@prisma/client';
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -7,7 +8,11 @@ export const SERIALIZATION_GROUPS = {
     SYSTEMIC: ['basic', 'systemic'],
 };
 
-export class Ticket {
+type TicketWithNumberPrice = Omit<PrismaTicket, 'price'> & {
+    price: number;
+};
+
+export class Ticket implements TicketWithNumberPrice{
     @ApiProperty({
         description: 'Unique identifier of the ticket',
         nullable: false,

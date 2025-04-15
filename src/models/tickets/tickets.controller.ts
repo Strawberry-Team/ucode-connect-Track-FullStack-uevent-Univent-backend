@@ -31,7 +31,7 @@ export class TicketsController {
         name: 'id',
         required: true,
         type: Number,
-        description: 'Ticket identifier',
+        description: 'Ticket ID',
         example: 123,
     })
     @ApiBody({
@@ -68,7 +68,7 @@ export class TicketsController {
         name: 'id',
         required: true,
         type: Number,
-        description: 'Ticket identifier',
+        description: 'Ticket ID',
         example: 123,
     })
     @ApiResponse({

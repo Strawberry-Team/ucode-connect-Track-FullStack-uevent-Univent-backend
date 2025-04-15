@@ -11,17 +11,19 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { SERIALIZATION_GROUPS, Ticket } from './entities/ticket.entity';
 import { TicketStatus } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
+import {EventsRepository} from "../events/events.repository";
 
 @Injectable()
 export class TicketsService {
-    constructor(private readonly ticketsRepository: TicketsRepository) {}
+    constructor(private readonly ticketsRepository: TicketsRepository,
+                private readonly eventsRepository: EventsRepository ) {}
 
     async createTicket(
         createTicketDto: CreateTicketDto,
         eventId: number,
     ): Promise<Ticket> {
         const ticketNumber = this.generateTicketNumber(eventId);
-        const existingTicket = await this.ticketsRepository.findOneByNumber(
+        const existingTicket = await this.ticketsRepository.findByNumber(
             ticketNumber
         );
         if (existingTicket) {
@@ -53,9 +55,23 @@ export class TicketsService {
     ): Promise<Ticket[]> {
         const tickets: Ticket[] = [];
 
+        const foundTickets: Ticket[] = await this.ticketsRepository.findAll({eventId: eventId, title: createTicketDto.title});
+        if(foundTickets.length > 0 &&
+            foundTickets.every(ticket => ticket.price === foundTickets[0].price) &&
+            foundTickets[0].price !== createTicketDto.price
+        ) {
+            throw new ConflictException("The ticket price should be equal for all of them")
+        }
+
         if(!createTicketDto.quantity) createTicketDto.quantity = 1;
 
         if(!eventId) throw new ConflictException('You must provide an eventId');
+
+        const event = await this.eventsRepository.findById(eventId)
+
+        if(!event){
+            throw new NotFoundException(`Event ${eventId} does not exist`);
+        }
 
         for (let i = 0; i < Number(createTicketDto.quantity); i++) {
             tickets.push(await this.createTicket(createTicketDto, eventId));
@@ -90,7 +106,7 @@ export class TicketsService {
     }
 
     async findOneTicket(id: number, eventId?: number): Promise<Ticket> {
-        const ticket = await this.ticketsRepository.findOne(id);
+        const ticket = await this.ticketsRepository.findById(id);
 
         if(eventId && ticket?.eventId && ticket?.eventId !== eventId) {
             throw new NotFoundException(`Ticket ID ${id} not found`);
