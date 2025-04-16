@@ -117,7 +117,7 @@ model Event {
   news           News[]               @relation(map: "news_event_id_fk")
   attendees      EventAttendee[]      @relation(map: "event_attendees_event_id_fk")
   tickets        Ticket[]             @relation(map: "tickets_event_id_fk")
-  promoCodes     PromoCode[]
+  promoCodes     PromoCode[]          @relation(map: "promo_codes_event_id_fk")
   // subscriptions  Subscription[]
 
   @@index([companyId], map: "events_company_id_fk")
