@@ -59,13 +59,13 @@ describe('PromoCodesService', () => {
         it('should throw ConflictException if promo code already exists for the event', async () => {
             const existingPromoCode = generateFakePromoCode({ eventId, code: 'hashedCode' });
             jest
-                .spyOn(promoCodesService, 'findOneByEventIdAndCode')
+                .spyOn(promoCodesService, 'validatePromoCode')
                 .mockResolvedValue({ promoCode: existingPromoCode });
 
             await expect(
                 promoCodesService.create(createDto, eventId),
             ).rejects.toThrow(ConflictException);
-            expect(promoCodesService.findOneByEventIdAndCode).toHaveBeenCalledWith(
+            expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith(
                 eventId,
                 createDto.code,
             );
@@ -73,7 +73,7 @@ describe('PromoCodesService', () => {
 
         it('should create a new promo code if none exists for the event', async () => {
             jest
-                .spyOn(promoCodesService, 'findOneByEventIdAndCode')
+                .spyOn(promoCodesService, 'validatePromoCode')
                 .mockRejectedValue(new NotFoundException());
 
             const hashedCode = 'hashedPromoCode';
@@ -139,7 +139,7 @@ describe('PromoCodesService', () => {
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(true);
 
-            const result = await promoCodesService.findOneByEventIdAndCode(eventId, plainCode);
+            const result = await promoCodesService.validatePromoCode(eventId, plainCode);
 
             expect(promoCodesRepository.findAllByEventId).toHaveBeenCalledWith(eventId);
             expect(hashingPromoCodesService.compare).toHaveBeenNthCalledWith(1, plainCode, promoCode1.code);
@@ -155,7 +155,7 @@ describe('PromoCodesService', () => {
 
             hashingPromoCodesService.compare.mockResolvedValue(true);
 
-            const result = await promoCodesService.findOneByEventIdAndCode(eventId, plainCode);
+            const result = await promoCodesService.validatePromoCode(eventId, plainCode);
 
             expect(result).toEqual({
                 promoCode: plainToInstance(PromoCode, inactivePromo, { groups: SERIALIZATION_GROUPS.BASIC }),
@@ -171,7 +171,7 @@ describe('PromoCodesService', () => {
             hashingPromoCodesService.compare.mockResolvedValue(false);
 
             await expect(
-                promoCodesService.findOneByEventIdAndCode(eventId, plainCode),
+                promoCodesService.validatePromoCode(eventId, plainCode),
             ).rejects.toThrow(NotFoundException);
             expect(promoCodesRepository.findAllByEventId).toHaveBeenCalledWith(eventId);
             expect(hashingPromoCodesService.compare).toHaveBeenCalledTimes(2);
@@ -185,7 +185,7 @@ describe('PromoCodesService', () => {
         it('should return true if promo code is valid (active and no explanation message)', async () => {
             const promoCode = generateFakePromoCode({ eventId, isActive: true });
             jest
-                .spyOn(promoCodesService, 'findOneByEventIdAndCode')
+                .spyOn(promoCodesService, 'validatePromoCode')
                 .mockResolvedValue({ promoCode: promoCode });
             const result = await promoCodesService.validatePromoCode(eventId, testCode);
             expect(result).toBe(true);
@@ -194,7 +194,7 @@ describe('PromoCodesService', () => {
         it('should return false if promo code is not active (with explanation message)', async () => {
             const promoCode = generateFakePromoCode({ eventId, isActive: false });
             jest
-                .spyOn(promoCodesService, 'findOneByEventIdAndCode')
+                .spyOn(promoCodesService, 'validatePromoCode')
                 .mockResolvedValue({
                     promoCode,
                     explanationMessage: 'Promo code is not active',
@@ -205,7 +205,7 @@ describe('PromoCodesService', () => {
 
         it('should return false if findOneByEventIdAndCode throws an error', async () => {
             jest
-                .spyOn(promoCodesService, 'findOneByEventIdAndCode')
+                .spyOn(promoCodesService, 'validatePromoCode')
                 .mockRejectedValue(new NotFoundException());
             const result = await promoCodesService.validatePromoCode(eventId, testCode);
             expect(result).toBe(false);

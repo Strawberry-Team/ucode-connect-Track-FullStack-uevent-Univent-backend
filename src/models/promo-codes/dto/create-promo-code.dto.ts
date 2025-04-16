@@ -20,7 +20,7 @@ export class CreatePromoCodeDto {
     @ApiProperty({
         required: true,
         nullable: false,
-        description: 'The actual promo code value',
+        description: 'The promo code value',
         example: 'TECH2023',
         type: 'string',
     })

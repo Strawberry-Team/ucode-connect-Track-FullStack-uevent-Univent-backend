@@ -15,7 +15,7 @@ export const SERIALIZATION_GROUPS = {
     PRIVATE: ['basic', 'confidential', 'private'],
 };
 
-// export type PromoCodeWithBasic = Pick<PromoCode, 'eventId' | 'discountPercent' | 'isActive'>;
+// export type PromoCodeWithBasic = Pick<PromoCode, 'discountPercent'>;
 
 export class PromoCode implements PromoCodeWithDiscountPercent {
     @Expose({ groups: ['confidential'] })
@@ -27,7 +27,7 @@ export class PromoCode implements PromoCodeWithDiscountPercent {
     })
     id: number;
 
-    @Expose({ groups: ['basic'] })
+    @Expose({ groups: ['confidential'] })
     @ApiProperty({
         description: 'Event identifier associated with the promo code',
         nullable: false,
@@ -59,7 +59,7 @@ export class PromoCode implements PromoCodeWithDiscountPercent {
     })
     discountPercent: number;
 
-    @Expose({ groups: ['basic'] })
+    @Expose({ groups: ['confidential'] })
     @ApiProperty({
         description: 'Whether the promo code is active',
         nullable: false,
@@ -81,5 +81,5 @@ export class PromoCode implements PromoCodeWithDiscountPercent {
     updatedAt: Date;
 }
 
-export class PromoCodeWithBasic extends PickType(PromoCode, ['eventId', 'discountPercent', 'isActive']) {}
+export class PromoCodeWithBasic extends PickType(PromoCode, ['discountPercent']) {}
 

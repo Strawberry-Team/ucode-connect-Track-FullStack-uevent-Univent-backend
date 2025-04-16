@@ -27,7 +27,7 @@ import {
     ApiParam,
     ApiResponse,
     ApiTags,
-    ApiQuery, ApiExtraModels,
+    ApiQuery,
 } from '@nestjs/swagger';
 import { UserId } from '../../common/decorators/user.decorator';
 import { CreateTicketDto } from '../tickets/dto/create-ticket.dto';
@@ -47,12 +47,9 @@ import { EventAttendee } from './event-attendees/entities/event-attendee.entitie
 import { CreatePromoCodeDto } from '../promo-codes/dto/create-promo-code.dto';
 import {
     PromoCode,
-    PromoCodeWithBasic,
 } from '../promo-codes/entities/promo-code.entity';
 import { PromoCodesService } from '../promo-codes/promo-codes.service';
-import { getSchemaPath } from '@nestjs/swagger';
 
-@ApiExtraModels(PromoCodeWithBasic)
 @Controller('events')
 @ApiTags('Events')
 @UseGuards(JwtAuthGuard)
@@ -531,70 +528,6 @@ export class EventsController {
         @Param('ticketId') ticketId: number,
     ): Promise<Ticket> {
         return await this.ticketsService.findOneTicket(ticketId, id);
-    }
-
-    @Get(':id/promo-codes/code/:code')
-    @ApiOperation({ summary: 'Get promo code by event ID and code' })
-    @ApiParam({
-        name: 'id',
-        required: true,
-        type: Number,
-        description: 'Event identifier',
-        example: 1,
-    })
-    @ApiParam({
-        name: 'code',
-        required: true,
-        type: String,
-        description: 'Promo code',
-        example: 'SUMMER2023',
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Promo code retrieved successfully',
-        schema: {
-            type: 'object',
-            properties: {
-                promoCode: { $ref: getSchemaPath(PromoCodeWithBasic) }, //TODO: подумать, как лучше сделать
-                explanationMessage: {
-                    type: 'string',
-                    example: 'Promo code is not active',
-                },
-            },
-            required: ['promoCode'],
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Promo code not found of this event',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Unauthorized',
-                },
-                statusCode: {
-                    type: 'number',
-                    description: 'Error code',
-                    example: 401,
-                },
-            },
-        },
-    })
-    async findOnePromoCode(
-        @Param('id') id: number,
-        @Param('code') code: string,
-    ): Promise<{
-        promoCode: PromoCodeWithBasic;
-        explanationMessage?: string;
-    }> {
-        return await this.promoCodesService.findOneByEventIdAndCode(id, code);
     }
 
     @Get(':id')

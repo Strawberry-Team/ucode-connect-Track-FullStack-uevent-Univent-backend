@@ -1,15 +1,20 @@
 // src/models/promo-codes/promo-codes.service.ts
 import {
-    ConflictException,
+    ConflictException, ImATeapotException,
     Injectable,
-    NotFoundException,
+    NotFoundException, UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreatePromoCodeDto } from './dto/create-promo-code.dto';
 import { UpdatePromoCodeDto } from './dto/update-promo-code.dto';
 import { PromoCodesRepository } from './promo-codes.repository';
 import { HashingPromoCodesService } from './hashing-promo-codes.service';
 import { plainToInstance } from 'class-transformer';
-import { PromoCode, SERIALIZATION_GROUPS } from './entities/promo-code.entity';
+import {
+    PromoCode,
+    PromoCodeWithBasic,
+    SERIALIZATION_GROUPS,
+} from './entities/promo-code.entity';
+import { ValidatePromoCodeDto } from './dto/validate-promo-code.dto';
 
 @Injectable()
 export class PromoCodesService {
@@ -20,7 +25,7 @@ export class PromoCodesService {
 
     async create(dto: CreatePromoCodeDto, eventId: number): Promise<PromoCode> {
         try {
-            await this.findOneByEventIdAndCode(eventId, dto.code);
+            await this.validatePromoCode({ code: dto.code, eventId });
 
             throw new ConflictException('Promo code with this code already exists for this event');
         } catch (error) {
@@ -57,25 +62,23 @@ export class PromoCodesService {
         );
     }
 
-    async findOneByEventIdAndCode(
-        eventId: number,
-        code: string,
+    async validatePromoCode(
+        dto: ValidatePromoCodeDto
     ): Promise<{
-        promoCode: PromoCode;
-        explanationMessage?: string;
+        promoCode: PromoCodeWithBasic;
     }> {
-        const allCodes = await this.promoCodesRepository.findAllByEventId(eventId);
+        const allCodes = await this.promoCodesRepository.findAllByEventId(dto.eventId);
 
         let matchingPromoCode: PromoCode | null = null;
         for (const promoCode of allCodes) {
-            if (await this.hashingPromoCodesService.compare(code, promoCode.code)) {
+            if (await this.hashingPromoCodesService.compare(dto.code, promoCode.code)) {
                 matchingPromoCode = promoCode;
                 break;
             }
         }
 
         if (!matchingPromoCode) {
-            throw new NotFoundException('Promo code not found of this event');
+            throw new NotFoundException('Promo code not found for this event');
         }
 
         const result = {
@@ -85,23 +88,17 @@ export class PromoCodesService {
         };
 
         if (!matchingPromoCode.isActive) {
-            return {
-                ...result,
-                explanationMessage: 'Promo code is not active'
-            };
+            throw new UnprocessableEntityException("Promo code is not active");
+            // throw new ImATeapotException("Promo code is not active");
         }
 
         return result;
     }
 
-    async validatePromoCode(eventId: number, code: string): Promise<boolean> {
+    async isValidPromoCode(dto: ValidatePromoCodeDto): Promise<boolean> {
         try {
-            const { promoCode, explanationMessage } = await this.findOneByEventIdAndCode(
-                eventId,
-                code,
-            );
-
-            return !explanationMessage;
+            await this.validatePromoCode(dto);
+            return true;
         } catch (error) {
             return false;
         }
