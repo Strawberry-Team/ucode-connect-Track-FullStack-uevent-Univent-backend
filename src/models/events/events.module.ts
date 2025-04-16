@@ -9,7 +9,6 @@ import { CompaniesModule } from '../companies/companies.module';
 import { EventFormatsModule } from './formats/event-formats.module';
 import { TicketsModule } from "../tickets/tickets.module";
 import { EventAttendeesModule } from './event-attendees/event-attendees.module';
-import { OptionalJwtAuthGuard } from '../auth/guards/optional-auth.guard';
 
 @Module({
     imports: [
@@ -22,8 +21,7 @@ import { OptionalJwtAuthGuard } from '../auth/guards/optional-auth.guard';
     ],
     providers: [
         EventsService, 
-        EventsRepository, 
-        OptionalJwtAuthGuard
+        EventsRepository
     ],
     controllers: [EventsController],
     exports: [EventsService, EventsRepository],

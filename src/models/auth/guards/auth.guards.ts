@@ -28,33 +28,60 @@ export class JwtAuthGuard
         super();
     }
 
-    async canActivate(context: ExecutionContext): Promise<boolean> {
-        const isPublic = this.reflector.getAllAndOverride<boolean>(
-            IS_PUBLIC_KEY,
-            [context.getHandler(), context.getClass()],
-        );
-        if (isPublic) {
-            return true;
-        }
-
-        const result = await super.canActivate(context);
-        if (!result) return false;
-
+    private async validateUser(context: ExecutionContext): Promise<{
+        isValid: boolean;
+        user: any;
+        userExists: any;
+    }> {
         const request = context.switchToHttp().getRequest();
         const { user } = request;
 
         if (!user || !user.userId) {
-            throw new UnauthorizedException('Invalid token payload');
+            return { isValid: false, user, userExists: null };
         }
 
         const userExists = await this.usersService.findUserByIdWithoutPassword(
             user.userId,
         );
-        if (!userExists) {
-            throw new UnauthorizedException('User not found');
-        }
 
-        return true;
+        return { isValid: !!userExists, user, userExists };
+    }
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const isPublic = this.reflector.getAllAndOverride<boolean>(
+            IS_PUBLIC_KEY,
+            [context.getHandler(), context.getClass()],
+        );
+
+        try {
+            // TODO: Подумать, чтобы не выкидывать ошибку.
+            const result = await super.canActivate(context);
+            if (!result) {
+                return isPublic;
+            }
+
+            const validation = await this.validateUser(context);
+            
+            if (isPublic || !validation.user || !validation.user.userId) {
+                return true;
+            }
+
+            if (!validation.isValid) {
+                throw new UnauthorizedException('User not found');
+            }
+
+            return true;
+        } catch (error) {
+            if (isPublic) {
+                return true;
+            }
+            
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
+            
+            throw new UnauthorizedException('Invalid token or authentication failed');
+        }
     }
 }
 

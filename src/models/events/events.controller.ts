@@ -44,8 +44,6 @@ import { EventNewsDto } from '../news/dto/event-news.dto';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { EventAttendeesService } from './event-attendees/event-attendees.service';
 import { EventAttendee } from './event-attendees/entities/event-attendee.entities';
-import { OptionalJwtAuthGuard } from '../auth/guards/optional-auth.guard';
-import { OptionalAuth } from '../../common/decorators/optional-auth.decorator';
 
 @Controller('events')
 @ApiTags('Events')
@@ -860,8 +858,7 @@ export class EventsController {
     }
 
     @Get(':id/attendees')
-    @UseGuards(OptionalJwtAuthGuard)
-    @OptionalAuth()
+    @Public()
     @ApiOperation({ summary: 'Get event attendees' })
     @ApiParam({
         required: true,
