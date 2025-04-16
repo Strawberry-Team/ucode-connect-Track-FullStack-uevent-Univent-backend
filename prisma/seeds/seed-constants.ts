@@ -95,4 +95,11 @@ export const SEEDS = {
             MAX_PARAGRAPHS: 10,
         },
     },
+    EVENT_ATTENDEES: {
+        MIN_PER_EVENT: 1,
+        MAX_PER_EVENT: 5,
+        VISIBILITY: {
+            HIDDEN_THRESHOLD: 4,
+        },
+    },
 } as const;

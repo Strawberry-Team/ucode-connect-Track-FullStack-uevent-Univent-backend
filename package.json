@@ -12,7 +12,7 @@
         "migrate:create": "dotenv -e .env.development -- npx prisma migrate dev",
         "migrate:generate": "dotenv -e .env.development -- npx prisma generate",
         "migrate:seed": "dotenv -e .env.development -- npx prisma db seed",
-        "migrate:reset": "dotenv -e .env.development -- npx prisma migrate reset --force",
+        "migrate:reset": "npm run build && dotenv -e .env.development -- npx prisma migrate reset --force",
         "migrate:refresh": "npm run migrate:reset && npm run migrate:generate",
 
         "start": "nest start",

@@ -12,6 +12,7 @@ import {
     UseInterceptors,
     UploadedFile,
     BadRequestException,
+    ForbiddenException,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { TicketsService } from '../tickets/tickets.service';
@@ -25,7 +26,6 @@ import {
     ApiOperation,
     ApiParam,
     ApiResponse,
-    ApiSecurity,
     ApiTags,
     ApiQuery,
 } from '@nestjs/swagger';
@@ -37,12 +37,13 @@ import { FindAllTicketsQueryDto } from '../tickets/dto/find-all-tickets-query.dt
 import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 import { CreateNewsDto } from '../news/dto/create-news.dto';
 import { NewsService } from '../news/news.service';
-import { CompanyOwnerGuard } from '../companies/guards/company-owner.guard';
 import { createFileUploadInterceptor } from '../../common/interceptor/file-upload.interceptor';
 import { AvatarConfig } from '../../config/avatar.config';
 import { Express } from 'express';
 import { EventNewsDto } from '../news/dto/event-news.dto';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
+import { EventAttendeesService } from './event-attendees/event-attendees.service';
+import { EventAttendee } from './event-attendees/entities/event-attendee.entities';
 
 @Controller('events')
 @ApiTags('Events')
@@ -52,6 +53,7 @@ export class EventsController {
         private readonly eventsService: EventsService,
         private readonly newsService: NewsService,
         private readonly ticketsService: TicketsService,
+        private readonly eventAttendeesService: EventAttendeesService,
     ) {}
 
     @Post()
@@ -853,5 +855,24 @@ export class EventsController {
     })
     async delete(@Param('id') id: number) {
         return await this.eventsService.delete(id);
+    }
+
+    @Get(':id/attendees')
+    @Public()
+    @ApiOperation({ summary: 'Get event attendees' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Event identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Event attendees successfully retrieved',
+        type: [EventAttendee],
+    })
+    async getEventAttendees(@Param('id') id: number, @UserId() userId: number | null) {
+        return await this.eventAttendeesService.getEventAttendees(id, userId);
     }
 }

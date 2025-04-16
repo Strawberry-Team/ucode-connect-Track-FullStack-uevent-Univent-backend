@@ -31,7 +31,7 @@ model User {
   refreshTokenNonces RefreshTokenNonce[]
   ownedCompany       Company?            @relation(map: "companies_user_id_fk")
   news               News[]              @relation(map: "news_user_id_fk")
-  // eventAttendees EventAttendee[]
+  eventAttendees     EventAttendee[]     @relation(map: "event_attendees_user_id_fk")
   // orders         Order[]
   // subscriptions  Subscription[]
   // notifications  Notification[]
@@ -115,7 +115,7 @@ model Event {
   format         EventFormat              @relation(fields: [formatId], references: [id], onDelete: Restrict, map: "events_format_id_fk")
   themesRelation EventThemeRelation[]
   news           News[]                   @relation(map: "news_event_id_fk")
-  // attendees      EventAttendee[]
+  attendees      EventAttendee[]          @relation(map: "event_attendees_event_id_fk")
   tickets        Ticket[]                 @relation(map: "tickets_event_id_fk")
   // promoCodes     PromoCode[]
   // subscriptions  Subscription[]
@@ -126,23 +126,23 @@ model Event {
 }
 
 // // Event Attendees model
-// model EventAttendee {
-//   id        Int      @id @default(autoincrement())
-//   eventId   Int      @map("event_id")
-//   userId    Int      @map("user_id")
-//   isVisible Boolean? @default(false) @map("is_visible")
-//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_attendees_event_id_fk")
-//   users  User  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "event_attendees_user_id_fk")
-//
-//   @@unique([eventId, userId], map: "event_attendees_event_id_user_id_uq")
-//   @@index([eventId], map: "event_attendees_event_id_fk")
-//   @@index([userId], map: "event_attendees_user_id_fk")
-//   @@map("event_attendees")
-// }
+model EventAttendee {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @map("event_id")
+  userId    Int      @map("user_id")
+  isVisible Boolean  @default(false) @map("is_visible")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "event_attendees_event_id_fk")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "event_attendees_user_id_fk")
+
+  @@unique([eventId, userId], map: "event_attendees_event_id_user_id_uq")
+  @@index([eventId], map: "event_attendees_event_id_fk")
+  @@index([userId], map: "event_attendees_user_id_fk")
+  @@map("event_attendees")
+}
 
 model Ticket {
   id        Int          @id @default(autoincrement())
