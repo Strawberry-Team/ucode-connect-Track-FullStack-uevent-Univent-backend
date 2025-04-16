@@ -8,6 +8,7 @@ import { NewsModule } from '../news/news.module';
 import { CompaniesModule } from '../companies/companies.module';
 import { EventFormatsModule } from './formats/event-formats.module';
 import { TicketsModule } from "../tickets/tickets.module";
+import { PromoCodesModule } from '../promo-codes/promo-codes.module';
 import { EventAttendeesModule } from './event-attendees/event-attendees.module';
 
 @Module({
@@ -17,10 +18,11 @@ import { EventAttendeesModule } from './event-attendees/event-attendees.module';
         forwardRef(() => NewsModule),
         forwardRef(() => CompaniesModule),
         forwardRef(() => TicketsModule),
+        forwardRef(() => PromoCodesModule),
         forwardRef(() => EventAttendeesModule),
     ],
     providers: [
-        EventsService, 
+        EventsService,
         EventsRepository
     ],
     controllers: [EventsController],

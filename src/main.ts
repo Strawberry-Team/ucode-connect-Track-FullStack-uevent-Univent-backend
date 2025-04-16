@@ -105,7 +105,6 @@ async function bootstrap() {
         .addTag('News')
         .addTag('Orders')
         .addTag('Tickets')
-        .addTag('Promo codes')
         .build();
 
     const document = SwaggerModule.createDocument(app, configAPIDoc);

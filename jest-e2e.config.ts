@@ -6,7 +6,6 @@ const config: Config = {
     displayName: 'e2e',
     testMatch: ['<rootDir>/test/e2e/**/*.e2e-spec.ts'],
     globalSetup: '<rootDir>/test/setup/e2e.global.setup.ts',
-    globalTeardown: '<rootDir>/test/setup/e2e.global.teardown.ts',
     // setupFilesAfterEnv: ['<rootDir>/test/e2e.setup.ts'],
     maxWorkers: 1,
 };

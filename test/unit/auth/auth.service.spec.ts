@@ -11,7 +11,7 @@ import { RefreshTokenNoncesService } from '../../../src/models/refresh-token-non
 import { RefreshTokenNonce } from '../../../src/models/refresh-token-nonces/entities/refresh-token-nonce.entity';
 import { User } from '../../../src/models/users/entities/user.entity';
 import { JwtUtils } from '../../../src/jwt/jwt-token.utils';
-import { PasswordService } from '../../../src/models/users/passwords.service';
+import { HashingPasswordsService } from '../../../src/models/users/hashing-passwords.service';
 import { EmailService } from '../../../src/email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { NonceUtils } from '../../../src/common/utils/nonce.utils';
@@ -44,7 +44,7 @@ describe('AuthService', () => {
     let usersService: jest.Mocked<UsersService>;
     let refreshTokenNonceService: jest.Mocked<RefreshTokenNoncesService>;
     let jwtUtils: jest.Mocked<JwtUtils>;
-    let passwordService: jest.Mocked<PasswordService>;
+    let passwordService: jest.Mocked<HashingPasswordsService>;
     let emailService: jest.Mocked<EmailService>;
     let configService: jest.Mocked<ConfigService>;
     let nonceUtils: jest.Mocked<NonceUtils>;
@@ -97,7 +97,7 @@ describe('AuthService', () => {
                     useValue: refreshTokenNonceServiceMock,
                 },
                 { provide: JwtUtils, useValue: jwtUtilsMock },
-                { provide: PasswordService, useValue: passwordServiceMock },
+                { provide: HashingPasswordsService, useValue: passwordServiceMock },
                 { provide: EmailService, useValue: emailServiceMock },
                 { provide: ConfigService, useValue: configServiceMock },
                 { provide: NonceUtils, useValue: nonceUtilsMock },
@@ -110,7 +110,7 @@ describe('AuthService', () => {
             RefreshTokenNoncesService
         );
         jwtUtils = module.get(JwtUtils);
-        passwordService = module.get(PasswordService);
+        passwordService = module.get(HashingPasswordsService);
         emailService = module.get(EmailService);
         configService = module.get(ConfigService);
         nonceUtils = module.get(NonceUtils);

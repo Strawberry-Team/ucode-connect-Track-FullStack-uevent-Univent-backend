@@ -10,7 +10,7 @@ import { initialFormats } from './formats';
 import { initialThemes } from './themes';
 import { createInitialUsers } from './users';
 import { CompaniesRepository } from '../../src/models/companies/companies.repository';
-import { PasswordService } from '../../src/models/users/passwords.service';
+import { HashingPasswordsService } from '../../src/models/users/hashing-passwords.service';
 import { ConfigService } from '@nestjs/config';
 import { initialCompanies } from './companies';
 import { EventsService } from '../../src/models/events/events.service';
@@ -21,6 +21,11 @@ import { initialTickets } from './tickets';
 import { UserRole } from '@prisma/client';
 import { NewsRepository } from '../../src/models/news/news.repository';
 import { initialNews } from './news';
+import { HashingService } from '../../src/common/services/hashing.service';
+import { PromoCodesRepository } from 'src/models/promo-codes/promo-codes.repository';
+import { initialPromoCodes } from './promo-codes';
+import { PromoCodesService } from '../../src/models/promo-codes/promo-codes.service';
+import { HashingPromoCodesService } from 'src/models/promo-codes/hashing-promo-codes.service';
 import { EventAttendeesRepository } from '../../src/models/events/event-attendees/event-attendees.repository';
 import { generateEventAttendees } from './event-attendees';
 
@@ -42,6 +47,8 @@ class Seeder {
         private readonly ticketsRepository: TicketsRepository,
         private readonly newsRepository: NewsRepository,
         private readonly eventAttendeesRepository: EventAttendeesRepository,
+        private readonly promoCodesRepository: PromoCodesRepository,
+        private readonly hashingPromoCodesService: HashingPromoCodesService,
     ) {}
 
     async start() {
@@ -61,6 +68,8 @@ class Seeder {
         console.log('Tickets were created 🎫');
         await this.seedNews();
         console.log('News were created 📰');
+        await this.seedPromoCodes();
+        console.log('Promo codes were created 🎟️');
         console.log('Seeding completed 🍹');
     }
 
@@ -110,6 +119,12 @@ class Seeder {
         }
     }
 
+    async seedPromoCodes() {
+        for (const promoCode of initialPromoCodes) {
+            await this.promoCodesRepository.create({ ...promoCode, code: await this.hashingPromoCodesService.hash(promoCode.code) });
+        }
+    }
+
     async seedEventAttendees() {
         const attendees = await generateEventAttendees();
         for (const attendee of attendees) {
@@ -124,16 +139,23 @@ class Seeder {
 
 async function start() {
     try {
-        console.log('🌱 Seeding started 🌱');
+        console.log('Seeding started 🌱');
         const dbService = new DatabaseService();
         const configService = new ConfigService();
-        const passwordService = new PasswordService(configService);
+        const hashingService = new HashingService(configService);
+        const passwordService = new HashingPasswordsService(hashingService);
+        const hashingPromoCodesService = new HashingPromoCodesService(
+            hashingService,
+        );
 
         const companiesRepository = new CompaniesRepository(dbService);
-        const mockCompaniesService = new MockCompaniesService(companiesRepository);
+        const mockCompaniesService = new MockCompaniesService(
+            companiesRepository,
+        );
         const eventsRepository = new EventsRepository(dbService);
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);
+        const promoCodesRepository = new PromoCodesRepository(dbService);
         const eventAttendeesRepository = new EventAttendeesRepository(dbService);
 
         const seeder = new Seeder(
@@ -149,6 +171,8 @@ async function start() {
             ticketsRepository,
             newsRepository,
             eventAttendeesRepository,
+            promoCodesRepository,
+            hashingPromoCodesService,
         );
 
         await seeder.start();

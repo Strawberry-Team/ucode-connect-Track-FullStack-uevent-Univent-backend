@@ -44,6 +44,11 @@ import { EventNewsDto } from '../news/dto/event-news.dto';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { EventAttendeesService } from './event-attendees/event-attendees.service';
 import { EventAttendee } from './event-attendees/entities/event-attendee.entities';
+import { CreatePromoCodeDto } from '../promo-codes/dto/create-promo-code.dto';
+import {
+    PromoCode,
+} from '../promo-codes/entities/promo-code.entity';
+import { PromoCodesService } from '../promo-codes/promo-codes.service';
 
 @Controller('events')
 @ApiTags('Events')
@@ -54,6 +59,7 @@ export class EventsController {
         private readonly newsService: NewsService,
         private readonly ticketsService: TicketsService,
         private readonly eventAttendeesService: EventAttendeesService,
+        private readonly promoCodesService: PromoCodesService,
     ) {}
 
     @Post()
@@ -277,6 +283,103 @@ export class EventsController {
         return await this.ticketsService.createTickets(dto, id);
     }
 
+    @Post(':id/promo-codes')
+    @ApiOperation({ summary: 'Create promo codes for an event' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: Number,
+        description: 'Event identifier',
+        example: 1,
+    })
+    @ApiBody({
+        type: CreatePromoCodeDto,
+        description: 'Promo code creation data',
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Promo code successfully created',
+        type: PromoCode,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation error',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'array',
+                    description: 'Error messages',
+                    example: [
+                        'discountPercent must be a number conforming to the specified constraints',
+                        'discountPercent must not be less than 0',
+                        'discountPercent must not be greater than 1',
+                    ],
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'HTTP status code',
+                    example: 400,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.CONFLICT,
+        description: 'Promo code already exists',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example:
+                        'Promo code with this code already exists for this event',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Conflict',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 409,
+                },
+            },
+        },
+    })
+    async createPromoCode(
+        @Body() dto: CreatePromoCodeDto,
+        @Param('id') id: number,
+    ): Promise<PromoCode> {
+        return await this.promoCodesService.create(dto, id);
+    }
+
     @Get()
     @Public()
     @ApiOperation({ summary: 'Get all events data' })
@@ -355,6 +458,43 @@ export class EventsController {
             eventId: id,
             ...query,
         });
+    }
+
+    @Get(':id/promo-codes')
+    @ApiOperation({ summary: 'Get all promo codes for an event' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: Number,
+        description: 'Event identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Promo codes retrieved successfully',
+        type: [PromoCode],
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
+            },
+        },
+    })
+    async findAllPromoCodes(@Param('id') id: number): Promise<PromoCode[]> {
+        return await this.promoCodesService.findAllByEventId(id);
     }
 
     @Get(':id/tickets/:ticketId')

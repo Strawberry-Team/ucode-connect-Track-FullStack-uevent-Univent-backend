@@ -111,7 +111,7 @@ export class CreateEventDto {
         type: 'string',
         example: 'tech-conference-2023-poster.jpg',
     })
-    posterName?: string;
+    posterName?: string; //TODO: remove this field
 
     @IsEnumValue(AttendeeVisibility, true)
     @ApiProperty({

@@ -103,6 +103,16 @@ export class AuthController {
                     description: 'Error message',
                     example: 'Email already in use',
                 },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Conflict',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 409,
+                },
             },
         },
     })
