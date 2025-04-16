@@ -15,15 +15,18 @@ import {
     SERIALIZATION_GROUPS,
 } from './entities/promo-code.entity';
 import { ValidatePromoCodeDto } from './dto/validate-promo-code.dto';
+import { EventsService } from '../events/events.service';
 
 @Injectable()
 export class PromoCodesService {
     constructor(
         private readonly promoCodesRepository: PromoCodesRepository,
         private readonly hashingPromoCodesService: HashingPromoCodesService,
+        private readonly eventsService: EventsService,
     ) {}
 
     async create(dto: CreatePromoCodeDto, eventId: number): Promise<PromoCode> {
+       await this.eventsService.findById(eventId);
         try {
             await this.validatePromoCode({ code: dto.code, eventId });
 

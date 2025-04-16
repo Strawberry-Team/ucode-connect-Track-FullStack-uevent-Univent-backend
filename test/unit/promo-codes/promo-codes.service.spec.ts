@@ -1,6 +1,10 @@
 // test/unit/promo-codes/promo-codes.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+    ConflictException,
+    NotFoundException,
+    UnprocessableEntityException,
+} from '@nestjs/common';
 import { PromoCodesService } from '../../../src/models/promo-codes/promo-codes.service';
 import { PromoCodesRepository } from '../../../src/models/promo-codes/promo-codes.repository';
 import { HashingPromoCodesService } from '../../../src/models/promo-codes/hashing-promo-codes.service';
@@ -9,6 +13,8 @@ import { UpdatePromoCodeDto } from '../../../src/models/promo-codes/dto/update-p
 import { PromoCode, SERIALIZATION_GROUPS } from '../../../src/models/promo-codes/entities/promo-code.entity';
 import { plainToInstance } from 'class-transformer';
 import { generateFakePromoCode } from '../../fake-data/fake-promo-codes';
+import { ValidatePromoCodeDto } from '../../../src/models/promo-codes/dto/validate-promo-code.dto';
+import { EventsService } from '../../../src/models/events/events.service';
 
 describe('PromoCodesService', () => {
     let promoCodesService: PromoCodesService;
@@ -28,6 +34,10 @@ describe('PromoCodesService', () => {
             compare: jest.fn(),
         };
 
+        const eventsServiceMock = {
+            findById: jest.fn(),
+        };
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 PromoCodesService,
@@ -36,6 +46,7 @@ describe('PromoCodesService', () => {
                     provide: HashingPromoCodesService,
                     useValue: hashingPromoCodesServiceMock,
                 },
+                { provide: EventsService, useValue: eventsServiceMock },
             ],
         }).compile();
 
@@ -66,8 +77,7 @@ describe('PromoCodesService', () => {
                 promoCodesService.create(createDto, eventId),
             ).rejects.toThrow(ConflictException);
             expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith(
-                eventId,
-                createDto.code,
+                { eventId, code: createDto.code }
             );
         });
 
@@ -126,9 +136,10 @@ describe('PromoCodesService', () => {
         });
     });
 
-    describe('findOneByEventIdAndCode', () => {
+    describe('validatePromoCode', () => {
         const eventId = 1;
-        const plainCode = 'MYCODE2023';
+        const code = 'MYCODE2023';
+        const dto: ValidatePromoCodeDto = { eventId, code };
 
         it('should return the matching promo code if found and active', async () => {
             const promoCode1 = generateFakePromoCode({ eventId, code: 'hashed1', isActive: true });
@@ -139,28 +150,26 @@ describe('PromoCodesService', () => {
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(true);
 
-            const result = await promoCodesService.validatePromoCode(eventId, plainCode);
+            const result = await promoCodesService.validatePromoCode(dto);
 
             expect(promoCodesRepository.findAllByEventId).toHaveBeenCalledWith(eventId);
-            expect(hashingPromoCodesService.compare).toHaveBeenNthCalledWith(1, plainCode, promoCode1.code);
-            expect(hashingPromoCodesService.compare).toHaveBeenNthCalledWith(2, plainCode, promoCode2.code);
+            expect(hashingPromoCodesService.compare).toHaveBeenNthCalledWith(1, code, promoCode1.code);
+            expect(hashingPromoCodesService.compare).toHaveBeenNthCalledWith(2, code, promoCode2.code);
             expect(result).toEqual({
                 promoCode: plainToInstance(PromoCode, promoCode2, { groups: SERIALIZATION_GROUPS.BASIC }),
             });
         });
 
-        it('should return the matching promo code with explanationMessage if it is not active', async () => {
+        it('should throw UnprocessableEntityException if promo code is not active', async () => {
             const inactivePromo = generateFakePromoCode({ eventId, code: 'hashedInactive', isActive: false });
             promoCodesRepository.findAllByEventId = jest.fn().mockResolvedValue([inactivePromo]);
 
             hashingPromoCodesService.compare.mockResolvedValue(true);
 
-            const result = await promoCodesService.validatePromoCode(eventId, plainCode);
-
-            expect(result).toEqual({
-                promoCode: plainToInstance(PromoCode, inactivePromo, { groups: SERIALIZATION_GROUPS.BASIC }),
-                explanationMessage: 'Promo code is not active',
-            });
+            await expect(
+                promoCodesService.validatePromoCode(dto),
+            ).rejects.toThrow(UnprocessableEntityException);
+            expect(promoCodesRepository.findAllByEventId).toHaveBeenCalledWith(eventId);
         });
 
         it('should throw NotFoundException if no promo code matches', async () => {
@@ -171,44 +180,51 @@ describe('PromoCodesService', () => {
             hashingPromoCodesService.compare.mockResolvedValue(false);
 
             await expect(
-                promoCodesService.validatePromoCode(eventId, plainCode),
+                promoCodesService.validatePromoCode(dto),
             ).rejects.toThrow(NotFoundException);
             expect(promoCodesRepository.findAllByEventId).toHaveBeenCalledWith(eventId);
             expect(hashingPromoCodesService.compare).toHaveBeenCalledTimes(2);
         });
     });
 
-    describe('validatePromoCode', () => {
+    describe('isValidPromoCode', () => {
         const eventId = 1;
-        const testCode = 'TESTCODE';
+        const code = 'TESTCODE';
+        const dto: ValidatePromoCodeDto = { eventId, code };
 
-        it('should return true if promo code is valid (active and no explanation message)', async () => {
-            const promoCode = generateFakePromoCode({ eventId, isActive: true });
-            jest
-                .spyOn(promoCodesService, 'validatePromoCode')
-                .mockResolvedValue({ promoCode: promoCode });
-            const result = await promoCodesService.validatePromoCode(eventId, testCode);
+        it('should return true if promo code is valid and active', async () => {
+            jest.spyOn(promoCodesService, 'validatePromoCode').mockResolvedValue({
+                promoCode: plainToInstance(PromoCode, generateFakePromoCode({ isActive: true }), {
+                    groups: SERIALIZATION_GROUPS.BASIC
+                }),
+            });
+
+            const result = await promoCodesService.isValidPromoCode(dto);
+
             expect(result).toBe(true);
+            expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith(dto);
         });
 
-        it('should return false if promo code is not active (with explanation message)', async () => {
-            const promoCode = generateFakePromoCode({ eventId, isActive: false });
-            jest
-                .spyOn(promoCodesService, 'validatePromoCode')
-                .mockResolvedValue({
-                    promoCode,
-                    explanationMessage: 'Promo code is not active',
-                });
-            const result = await promoCodesService.validatePromoCode(eventId, testCode);
+        it('should return false if promo code is not active', async () => {
+            jest.spyOn(promoCodesService, 'validatePromoCode').mockRejectedValue(
+                new UnprocessableEntityException('Promo code is not active')
+            );
+
+            const result = await promoCodesService.isValidPromoCode(dto);
+
             expect(result).toBe(false);
+            expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith(dto);
         });
 
-        it('should return false if findOneByEventIdAndCode throws an error', async () => {
-            jest
-                .spyOn(promoCodesService, 'validatePromoCode')
-                .mockRejectedValue(new NotFoundException());
-            const result = await promoCodesService.validatePromoCode(eventId, testCode);
+        it('should return false if promo code is not found', async () => {
+            jest.spyOn(promoCodesService, 'validatePromoCode').mockRejectedValue(
+                new NotFoundException('Promo code not found for this event')
+            );
+
+            const result = await promoCodesService.isValidPromoCode(dto);
+
             expect(result).toBe(false);
+            expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith(dto);
         });
     });
 

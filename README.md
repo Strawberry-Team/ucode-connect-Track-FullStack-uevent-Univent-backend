@@ -43,6 +43,7 @@ In the examples of all commands in the text `<env>` is the name of the environme
    ```bash
    npm run setup:db
    ```
+//TODO: подумать, как сделать так, чтобы наименьше надо было выполнять команд
 5. Run command to apply necessary migrations.
    ```bash
    npm run migrate
@@ -83,7 +84,7 @@ Default credentials you can find in `.env.development.example` file or:
 
 ## 🔁 REST API documentation
 
-The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api). 
+The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api).
 The [Swagger](https://swagger.io/) library is used.
 
 ## Migrations
@@ -130,7 +131,7 @@ To fill the database with demo data of users, companies, events and tickets, run
 ```bash
 npm run migarte:seed
 ```
-Here is the fake data for presentations. 
+Here is the fake data for presentations.
 
 User data for testing:
 * full name:

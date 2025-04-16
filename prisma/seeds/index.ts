@@ -46,9 +46,9 @@ class Seeder {
         private readonly eventsService: EventsService,
         private readonly ticketsRepository: TicketsRepository,
         private readonly newsRepository: NewsRepository,
+        private readonly eventAttendeesRepository: EventAttendeesRepository,
         private readonly promoCodesRepository: PromoCodesRepository,
         private readonly hashingPromoCodesService: HashingPromoCodesService,
-        private readonly eventAttendeesRepository: EventAttendeesRepository,
     ) {}
 
     async start() {
