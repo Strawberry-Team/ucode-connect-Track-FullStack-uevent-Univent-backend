@@ -33,6 +33,7 @@ import {
     ApiResponse,
     ApiSecurity,
     ApiTags,
+    getSchemaPath,
 } from '@nestjs/swagger';
 import { NewsService } from '../news/news.service';
 import { CreateNewsDto } from '../news/dto/create-news.dto';
@@ -40,6 +41,9 @@ import { Public } from '../../common/decorators/public.decorator';
 import { CompanyNewsDto } from '../news/dto/company-news.dto';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { NewsOwnerGuard } from '../news/guards/news-owner.guard';
+import { EventsService } from '../events/events.service';
+import { EventWithRelations } from '../events/entities/event.entity';
+
 
 @Controller('companies')
 @ApiTags('Companies')
@@ -47,6 +51,7 @@ import { NewsOwnerGuard } from '../news/guards/news-owner.guard';
 export class CompaniesController {
     constructor(
         private readonly companyService: CompaniesService,
+        private readonly eventsService: EventsService,
         private readonly newsService: NewsService,
     ) {}
 
@@ -316,6 +321,28 @@ export class CompaniesController {
     })
     async findOne(@Param('id') id: number) {
         return await this.companyService.findById(id);
+    }
+
+    @Get(':id/events')
+    @Public()
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Company identifier',
+        example: 1,
+    })
+    @ApiOperation({ summary: 'Get all company events' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'List of company events',
+        schema: {
+            type: 'array',
+            items: { $ref: getSchemaPath(Event) }
+        }
+    })
+    async findAllEvents(@Param('id') id: number) {
+        return await this.eventsService.findByCompanyId(id);
     }
 
     @Get(':id/news')

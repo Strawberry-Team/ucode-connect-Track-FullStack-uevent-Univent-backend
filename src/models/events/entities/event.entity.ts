@@ -4,8 +4,8 @@ import {
     EventStatus,
     Event as PrismaEvent,
 } from '@prisma/client';
-import { Expose, Exclude } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { EventTheme } from '../themes/entities/event-theme.entity';
 import { Company } from '../../companies/entities/company.entity';
 import { EventFormat } from '../formats/entities/event-format.entity';
@@ -165,12 +165,27 @@ export class Event implements PrismaEvent {
     updatedAt: Date;
 
     @Expose({ groups: ['basic'] })
+    @ApiProperty({
+        description: 'Event format',
+        nullable: true,
+        type: EventFormat,
+    })
     format?: EventFormat;
 
     @Expose({ groups: ['basic'] })
+    @ApiProperty({
+        description: 'Event themes',
+        nullable: true,
+        type: EventTheme,
+    })
     themes?: EventTheme[];
 
     @Expose({ groups: ['basic'] })
+    @ApiProperty({
+        description: 'Event company',
+        nullable: true,
+        type: () => PickType(Company, ['id', 'title', 'logoName']),
+    })
     company?: Company;
 
     @Expose({ groups: ['systemic'] })
