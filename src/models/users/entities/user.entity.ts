@@ -5,7 +5,7 @@ import {
     UserRole,
 } from '@prisma/client';
 import { Expose } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Company } from '../../companies/entities/company.entity';
 
 export const SERIALIZATION_GROUPS = {
@@ -93,3 +93,12 @@ export class User implements PrismaUser {
     @Expose({ groups: ['systemic'] })
     ownedCompany?: Company;
 }
+
+export class UserWithBasic extends PickType(User, [
+    'id',
+    'firstName',
+    'lastName',
+    'email',
+    'profilePictureName',
+    'createdAt'
+] as const) {}
