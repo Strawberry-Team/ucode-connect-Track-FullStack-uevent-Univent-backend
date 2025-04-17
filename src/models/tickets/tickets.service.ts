@@ -9,7 +9,7 @@ import { TicketsRepository } from './tickets.repository';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { SERIALIZATION_GROUPS, Ticket } from './entities/ticket.entity';
-import { TicketStatus } from '@prisma/client';
+import {Prisma, TicketStatus} from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import {EventsRepository} from "../events/events.repository";
 
@@ -32,7 +32,7 @@ export class TicketsService {
             );
         }
 
-        if(!createTicketDto.status){
+        if (!createTicketDto.status) {
             createTicketDto.status = TicketStatus.UNAVAILABLE;
         }
 
@@ -65,7 +65,8 @@ export class TicketsService {
 
         if(!createTicketDto.quantity) createTicketDto.quantity = 1;
 
-        if(!eventId) throw new ConflictException('You must provide an eventId');
+        if (!eventId)
+            throw new ConflictException('You must provide an eventId');
 
         const event = await this.eventsRepository.findById(eventId)
 
@@ -80,20 +81,23 @@ export class TicketsService {
         return tickets;
     }
 
-
-    async findAllTickets(params?: {
-        eventId?: number;
-        title?: string;
-        status?: TicketStatus;
-    }): Promise<{
+    async findAllTickets(
+        params?: {
+            eventId?: number;
+            title?: string;
+            status?: TicketStatus;
+            limit?: number;
+        },
+        tx?: Prisma.TransactionClient,
+    ): Promise<{
         items: Ticket[];
         total: number;
     }> {
-        const { eventId, title, status } = params || {};
+        const { eventId, title, status, limit } = params || {};
 
         const [items, total] = await Promise.all([
-            this.ticketsRepository.findAll({ eventId, title, status }),
-            this.ticketsRepository.count({ eventId, title, status }),
+            this.ticketsRepository.findAll({ eventId, title, status, limit }, tx),
+            this.ticketsRepository.count({ eventId, title, status }, tx),
         ]);
 
         const ticketItems = plainToInstance(
@@ -108,7 +112,7 @@ export class TicketsService {
     async findOneTicket(id: number, eventId?: number): Promise<Ticket> {
         const ticket = await this.ticketsRepository.findById(id);
 
-        if(eventId && ticket?.eventId && ticket?.eventId !== eventId) {
+        if (eventId && ticket?.eventId && ticket?.eventId !== eventId) {
             throw new NotFoundException(`Ticket ID ${id} not found`);
         }
 
@@ -123,7 +127,7 @@ export class TicketsService {
 
     async updateTicket(
         id: number,
-        updateTicketDto: UpdateTicketDto
+        updateTicketDto: UpdateTicketDto,
     ): Promise<Ticket> {
         const ticket = await this.findOneTicket(id);
 
@@ -131,8 +135,13 @@ export class TicketsService {
             throw new NotFoundException(`Ticket ID ${id} not found`);
         }
 
-        if (ticket.status == TicketStatus.SOLD || ticket.status == TicketStatus.RESERVED) {
-            throw new BadRequestException(`Sold or reserved tickets cannot be updated`);
+        if (
+            ticket.status == TicketStatus.SOLD ||
+            ticket.status == TicketStatus.RESERVED
+        ) {
+            throw new BadRequestException(
+                `Sold or reserved tickets cannot be updated`,
+            );
         }
 
         const updatedTicket = await this.ticketsRepository.update(
@@ -154,7 +163,15 @@ export class TicketsService {
         await this.ticketsRepository.delete(ticket.id);
     }
 
-    generateTicketNumber(eventId: number): string {//TODO: Then decide how to properly generate the yicket number
+    generateTicketNumber(eventId: number): string {
+        //TODO: Then decide how to properly generate the yicket number
         return `TICKET-${eventId}-${new Date().getTime()}`;
+    }
+
+    async reserveTickets(ticketIdsToReserve: number[], tx: Prisma.TransactionClient){
+        return await this.ticketsRepository.reserveTickets(
+            ticketIdsToReserve,
+            tx
+        );
     }
 }

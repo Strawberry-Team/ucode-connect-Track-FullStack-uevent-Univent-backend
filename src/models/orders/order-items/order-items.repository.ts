@@ -1,0 +1,33 @@
+// src/models/orders/orders-items.repository.ts
+import { Injectable } from '@nestjs/common';
+import { DatabaseService } from '../../../db/database.service';
+import { Prisma } from '@prisma/client';
+
+@Injectable()
+export class OrderItemsRepository {
+    constructor(private readonly db: DatabaseService) {}
+
+    async createMany(
+        data: Prisma.OrderItemCreateManyInput[],
+        tx?: Prisma.TransactionClient,
+    ): Promise<Prisma.BatchPayload> {
+        const prismaClient = tx || this.db;
+        return prismaClient.orderItem.createMany({
+            data,
+        });
+    }
+
+    async findByOrderId(
+        orderId: number
+    ): Promise<Prisma.OrderItemGetPayload<{}>[]> {
+        return this.db.orderItem.findMany({
+            where: { orderId },
+        });
+    }
+
+    async deleteByOrderId(orderId: number): Promise<Prisma.BatchPayload> {
+        return this.db.orderItem.deleteMany({
+            where: { orderId },
+        });
+    }
+}

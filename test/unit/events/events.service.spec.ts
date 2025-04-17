@@ -68,7 +68,7 @@ describe('EventsService', () => {
         // TODO: Додати тести для перевірки валідації вхідних даних
         // TODO: Додати тести для перевірки обробки помилок від репозиторію
         // TODO: Додати тести для перевірки трансформації даних (вхідні -> збережені -> повернуті)
-        
+
         it('should create event and return basic fields only', async () => {
             const result = await service.create(mockCreateEventDto);
 
@@ -128,7 +128,7 @@ describe('EventsService', () => {
         it('should update event and return basic fields only', async () => {
             const updateDto = { title: 'Updated Title' };
             const updatedEvent = { ...mockRepositoryEvent, ...updateDto };
-            
+
             jest.spyOn(repository, 'update').mockResolvedValue(updatedEvent);
 
             const result = await service.update(1, updateDto);
