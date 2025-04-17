@@ -32,7 +32,7 @@ model User {
   ownedCompany       Company?            @relation(map: "companies_user_id_fk")
   news               News[]              @relation(map: "news_user_id_fk")
   eventAttendees     EventAttendee[]     @relation(map: "event_attendees_user_id_fk")
-  // orders         Order[]
+  orders         Order[]                 @relation(map: "orders_user_id_fk")
   // subscriptions  Subscription[]
   // notifications  Notification[]
 
@@ -155,52 +155,52 @@ model Ticket {
   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "tickets_event_id_fk")
-  // orderItems OrderItem[]
+  orderItems OrderItem[]  @relation( map: "order_items_ticket_id_fk")
 
   @@index([eventId], map: "tickets_event_id_fk")
   @@map("tickets")
 }
 
-// // Orders model
-// model Order {
-//   id            Int           @id @default(autoincrement())
-//   userId        Int           @map("user_id")
-//   promoCodeId   Int?          @map("promo_code_id")
-//   paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
-//   paymentMethod PaymentMethod @map("payment_method")
-//   totalAmount   Decimal       @map("total_amount") @db.Decimal(10, 2)
-//   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   users       User        @relation(fields: [userId], references: [id], onDelete: Restrict, map: "orders_user_id_fk")
-//   promoCode  PromoCode?  @relation(fields: [promoCodeId], references: [id], onDelete: SetNull, map: "orders_promo_code_id_fk")
-//   orderItems OrderItem[]
-//
-//   @@index([userId], map: "orders_user_id_fk")
-//   @@index([promoCodeId], map: "orders_promo_code_id_fk")
-//   @@map("orders")
-// }
-//
-// // Order Items model
-// model OrderItem {
-//   id           Int      @id @default(autoincrement())
-//   orderId      Int      @map("order_id")
-//   ticketId     Int      @map("ticket_id")
-//   initialPrice Decimal  @map("initial_price") @db.Decimal(10, 2)
-//   finalPrice   Decimal  @map("final_price") @db.Decimal(10, 2)
-//   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "order_items_order_id_fk")
-//   ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict, map: "order_items_ticket_id_fk")
-//
-//   @@unique([orderId, ticketId], map: "order_items_order_id_ticket_id_uq")
-//   @@index([orderId], map: "order_items_order_id_fk")
-//   @@index([ticketId], map: "order_items_ticket_id_fk")
-//   @@map("order_items")
-// }
+// Orders model
+model Order {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @map("user_id")
+  promoCodeId   Int?          @map("promo_code_id")
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  paymentMethod PaymentMethod @map("payment_method")
+  totalAmount   Decimal       @map("total_amount") @db.Decimal(10, 2)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  users       User        @relation(fields: [userId], references: [id], onDelete: Restrict, map: "orders_user_id_fk")
+  // promoCode  PromoCode?  @relation(fields: [promoCodeId], references: [id], onDelete: SetNull, map: "orders_promo_code_id_fk")
+  orderItems OrderItem[]
+
+  @@index([userId], map: "orders_user_id_fk")
+  @@index([promoCodeId], map: "orders_promo_code_id_fk")
+  @@map("orders")
+}
+
+// Order Items model
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  orderId      Int      @map("order_id")
+  ticketId     Int      @map("ticket_id")
+  initialPrice Decimal  @map("initial_price") @db.Decimal(10, 2)
+  finalPrice   Decimal  @map("final_price") @db.Decimal(10, 2)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "order_items_order_id_fk")
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict, map: "order_items_ticket_id_fk")
+
+  @@unique([orderId, ticketId], map: "order_items_order_id_ticket_id_uq")
+  @@index([orderId], map: "order_items_order_id_fk")
+  @@index([ticketId], map: "order_items_ticket_id_fk")
+  @@map("order_items")
+}
 //
 // Promo Codes model
 model PromoCode {
@@ -325,16 +325,16 @@ enum TicketStatus {
   UNAVAILABLE @map("unavailable")
 }
 
-// enum PaymentStatus {
-//   PENDING  @map("pending")
-//   PAID     @map("paid")
-//   FAILED   @map("failed")
-//   REFUNDED @map("refunded")
-// }
-//
-// enum PaymentMethod {
-//   STRIPE @map("stripe")
-// }
+enum PaymentStatus {
+  PENDING  @map("pending")
+  PAID     @map("paid")
+  FAILED   @map("failed")
+  REFUNDED @map("refunded")
+}
+
+enum PaymentMethod {
+  STRIPE @map("stripe")
+}
 //
 // enum SourceType {
 //   EVENT   @map("event")

@@ -19,6 +19,7 @@ import { EventThemesModule } from './models/events/themes/event-themes.module';
 import { NewsModule } from './models/news/news.module';
 import { PromoCodesModule } from './models/promo-codes/promo-codes.module';
 import { EventAttendeesModule } from './models/events/event-attendees/event-attendees.module';
+import {OrdersModule} from "./models/orders/orders.module";
 
 @Module({
     imports: [
@@ -42,6 +43,7 @@ import { EventAttendeesModule } from './models/events/event-attendees/event-atte
         EventThemesModule,
         TicketsModule,
         NewsModule,
+        OrdersModule,
         PromoCodesModule,
         EventAttendeesModule,
     ],

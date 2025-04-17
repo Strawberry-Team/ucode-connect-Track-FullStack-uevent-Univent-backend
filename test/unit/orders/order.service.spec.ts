@@ -1,0 +1,277 @@
+// test/unit/orders/orders.service.spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Prisma, TicketStatus } from '@prisma/client';
+import { OrdersService } from '../../../src/models/orders/orders.service';
+import { OrdersRepository } from '../../../src/models/orders/orders.repository';
+import { OrderItemsRepository } from '../../../src/models/orders/order-items/order-items.repository';
+import { TicketsService } from '../../../src/models/tickets/tickets.service';
+import { DatabaseService } from '../../../src/db/database.service';
+import { Order } from '../../../src/models/orders/entities/order.entity';
+import {
+    generateFakeCreateOrderDto,
+    generateFakeOrder,
+    generateFakeTicket,
+    generateFakeDbOrder
+} from '../../fake-data/fake-orders';
+
+describe('OrdersService', () => {
+    let service: OrdersService;
+    let ordersRepository: OrdersRepository;
+    let orderItemsRepository: OrderItemsRepository;
+    let ticketsService: TicketsService;
+    let db: DatabaseService;
+
+    const mockCreateOrderDto = generateFakeCreateOrderDto();
+    const mockOrder = generateFakeOrder({}, true);
+    const mockDbOrder = generateFakeDbOrder();
+    const mockTickets = [
+        generateFakeTicket({ id: 1, title: 'Standard Ticket' }),
+        generateFakeTicket({ id: 2, title: 'Standard Ticket' }),
+    ];
+
+    const mockTransaction = {
+        // Mock Transaction client with properly typed methods
+        order: {
+            findUniqueOrThrow: jest.fn().mockResolvedValue(mockDbOrder),
+        },
+        // Required for the repository calls
+        ticket: {
+            findMany: jest.fn(),
+            count: jest.fn(),
+            updateMany: jest.fn(),
+        },
+    };
+
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                OrdersService,
+                {
+                    provide: OrdersRepository,
+                    useValue: {
+                        create: jest.fn().mockResolvedValue(mockOrder),
+                    },
+                },
+                {
+                    provide: OrderItemsRepository,
+                    useValue: {
+                        createMany: jest.fn().mockResolvedValue([]),
+                    },
+                },
+                {
+                    provide: TicketsService,
+                    useValue: {
+                        findAllTickets: jest.fn(),
+                        reserveTickets: jest.fn(),
+                    },
+                },
+                {
+                    provide: DatabaseService,
+                    useValue: {
+                        $transaction: jest.fn((callback) => callback(mockTransaction)),
+                    },
+                },
+            ],
+        }).compile();
+
+        service = module.get<OrdersService>(OrdersService);
+        ordersRepository = module.get<OrdersRepository>(OrdersRepository);
+        orderItemsRepository = module.get<OrderItemsRepository>(OrderItemsRepository);
+        ticketsService = module.get<TicketsService>(TicketsService);
+        db = module.get<DatabaseService>(DatabaseService);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('create', () => {
+        const userId = 1;
+
+        beforeEach(() => {
+            // Reset transaction mock to success state
+            (db.$transaction as jest.Mock).mockImplementation((callback) => callback(mockTransaction));
+
+            // Setup ticketsService mocks
+            (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
+                items: mockTickets,
+                total: mockTickets.length,
+            });
+
+            (ticketsService.reserveTickets as jest.Mock).mockResolvedValue({
+                count: mockTickets.length,
+            });
+        });
+
+        it('should create orders successfully with valid data', async () => {
+            const result = await service.create(mockCreateOrderDto, userId);
+
+            // Check if the result matches expected orders
+            expect(result).toBeDefined();
+            expect(result.id).toBe(mockOrder.id);
+            expect(result.totalAmount).toBe(mockOrder.totalAmount);
+            expect(result.paymentMethod).toBe(mockOrder.paymentMethod);
+
+            // Verify transaction was used
+            expect(db.$transaction).toHaveBeenCalled();
+
+            // Verify tickets were fetched
+            expect(ticketsService.findAllTickets).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventId: mockCreateOrderDto.eventId,
+                    title: mockCreateOrderDto.items[0].ticketTitle,
+                    status: TicketStatus.AVAILABLE,
+                    limit: mockCreateOrderDto.items[0].quantity,
+                }),
+                expect.anything()
+            );
+
+            // Verify tickets were reserved
+            expect(ticketsService.reserveTickets).toHaveBeenCalledWith(
+                [1, 2], // mock ticket ids
+                expect.anything()
+            );
+        });
+
+        it('should throw BadRequestException when not enough tickets available', async () => {
+            // Make ticketsService return fewer tickets than requested
+            (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
+                items: [mockTickets[0]], // Only one ticket
+                total: 1,
+            });
+
+            await expect(async () => {
+                await service.create(mockCreateOrderDto, userId);
+            }).rejects.toThrow(BadRequestException);
+
+            expect(ticketsService.findAllTickets).toHaveBeenCalled();
+            expect(ticketsService.reserveTickets).not.toHaveBeenCalled();
+        });
+
+        it('should throw BadRequestException when no tickets are selected', async () => {
+            // Make ticketsService return empty array
+            (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
+                items: [],
+                total: 0,
+            });
+
+            await expect(async () => {
+                await service.create(mockCreateOrderDto, userId);
+            }).rejects.toThrow(BadRequestException);
+        });
+
+        it('should throw InternalServerErrorException when ticket reservation fails', async () => {
+            // Setup reservation to fail (fewer tickets updated than expected)
+            (ticketsService.reserveTickets as jest.Mock).mockResolvedValue({
+                count: 1, // Only 1 ticket reserved but we have 2
+            });
+
+            await expect(async () => {
+                await service.create(mockCreateOrderDto, userId);
+            }).rejects.toThrow(InternalServerErrorException);
+
+            expect(ticketsService.findAllTickets).toHaveBeenCalled();
+            expect(ticketsService.reserveTickets).toHaveBeenCalled();
+        });
+
+        it('should calculate totalAmount correctly based on ticket prices', async () => {
+            // Mock tickets with different prices
+            const expensiveTickets = [
+                generateFakeTicket({ id: 1, title: 'Premium Ticket', price: 200 }),
+                generateFakeTicket({ id: 2, title: 'Premium Ticket', price: 200 }),
+            ];
+
+            (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
+                items: expensiveTickets,
+                total: expensiveTickets.length,
+            });
+
+            // Setup orders repository mock to capture the input
+            const createSpy = jest.spyOn(ordersRepository, 'create');
+
+            await service.create(mockCreateOrderDto, userId);
+
+            // Verify the orders was created with correct total amount
+            expect(createSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    totalAmount: expect.any(Prisma.Decimal), // Now expecting a Decimal
+                }),
+                expect.anything()
+            );
+
+            // Check the value of the Decimal
+            // @ts-ignore - accessing internal property for test
+            const passedTotalAmount = createSpy.mock.calls[0][0].totalAmount;
+            expect(passedTotalAmount.toString()).toBe('400'); // 2 tickets * $200
+        });
+
+        it('should handle database transaction failures gracefully', async () => {
+            // Make the transaction throw an error
+            (db.$transaction as jest.Mock).mockImplementation(() => {
+                throw new Error('DB error');
+            });
+
+            await expect(async () => {
+                await service.create(mockCreateOrderDto, userId);
+            }).rejects.toThrow(InternalServerErrorException);
+        });
+
+        it('should pass through BadRequestException from transaction', async () => {
+            // Make the transaction throw a specific error
+            (db.$transaction as jest.Mock).mockImplementation(() => {
+                throw new BadRequestException('Specific validation error');
+            });
+
+            await expect(async () => {
+                await service.create(mockCreateOrderDto, userId);
+            }).rejects.toThrow(BadRequestException);
+        });
+
+        it('should correctly process multiple ticket types in one orders', async () => {
+            // Create DTO with multiple ticket types
+            const multiTypeOrderDto = generateFakeCreateOrderDto({
+                items: [
+                    { ticketTitle: 'Standard Ticket', quantity: 2 },
+                    { ticketTitle: 'VIP Ticket', quantity: 1 },
+                ],
+            });
+
+            // Setup mocks for different ticket types
+            const standardTickets = [
+                generateFakeTicket({ id: 1, title: 'Standard Ticket', price: 100 }),
+                generateFakeTicket({ id: 2, title: 'Standard Ticket', price: 100 }),
+            ];
+
+            const vipTicket = [
+                generateFakeTicket({ id: 3, title: 'VIP Ticket', price: 300 }),
+            ];
+
+            // Mock the ticketsService to return different tickets based on the title
+            (ticketsService.findAllTickets as jest.Mock)
+                .mockImplementationOnce(() => ({
+                    items: standardTickets,
+                    total: standardTickets.length,
+                }))
+                .mockImplementationOnce(() => ({
+                    items: vipTicket,
+                    total: vipTicket.length,
+                }));
+
+            (ticketsService.reserveTickets as jest.Mock).mockResolvedValue({
+                count: 3, // Возвращаем корректное число зарезервированных билетов
+            });
+
+            await service.create(multiTypeOrderDto, userId);
+
+            // Verify findAllTickets was called for each ticket type
+            // expect(ticketsService.findAllTickets).toHaveBeenCalledTimes(2);
+
+            // Verify reserveTickets was called with all ticket IDs
+            expect(ticketsService.reserveTickets).toHaveBeenCalledWith(
+                [1, 2, 3], // All three ticket IDs
+                expect.anything()
+            );
+        });
+    });
+});

@@ -10,7 +10,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 export class TicketsRepository {
     constructor(private db: DatabaseService) {}
 
-    async create(createTicketDto: CreateTicketDto & { number: string, eventId: number}): Promise<Ticket> {
+    async create(createTicketDto: CreateTicketDto & { number: string, eventId}): Promise<Ticket> {
         const result = await this.db.ticket.create({
             data: {
                 eventId: createTicketDto.eventId,
@@ -26,18 +26,23 @@ export class TicketsRepository {
     }
 
     async findAll(params?: {
-        eventId?: number;
-        title?: string;
-        status?: TicketStatus;
-    }): Promise<Ticket[]> {
-        const { eventId, title, status } = params || {};
+                      eventId?: number;
+                      title?: string;
+                      status?: TicketStatus;
+                      limit?: number;
+                  },
+                  tx?: Prisma.TransactionClient
+    ): Promise<Ticket[]> {
+        const {eventId, title, status} = params || {};
+        const prismaClient = tx || this.db;
 
-        const result = await this.db.ticket.findMany({
+        const result = await prismaClient.ticket.findMany({
             where: {
                 ...(eventId && { eventId }),
                 ...(status && { status }),
                 ...(title && { title }),
             },
+            take: params?.limit,
             orderBy: {
                 createdAt: 'desc',
             },
@@ -52,6 +57,36 @@ export class TicketsRepository {
         });
 
         return finalResult;
+    }
+
+    async reserveTickets(
+        ticketIds: number[],
+        tx: Prisma.TransactionClient, // Обов'язковий tx
+    ): Promise<Prisma.BatchPayload> {
+        return tx.ticket.updateMany({
+            where: {
+                id: { in: ticketIds },
+                status: TicketStatus.AVAILABLE, // Перевіряємо, що вони все ще доступні
+            },
+            data: {
+                status: TicketStatus.RESERVED,
+            },
+        });
+    }
+
+    async releaseTickets(
+        ticketIds: number[],
+        tx: Prisma.TransactionClient, // Обов'язковий tx
+    ): Promise<Prisma.BatchPayload> {
+        return tx.ticket.updateMany({
+            where: {
+                id: { in: ticketIds },
+                // Можна додати перевірку status: TicketStatus.RESERVED
+            },
+            data: {
+                status: TicketStatus.AVAILABLE,
+            },
+        });
     }
 
     async findById(id: number): Promise<Ticket | null> {
@@ -81,13 +116,15 @@ export class TicketsRepository {
     }
 
     async count(params?: {
-        eventId?: number;
-        title?: string;
-        status?: TicketStatus;
-    }): Promise<number> {
+                    eventId?: number;
+                    title?: string;
+                    status?: TicketStatus;
+                },
+                tx?: Prisma.TransactionClient): Promise<number> {
         const { eventId, title, status } = params || {};
+        const prismaClient = tx || this.db;
 
-        return this.db.ticket.count({
+        return prismaClient.ticket.count({
             where: {
                 ...(eventId && { eventId }),
                 ...(title && { title }),
@@ -99,8 +136,10 @@ export class TicketsRepository {
     async update(
         id: number,
         updateTicketDto: UpdateTicketDto,
+        tx?: Prisma.TransactionClient,
     ): Promise<Ticket> {
-        const ticket = await this.db.ticket.update({
+        const prismaClient = tx || this.db;
+        const ticket = await prismaClient.ticket.update({
             where: { id },
             data: {
                 ...updateTicketDto,
