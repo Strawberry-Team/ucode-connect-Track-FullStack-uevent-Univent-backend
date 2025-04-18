@@ -3,9 +3,9 @@ import {
     Subscription as PrismaSubscription,
 } from '@prisma/client';
 import { Expose } from 'class-transformer';
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 import { UserWithBasic } from '../../users/entities/user.entity';
-import { Event } from '../../events/entities/event.entity';
+import { Event, EventWithRelations } from '../../events/entities/event.entity';
 import { CompanyWithBasic } from '../../companies/entities/company.entity';
 
 export const SERIALIZATION_GROUPS = {
@@ -76,7 +76,7 @@ export class Subscription implements PrismaSubscription {
         nullable: true,
         type: Event,
     })
-    event?: Event | null;
+    event?: EventWithRelations | null;
 
     @Expose({ groups: ['companies'] })
     @ApiProperty({
@@ -89,6 +89,8 @@ export class Subscription implements PrismaSubscription {
 
 export class SubscriptionWithBasic extends PickType(Subscription, ['id']) {}
 export class SubscriptionWithConfidential extends PickType(Subscription, ['id', 'userId', 'eventId', 'companyId', 'createdAt']) {}
+export class SubscriptionWithConfidentialWithoutEventId extends OmitType(SubscriptionWithConfidential, ['eventId']) {}
+export class SubscriptionWithConfidentialWithoutCompanyId extends OmitType(SubscriptionWithConfidential, ['companyId']) {}
 export class SubscriptionWithUsers extends PickType(Subscription, ['id', 'userId', 'user']) {}
 export class SubscriptionWithEvents extends PickType(Subscription, ['id', 'eventId', 'createdAt', 'event']) {}
 export class SubscriptionWithCompanies extends PickType(Subscription, ['id', 'companyId', 'createdAt', 'company']) {}

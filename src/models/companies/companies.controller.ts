@@ -43,6 +43,9 @@ import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { NewsOwnerGuard } from '../news/guards/news-owner.guard';
 import { EventsService } from '../events/events.service';
 import { EventWithRelations } from '../events/entities/event.entity';
+import { SubscriptionInfoDto } from '../subscriptions/dto/subscription-info.dto';
+import { EntityType } from '../subscriptions/dto/create-subscription.dto';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 
 @Controller('companies')
@@ -53,6 +56,7 @@ export class CompaniesController {
         private readonly companyService: CompaniesService,
         private readonly eventsService: EventsService,
         private readonly newsService: NewsService,
+        private readonly subscriptionsService: SubscriptionsService,
     ) {}
 
     @Post()
@@ -362,6 +366,56 @@ export class CompaniesController {
     })
     async findAllNews(@Param('id') id: number) {
         return await this.newsService.findByCompanyId(id);
+    }
+
+    @Get(':id/subscription-info')
+    @Public()
+    @ApiOperation({ summary: 'Get company subscription information' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Company identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Subscription information retrieved successfully',
+        type: SubscriptionInfoDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Company not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Company not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
+    async getSubscriptionInfo(
+        @Param('id') id: number,
+        @UserId() userId: number | null
+    ): Promise<SubscriptionInfoDto> {
+        return await this.subscriptionsService.getSubscriptionInfo(
+            EntityType.COMPANY,
+            id,
+            userId
+        );
     }
 
     @Patch(':id')

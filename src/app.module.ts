@@ -20,6 +20,7 @@ import { NewsModule } from './models/news/news.module';
 import { PromoCodesModule } from './models/promo-codes/promo-codes.module';
 import { EventAttendeesModule } from './models/events/event-attendees/event-attendees.module';
 import {OrdersModule} from "./models/orders/orders.module";
+import { SubscriptionsModule } from './models/subscriptions/subscriptions.module';
 
 @Module({
     imports: [
@@ -46,6 +47,7 @@ import {OrdersModule} from "./models/orders/orders.module";
         OrdersModule,
         PromoCodesModule,
         EventAttendeesModule,
+        SubscriptionsModule
     ],
     controllers: [],
     providers: [],

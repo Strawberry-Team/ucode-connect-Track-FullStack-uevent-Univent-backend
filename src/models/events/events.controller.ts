@@ -49,6 +49,9 @@ import {
     PromoCode,
 } from '../promo-codes/entities/promo-code.entity';
 import { PromoCodesService } from '../promo-codes/promo-codes.service';
+import { SubscriptionInfoDto } from '../subscriptions/dto/subscription-info.dto';
+import { EntityType } from '../subscriptions/dto/create-subscription.dto';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Controller('events')
 @ApiTags('Events')
@@ -60,6 +63,7 @@ export class EventsController {
         private readonly ticketsService: TicketsService,
         private readonly eventAttendeesService: EventAttendeesService,
         private readonly promoCodesService: PromoCodesService,
+        private readonly subscriptionsService: SubscriptionsService,
     ) {}
 
     @Post()
@@ -562,6 +566,56 @@ export class EventsController {
     async findOne(@Param('id') id: number): Promise<Event> {
         // TODO: Треба зробити по нормальному userId
         return await this.eventsService.findById(id);
+    }
+
+    @Get(':id/subscription-info')
+    @Public()
+    @ApiOperation({ summary: 'Get event subscription information' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Event identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Subscription information retrieved successfully',
+        type: SubscriptionInfoDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Event not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Event not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
+    async getSubscriptionInfo(
+        @Param('id') id: number,
+        @UserId() userId: number | null
+    ): Promise<SubscriptionInfoDto> {
+        return await this.subscriptionsService.getSubscriptionInfo(
+            EntityType.EVENT,
+            id,
+            userId
+        );
     }
 
     @Patch(':id')

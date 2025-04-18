@@ -246,7 +246,7 @@ model Subscription {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   // Relations
-  users   User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "subscriptions_user_id_fk")
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "subscriptions_user_id_fk")
   event   Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "subscriptions_event_id_fk")
   company Company? @relation(fields: [companyId], references: [id], onDelete: Cascade, map: "subscriptions_company_id_fk")
 

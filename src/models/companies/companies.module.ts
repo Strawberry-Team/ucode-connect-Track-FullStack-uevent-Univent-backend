@@ -7,6 +7,7 @@ import { EmailModule } from '../../email/email.module';
 import { UsersModule } from '../users/users.module';
 import { NewsModule } from '../news/news.module';
 import { EventsModule } from '../events/events.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 @Module({
     imports: [
@@ -14,6 +15,7 @@ import { EventsModule } from '../events/events.module';
         EmailModule,
         forwardRef(() => NewsModule),
         forwardRef(() => EventsModule),
+        forwardRef(() => SubscriptionsModule),
     ],
     controllers: [CompaniesController],
     providers: [CompaniesService, CompaniesRepository],
