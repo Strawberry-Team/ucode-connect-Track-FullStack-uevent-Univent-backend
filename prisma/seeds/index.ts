@@ -18,7 +18,7 @@ import { EventsRepository } from '../../src/models/events/events.repository';
 import { initialEvents } from './events';
 import { TicketsRepository } from '../../src/models/tickets/tickets.repository';
 import { initialTickets } from './tickets';
-import { UserRole } from '@prisma/client';
+import { Order, UserRole } from '@prisma/client';
 import { NewsRepository } from '../../src/models/news/news.repository';
 import { initialNews } from './news';
 import { HashingService } from '../../src/common/services/hashing.service';
@@ -28,6 +28,13 @@ import { PromoCodesService } from '../../src/models/promo-codes/promo-codes.serv
 import { HashingPromoCodesService } from 'src/models/promo-codes/hashing-promo-codes.service';
 import { EventAttendeesRepository } from '../../src/models/events/event-attendees/event-attendees.repository';
 import { generateEventAttendees } from './event-attendees';
+import { OrdersRepository } from '../../src/models/orders/orders.repository';
+import { OrderItemsRepository } from '../../src/models/orders/order-items/order-items.repository';
+import { OrdersService } from '../../src/models/orders/orders.service';
+import { TicketsService } from '../../src/models/tickets/tickets.service';
+import { seedOrders } from './orders';
+
+// import { seedOrdersAndItems } from './order-items';
 
 class MockCompaniesService {
     constructor(private readonly repository: CompaniesRepository) {}
@@ -39,6 +46,7 @@ class MockCompaniesService {
 
 class Seeder {
     constructor(
+        private readonly databaseService: DatabaseService,
         private readonly usersService: UsersService,
         private readonly formatsService: EventFormatsService,
         private readonly themesService: EventThemesService,
@@ -49,6 +57,9 @@ class Seeder {
         private readonly eventAttendeesRepository: EventAttendeesRepository,
         private readonly promoCodesRepository: PromoCodesRepository,
         private readonly hashingPromoCodesService: HashingPromoCodesService,
+        private readonly ordersService: OrdersService,
+        // private readonly ordersRepository: OrdersRepository,
+        // private readonly orderItemsRepository: OrderItemsRepository,
     ) {}
 
     async start() {
@@ -70,6 +81,9 @@ class Seeder {
         console.log('News were created 📰');
         await this.seedPromoCodes();
         console.log('Promo codes were created 🎟️');
+        await this.seedOrders();
+        console.log('Orders were created 🛒');
+        console.log('Order items were created 📋');
         console.log('Seeding completed 🍹');
     }
 
@@ -121,7 +135,10 @@ class Seeder {
 
     async seedPromoCodes() {
         for (const promoCode of initialPromoCodes) {
-            await this.promoCodesRepository.create({ ...promoCode, code: await this.hashingPromoCodesService.hash(promoCode.code) });
+            await this.promoCodesRepository.create({
+                ...promoCode,
+                code: await this.hashingPromoCodesService.hash(promoCode.code),
+            });
         }
     }
 
@@ -134,6 +151,10 @@ class Seeder {
                 throw error;
             }
         }
+    }
+
+    async seedOrders() {
+        await seedOrders(this.databaseService, this.ordersService);
     }
 }
 
@@ -156,13 +177,20 @@ async function start() {
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);
         const promoCodesRepository = new PromoCodesRepository(dbService);
-        const eventAttendeesRepository = new EventAttendeesRepository(dbService);
+        const eventAttendeesRepository = new EventAttendeesRepository(
+            dbService,
+        );
+
+        const orderRepository = new OrdersRepository(dbService);
+        const orderItemsRepository = new OrderItemsRepository(dbService);
 
         const seeder = new Seeder(
+            dbService,
             new UsersService(
                 new UsersRepository(dbService),
                 mockCompaniesService as any,
                 passwordService,
+                new OrdersRepository(dbService),
             ),
             new EventFormatsService(new EventFormatsRepository(dbService)),
             new EventThemesService(new EventThemesRepository(dbService)),
@@ -173,8 +201,18 @@ async function start() {
             eventAttendeesRepository,
             promoCodesRepository,
             hashingPromoCodesService,
+            new OrdersService(
+                orderRepository,
+                orderItemsRepository,
+                new TicketsService(
+                    new TicketsRepository(dbService),
+                    new EventsRepository(dbService),
+                ),
+                dbService,
+            ),
+            // orderRepository,
+            // orderItemsRepository,
         );
-
         await seeder.start();
     } catch (e) {
         console.error(e);

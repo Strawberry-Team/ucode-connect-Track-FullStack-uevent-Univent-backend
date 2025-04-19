@@ -11,7 +11,7 @@ import {
     UseGuards,
     Get,
     Query,
-    HttpStatus,
+    HttpStatus, NotFoundException,
 } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -34,6 +34,7 @@ import {
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
+import {Order} from "../orders/entities/order.entity";
 
 // TODO create get user events route
 @Controller('users')
@@ -508,5 +509,17 @@ export class UsersController {
         this.usersService.updateUserAvatar(id, file.filename);
 
         return { server_filename: file.filename };
+    }
+
+    @Get(':id/orders')
+    async findUserOrders(
+        @Param('id') id: number,
+    ): Promise<Order[]> {
+        // Перевіряємо, що користувач існує
+        const user = await this.usersService.findUserById(id);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return await this.usersService.findOrdersWithDetailsByUserId(id);
     }
 }

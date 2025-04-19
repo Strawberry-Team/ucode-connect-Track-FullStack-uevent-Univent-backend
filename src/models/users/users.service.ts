@@ -17,6 +17,9 @@ import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
 import { UserRole } from '@prisma/client';
 import { CompaniesService } from '../companies/companies.service';
+import {Order} from "../orders/entities/order.entity";
+import {OrdersRepository} from "../orders/orders.repository";
+import {convertDecimalsToNumbers} from "../../common/utils/convert-decimal-to-number.utils";
 
 @Injectable()
 export class UsersService {
@@ -24,6 +27,7 @@ export class UsersService {
         private readonly usersRepository: UsersRepository,
         private readonly companiesService: CompaniesService,
         private readonly passwordService: HashingPasswordsService,
+        private readonly ordersRepository: OrdersRepository
     ) {}
 
     async createUser(dto: CreateUserDto): Promise<User> {
@@ -168,7 +172,7 @@ export class UsersService {
         if (!result) {
             throw new NotFoundException('User not found');
         }
-        
+
         return plainToInstance(User, result, {
             groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
         });
@@ -215,5 +219,14 @@ export class UsersService {
 
     async deleteUser(id: number): Promise<void> {
         await this.usersRepository.delete(id);
+    }
+
+    async findOrdersWithDetailsByUserId(userId: number): Promise<Order[]> {
+        const result: Order[] = convertDecimalsToNumbers(
+            await this.ordersRepository.findAllWithDetailsByUserId(userId)
+        );
+
+        return result;
+
     }
 }

@@ -61,6 +61,14 @@ function generateTicketsForEvent(eventId: number, count: number) {
     });
 }
 
+export async function getTicketIdsForEventFromDb(db, eventId: number): Promise<number[]> {
+    const tickets = await db.ticket.findMany({
+        where: { eventId },
+        select: { id: true }
+    });
+    return tickets.map(t => t.id);
+}
+
 export const initialTickets = Array.from(
     { length: SEEDS.EVENTS.TOTAL },
     (_, index) => {

@@ -11,7 +11,7 @@ import {UsersModule} from "../users/users.module";
 @Module({
     imports: [TicketsModule,
               DatabaseModule,
-              UsersModule,
+              forwardRef(() => UsersModule),
               forwardRef(() => OrderItemsModule)],
     controllers: [OrdersController],
     providers: [OrdersService, OrdersRepository],

@@ -12,9 +12,13 @@ import { GoogleModule } from '../../google/google.module';
 import { CompaniesModule } from '../companies/companies.module';
 import { CompaniesService } from '../companies/companies.service';
 import { HashingService } from '../../common/services/hashing.service';
+import {OrdersModule} from "../orders/orders.module";
 
 @Module({
-    imports: [EmailModule, GoogleModule, forwardRef(() => CompaniesModule)],
+    imports: [EmailModule,
+              GoogleModule,
+              forwardRef(() => OrdersModule),
+              forwardRef(() => CompaniesModule)],
     controllers: [UsersController],
     providers: [
         UsersService,
@@ -24,7 +28,7 @@ import { HashingService } from '../../common/services/hashing.service';
         GoogleOAuthService,
         EmailService,
         CompaniesService,
-        HashingService
+        HashingService,
     ],
     exports: [UsersService, UsersRepository, HashingPasswordsService],
 })
