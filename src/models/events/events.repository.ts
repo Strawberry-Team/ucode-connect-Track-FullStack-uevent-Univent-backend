@@ -16,7 +16,7 @@ export class EventsRepository {
 
     async createWithThemes(event: CreateEventDto) {
         const { themes, ...eventData } = event as CreateEventDto & { themes?: number[] };
-        
+
         return this.db.event.create({
             data: {
                 ...eventData,
@@ -60,7 +60,7 @@ export class EventsRepository {
             },
         });
 
-        return events.map((event) => this.transformEventData(event));
+        return events.map((event) => EventsRepository.transformEventData(event));
     }
 
     async findById(id: number): Promise<EventWithRelations | null> {
@@ -86,7 +86,7 @@ export class EventsRepository {
             },
         });
 
-        return event ? this.transformEventData(event) : null;
+        return event ? EventsRepository.transformEventData(event) : null;
     }
 
     async findByCompanyId(companyId: number): Promise<EventWithRelations[]> {
@@ -112,7 +112,7 @@ export class EventsRepository {
             },
         });
 
-        return events.map((event) => this.transformEventData(event));
+        return events.map((event) => EventsRepository.transformEventData(event));
     }
 
     async update(id: number, event: Partial<Event>): Promise<Event> {
@@ -133,7 +133,7 @@ export class EventsRepository {
         });
     }
 
-    private transformEventData(event: any): EventWithRelations {
+    static transformEventData(event: any): EventWithRelations {
         return {
             ...event,
             themes:

@@ -1,7 +1,7 @@
 // scr/models/companies/entities/company.entity.ts
 import { Company as PrismaCompany } from '@prisma/client';
 import { Expose, Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Event } from '../../events/entities/event.entity';
 import { News } from '../../news/entities/news.entity';
@@ -95,3 +95,13 @@ export class Company implements PrismaCompany {
     @Expose({ groups: ['systemic'] })
     news?: News[];
 }
+
+export class CompanyWithBasic extends PickType(Company, [
+    'id',
+    'ownerId',
+    'email',
+    'title',
+    'description',
+    'logoName',
+    'createdAt',
+] as const) {}

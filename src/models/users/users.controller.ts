@@ -34,14 +34,18 @@ import {
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { SubscriptionWithCompanies, SubscriptionWithEvents } from '../subscriptions/entities/subscription.entity';
 
 // TODO create get user events route
 @Controller('users')
 @ApiTags('Users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {
-    }
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly subscriptionsService: SubscriptionsService,
+    ) {}
 
     @UseGuards(JwtAuthGuard)
     @Get('me')
@@ -66,7 +70,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 401,
-                }
+                },
             },
         },
     })
@@ -103,7 +107,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 401,
-                }
+                },
             },
         },
     })
@@ -126,14 +130,12 @@ export class UsersController {
                 statusCode: {
                     type: 'number',
                     description: 'Error code',
-                    example: 404
-                }
+                    example: 404,
+                },
             },
         },
     })
-    async findOne(
-        @Param('id') id: number,
-    ): Promise<User> {
+    async findOne(@Param('id') id: number): Promise<User> {
         return await this.usersService.findUserByIdWithoutPassword(id);
     }
 
@@ -159,12 +161,13 @@ export class UsersController {
                 statusCode: {
                     type: 'number',
                     description: 'Error code',
-                    example: 401
-                }
+                    example: 401,
+                },
             },
         },
     })
-    async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> { // TODO: переписать на findOne с email/:email
+    async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
+        // TODO: переписать на findOne с email/:email
         return await this.usersService.findAllUsers(getUsersDto);
     }
 
@@ -198,7 +201,70 @@ export class UsersController {
                 statusCode: {
                     type: 'number',
                     description: 'Error code',
-                    example: 401
+                    example: 401,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                },
+            },
+        },
+    })
+    async findUserCompanies(@Param('id') id: number): Promise<Company[]> {
+        return await this.usersService.findUserCompanies(id);
+    }
+
+    @Get(':id/subscriptions/events')
+    @UseGuards(AccountOwnerGuard)
+    @ApiOperation({ summary: 'Get user event subscriptions' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: SubscriptionWithEvents,
+        isArray: true,
+        description: 'Successfully retrieved user event subscriptions',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
                 }
             },
         },
@@ -227,10 +293,75 @@ export class UsersController {
             },
         },
     })
-    async findUserCompanies(
+    async findUserEventSubscriptions(
         @Param('id') id: number,
-    ): Promise<Company[]> {
-        return await this.usersService.findUserCompanies(id);
+    ): Promise<SubscriptionWithEvents[]> {
+        return await this.subscriptionsService.findAllByUserIdForEvents(id);
+    }
+
+    @Get(':id/subscriptions/companies')
+    @UseGuards(AccountOwnerGuard)
+    @ApiOperation({ summary: 'Get user company subscriptions' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: SubscriptionWithCompanies,
+        isArray: true,
+        description: 'Successfully retrieved user company subscriptions',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                }
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
+            },
+        },
+    })
+    async findUserCompanySubscriptions(
+        @Param('id') id: number,
+    ): Promise<SubscriptionWithCompanies[]> {
+        return await this.subscriptionsService.findAllByUserIdForCompanies(id);
     }
 
     @Patch(':id')
@@ -243,7 +374,11 @@ export class UsersController {
         description: 'User identifier',
         example: 1,
     })
-    @ApiBody({ required: true, type: UpdateUserDto, description: 'User update data' })
+    @ApiBody({
+        required: true,
+        type: UpdateUserDto,
+        description: 'User update data',
+    })
     @ApiResponse({
         status: HttpStatus.OK,
         type: User,
@@ -258,7 +393,9 @@ export class UsersController {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: ['firstName must match /^[a-zA-Z-]+$/ regular expression'],
+                    example: [
+                        'firstName must match /^[a-zA-Z-]+$/ regular expression',
+                    ],
                 },
             },
         },
@@ -297,7 +434,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 403,
-                }
+                },
             },
         },
     })
@@ -319,7 +456,11 @@ export class UsersController {
         description: 'User identifier',
         example: 1,
     })
-    @ApiBody({ required: true, type: UpdateUserPasswordDto, description: 'User password update data' })
+    @ApiBody({
+        required: true,
+        type: UpdateUserPasswordDto,
+        description: 'User password update data',
+    })
     @ApiResponse({
         status: HttpStatus.OK,
         type: User,
@@ -334,8 +475,10 @@ export class UsersController {
                 message: {
                     type: 'string',
                     description: 'Error message',
-                    example: ['oldPassword is not strong enough',
-                        'newPassword is not strong enough'],
+                    example: [
+                        'oldPassword is not strong enough',
+                        'newPassword is not strong enough',
+                    ],
                 },
             },
         },
@@ -374,7 +517,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 403,
-                }
+                },
             },
         },
     })
@@ -425,8 +568,7 @@ export class UsersController {
             properties: {
                 server_filename: {
                     type: 'string',
-                    description:
-                        'Filename for the uploaded avatar',
+                    description: 'Filename for the uploaded avatar',
                     example: 'avatar.png',
                 },
             },
@@ -438,7 +580,10 @@ export class UsersController {
         schema: {
             type: 'object',
             properties: {
-                message: { type: 'string', example: 'Only allowed file types are accepted!' },
+                message: {
+                    type: 'string',
+                    example: 'Only allowed file types are accepted!',
+                },
                 error: {
                     type: 'string',
                     description: 'Error message',
@@ -448,7 +593,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 400,
-                }
+                },
             },
         },
     })
@@ -467,7 +612,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 401,
-                }
+                },
             },
         },
     })
@@ -491,7 +636,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 403,
-                }
+                },
             },
         },
     })
@@ -502,7 +647,9 @@ export class UsersController {
         //TODO: add verification of file type. in case of error - throw BadRequestException
         //TODO: (not now) Delete old pictures (that a person just uploaded) do in Scheduler
         if (!file) {
-            throw new BadRequestException('Invalid file format or missing file');
+            throw new BadRequestException(
+                'Invalid file format or missing file',
+            );
         }
 
         this.usersService.updateUserAvatar(id, file.filename);

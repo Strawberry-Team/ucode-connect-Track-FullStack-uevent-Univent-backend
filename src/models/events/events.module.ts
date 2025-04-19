@@ -10,6 +10,7 @@ import { EventFormatsModule } from './formats/event-formats.module';
 import { TicketsModule } from "../tickets/tickets.module";
 import { PromoCodesModule } from '../promo-codes/promo-codes.module';
 import { EventAttendeesModule } from './event-attendees/event-attendees.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { EventAttendeesModule } from './event-attendees/event-attendees.module';
         forwardRef(() => TicketsModule),
         forwardRef(() => PromoCodesModule),
         forwardRef(() => EventAttendeesModule),
+        forwardRef(() => SubscriptionsModule),
     ],
     providers: [
         EventsService,
