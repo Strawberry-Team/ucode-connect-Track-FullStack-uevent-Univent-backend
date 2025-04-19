@@ -3,7 +3,7 @@ import {
     PaymentMethod,
     Order as PrismaOrder
 } from '@prisma/client';
-import { Expose } from 'class-transformer';
+import {Expose, Type} from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OrderItem } from '../order-items/entities/order-item.entity';
 
@@ -67,28 +67,17 @@ export class Order implements OrderWithNumberTotalAmount {
     })
     totalAmount: number;
 
-    @Expose({ groups: ['systemic'] })
-    @ApiProperty({
-        description: 'Order creation date',
-        type: 'string',
-        format: 'date-time',
-        example: '2024-04-16T12:34:56.000Z',
-    })
-    createdAt: Date;
-
-    @Expose({ groups: ['systemic'] })
-    @ApiProperty({
-        description: 'Order last update date',
-        type: 'string',
-        format: 'date-time',
-        example: '2024-04-16T12:34:56.000Z',
-    })
-    updatedAt: Date;
-
     @Expose({ groups: ['basic'] })
     @ApiPropertyOptional({
         description: 'Order items',
         type: [OrderItem],
     })
+    @Type(() => OrderItem)
     items?: OrderItem[];
+
+    @Expose({ groups: ['systemic'] })
+    createdAt: Date;
+
+    @Expose({ groups: ['systemic'] })
+    updatedAt: Date;
 }

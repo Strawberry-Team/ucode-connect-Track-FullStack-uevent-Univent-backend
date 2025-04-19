@@ -49,20 +49,8 @@ export class OrderItem implements OrderWithNumberTotalAmount {
     finalPrice: number;
 
     @Expose({ groups: ['systemic'] })
-    @ApiProperty({
-        description: 'Order item creation date',
-        type: 'string',
-        format: 'date-time',
-        example: '2024-04-16T12:34:56.000Z',
-    })
     createdAt: Date;
 
     @Expose({ groups: ['systemic'] })
-    @ApiProperty({
-        description: 'Order item last update date',
-        type: 'string',
-        format: 'date-time',
-        example: '2024-04-16T12:34:56.000Z',
-    })
     updatedAt: Date;
 }

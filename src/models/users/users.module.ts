@@ -13,6 +13,7 @@ import { CompaniesModule } from '../companies/companies.module';
 import { CompaniesService } from '../companies/companies.service';
 import { HashingService } from '../../common/services/hashing.service';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import {OrdersModule} from "../orders/orders.module";
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
         GoogleModule,
         forwardRef(() => CompaniesModule),
         forwardRef(() => SubscriptionsModule),
+        forwardRef(() => OrdersModule),
     ],
     controllers: [UsersController],
     providers: [

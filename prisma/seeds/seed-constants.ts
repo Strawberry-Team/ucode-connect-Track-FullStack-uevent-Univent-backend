@@ -110,4 +110,32 @@ export const SEEDS = {
             HIDDEN_THRESHOLD: 4,
         },
     },
+    ORDERS: {
+        TOTAL: 50,
+        CREATED_AT: {
+            MIN_DAYS: 1,
+            MAX_DAYS: 30,
+        },
+        STATUS_WEIGHTS: {
+            PENDING: 20,
+            PAID: 60,
+            FAILED: 10,
+            REFUNDED: 10,
+        },
+        PAYMENT_METHOD_WEIGHTS: {
+            STRIPE: 70
+        },
+        DISCOUNT_PROBABILITY: 0.3, // 30% chance of having a discount
+        ITEMS: {
+            MIN_PER_ORDER: 1,
+            MAX_PER_ORDER: 5,
+            MIN_TICKETS_PER_ITEM: 1,
+            MAX_TICKETS_PER_ITEM: 4,
+            TICKET_TYPE_WEIGHTS: {
+                STANDARD: 70,
+                VIP: 20,
+                PREMIUM: 10,
+            },
+        },
+    },
 } as const;
