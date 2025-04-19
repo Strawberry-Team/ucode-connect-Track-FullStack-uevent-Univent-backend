@@ -16,12 +16,11 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import {OrdersModule} from "../orders/orders.module";
 
 @Module({
-    imports: [
-        EmailModule,
-        GoogleModule,
-        forwardRef(() => CompaniesModule),
-        forwardRef(() => SubscriptionsModule),
-        forwardRef(() => OrdersModule),
+    imports: [EmailModule,
+              GoogleModule,
+              forwardRef(() => OrdersModule),
+              forwardRef(() => CompaniesModule),
+              forwardRef(() => SubscriptionsModule)
     ],
     controllers: [UsersController],
     providers: [

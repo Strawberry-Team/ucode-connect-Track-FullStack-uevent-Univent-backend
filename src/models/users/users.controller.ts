@@ -518,7 +518,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 403,
-                },
+                }
             },
         },
     })
