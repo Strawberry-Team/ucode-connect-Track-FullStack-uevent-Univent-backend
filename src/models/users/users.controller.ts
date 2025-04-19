@@ -11,7 +11,7 @@ import {
     UseGuards,
     Get,
     Query,
-    HttpStatus,
+    HttpStatus, NotFoundException,
 } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
