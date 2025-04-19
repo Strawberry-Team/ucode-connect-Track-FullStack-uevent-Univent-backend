@@ -36,8 +36,8 @@ export class SubscriptionsService {
     ) {}
 
     async create(
-        userId: number,
         dto: CreateSubscriptionDto,
+        userId: number,
     ): Promise<
         | SubscriptionWithConfidentialWithoutEventId
         | SubscriptionWithConfidentialWithoutCompanyId
@@ -54,7 +54,7 @@ export class SubscriptionsService {
         }
 
         const existingSubscription =
-            await this.subscriptionsRepository.findOneByUserIdAndEntity(
+            await this.subscriptionsRepository.findOneByUserIdAndEntityId(
                 userId,
                 entityId,
                 entityType,

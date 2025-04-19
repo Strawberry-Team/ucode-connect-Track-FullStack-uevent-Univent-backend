@@ -234,7 +234,7 @@ export class UsersController {
         return await this.usersService.findUserCompanies(id);
     }
 
-    @Get(':id/events/subscriptions')
+    @Get(':id/subscriptions/events')
     @UseGuards(AccountOwnerGuard)
     @ApiOperation({ summary: 'Get user event subscriptions' })
     @ApiParam({
@@ -299,7 +299,7 @@ export class UsersController {
         return await this.subscriptionsService.findAllByUserIdForEvents(id);
     }
 
-    @Get(':id/companies/subscriptions')
+    @Get(':id/subscriptions/companies')
     @UseGuards(AccountOwnerGuard)
     @ApiOperation({ summary: 'Get user company subscriptions' })
     @ApiParam({

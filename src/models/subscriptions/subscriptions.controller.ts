@@ -147,7 +147,7 @@ export class SubscriptionsController {
         | SubscriptionWithConfidentialWithoutEventId
         | SubscriptionWithConfidentialWithoutCompanyId
     > {
-        return this.subscriptionsService.create(userId, createSubscriptionDto);
+        return this.subscriptionsService.create(createSubscriptionDto, userId);
     }
 
     @Delete(':id')

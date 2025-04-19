@@ -119,29 +119,6 @@ export class SubscriptionsRepository {
         return this.db.subscription.findUnique({ where: { id } });
     }
 
-    async findOneByUserIdAndEntity(
-        userId: number,
-        entityId: number,
-        entityType: EntityType,
-    ): Promise<Subscription | null> {
-        let whereCondition;
-
-        switch (entityType) {
-            case EntityType.EVENT:
-                whereCondition = {
-                    eventId_userId: { eventId: entityId, userId }
-                };
-                break;
-            case EntityType.COMPANY:
-                whereCondition = {
-                    companyId_userId: { companyId: entityId, userId }
-                };
-                break;
-        }
-
-        return this.db.subscription.findUnique({ where: whereCondition });
-    }
-
     async findOneByUserIdAndEntityId(
         userId: number,
         entityId: number,
