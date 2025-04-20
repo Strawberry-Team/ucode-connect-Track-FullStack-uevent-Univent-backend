@@ -67,7 +67,6 @@ export async function seedOrders(db: any, ordersService: any) {
         try {
             // Используем ваш сервис для создания заказа
             await ordersService.create(orderDto, userId);
-            console.log(`Created order ${i+1}/${SEEDS.ORDERS.TOTAL}`);
         } catch (error) {
             console.error(`Failed to create order: ${error.message}`);
         }
