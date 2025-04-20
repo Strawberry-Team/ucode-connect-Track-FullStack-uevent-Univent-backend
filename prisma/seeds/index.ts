@@ -59,7 +59,8 @@ class Seeder {
         private readonly hashingPromoCodesService: HashingPromoCodesService,
         private readonly ordersService: OrdersService,
         private readonly subscriptionsRepository: SubscriptionsRepository,
-) {}
+    ) {
+    }
 
     async start() {
         await this.seedUsers();
@@ -170,7 +171,7 @@ class Seeder {
         }
 
     }
-
+}
 
 async function start() {
     try {
