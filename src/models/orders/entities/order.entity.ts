@@ -75,7 +75,13 @@ export class Order implements OrderWithNumberTotalAmount {
     @Type(() => OrderItem)
     items?: OrderItem[];
 
-    @Expose({ groups: ['systemic'] })
+    @ApiProperty({
+        description: 'Creation date',
+        nullable: false,
+        type: 'string',
+        example: '2025-04-08T05:54:45.000Z',
+    })
+    @Expose({ groups: ['basic'] })
     createdAt: Date;
 
     @Expose({ groups: ['systemic'] })

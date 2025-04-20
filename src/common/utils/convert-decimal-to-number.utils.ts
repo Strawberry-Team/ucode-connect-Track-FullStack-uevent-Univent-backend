@@ -14,7 +14,7 @@ export function convertDecimalsToNumbers(obj: any): any {
                 result[key] = value.toNumber();
             }
             else if (value instanceof Date) {
-                    result[key] = value; // або value.toISOString(), якщо хочеш строку
+                    result[key] = value;
             } else if (Array.isArray(value) || (value && typeof value === 'object')) {
                 result[key] = convertDecimalsToNumbers(value);
             } else {

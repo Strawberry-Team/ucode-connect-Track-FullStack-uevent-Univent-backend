@@ -37,6 +37,7 @@ import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import {Order} from "../orders/entities/order.entity";
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { SubscriptionWithCompanies, SubscriptionWithEvents } from '../subscriptions/entities/subscription.entity';
+import {OrdersService} from "../orders/orders.service";
 
 // TODO create get user events route
 @Controller('users')
@@ -46,6 +47,7 @@ export class UsersController {
     constructor(
         private readonly usersService: UsersService,
         private readonly subscriptionsService: SubscriptionsService,
+        private readonly ordersService: OrdersService,
     ) {}
 
     @UseGuards(JwtAuthGuard)
@@ -662,11 +664,10 @@ export class UsersController {
     async findUserOrders(
         @Param('id') id: number,
     ): Promise<Order[]> {
-        // Перевіряємо, що користувач існує
         const user = await this.usersService.findUserById(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
-        return await this.usersService.findOrdersWithDetailsByUserId(id);
+        return await this.ordersService.findOrdersWithDetailsByUserId(id);
     }
 }

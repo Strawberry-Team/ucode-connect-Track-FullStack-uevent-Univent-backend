@@ -221,12 +221,5 @@ export class UsersService {
         await this.usersRepository.delete(id);
     }
 
-    async findOrdersWithDetailsByUserId(userId: number): Promise<Order[]> {
-        const result: Order[] = convertDecimalsToNumbers(
-            await this.ordersRepository.findAllWithDetailsByUserId(userId)
-        );
 
-        return result;
-
-    }
 }

@@ -98,11 +98,6 @@ export class OrdersService {
 
                     await this.orderItemsRepository.createMany(orderItemsInputData, tx);
 
-                    // const finalOrder = await tx.order.findUniqueOrThrow({
-                    //     where: { id: createdOrder.id },
-                    //     include: { orderItems: true },
-                    // });
-
                     const finalOrder = await this.ordersRepository.findById(createdOrder.id, tx)
 
                     if(!finalOrder){throw new NotFoundException()}
@@ -140,5 +135,14 @@ export class OrdersService {
         }
 
         return convertDecimalsToNumbers(foundOrder);
+    }
+
+    async findOrdersWithDetailsByUserId(userId: number): Promise<Order[]> {
+        const result: Order[] = convertDecimalsToNumbers(
+            await this.ordersRepository.findAllWithDetailsByUserId(userId)
+        );
+
+        return result;
+
     }
 }

@@ -32,10 +32,10 @@ export class OrdersController {
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Create a new orders' })
+    @ApiOperation({ summary: 'Get the order' })
     @ApiResponse({
         status: 201,
-        description: '',
+        description: 'Get the order ',
         type: Order,
     })
     async getOrder(
