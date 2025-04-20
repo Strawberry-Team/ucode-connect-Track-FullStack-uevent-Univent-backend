@@ -11,7 +11,7 @@ import {
     UseGuards,
     Get,
     Query,
-    HttpStatus,
+    HttpStatus, NotFoundException,
 } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -34,8 +34,10 @@ import {
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
+import {Order} from "../orders/entities/order.entity";
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { SubscriptionWithCompanies, SubscriptionWithEvents } from '../subscriptions/entities/subscription.entity';
+import {OrdersService} from "../orders/orders.service";
 
 // TODO create get user events route
 @Controller('users')
@@ -45,6 +47,7 @@ export class UsersController {
     constructor(
         private readonly usersService: UsersService,
         private readonly subscriptionsService: SubscriptionsService,
+        private readonly ordersService: OrdersService,
     ) {}
 
     @UseGuards(JwtAuthGuard)
@@ -517,7 +520,7 @@ export class UsersController {
                     type: 'number',
                     description: 'Error code',
                     example: 403,
-                },
+                }
             },
         },
     })
@@ -655,5 +658,16 @@ export class UsersController {
         this.usersService.updateUserAvatar(id, file.filename);
 
         return { server_filename: file.filename };
+    }
+
+    @Get(':id/orders')
+    async findUserOrders(
+        @Param('id') id: number,
+    ): Promise<Order[]> {
+        const user = await this.usersService.findUserById(id);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return await this.ordersService.findOrdersWithDetailsByUserId(id);
     }
 }

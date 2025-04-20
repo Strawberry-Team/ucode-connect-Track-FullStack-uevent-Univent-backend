@@ -15,6 +15,7 @@ import { SERIALIZATION_GROUPS } from './entities/order.entity';
 import { Prisma, TicketStatus } from '@prisma/client';
 import {Ticket} from "../tickets/entities/ticket.entity";
 import {DatabaseService} from "../../db/database.service";
+import {convertDecimalsToNumbers} from "../../common/utils/convert-decimal-to-number.utils";
 
 @Injectable()
 export class OrdersService {
@@ -97,20 +98,11 @@ export class OrdersService {
 
                     await this.orderItemsRepository.createMany(orderItemsInputData, tx);
 
-                    const finalOrder = await tx.order.findUniqueOrThrow({
-                        where: { id: createdOrder.id },
-                        include: { orderItems: true },
-                    });
+                    const finalOrder = await this.ordersRepository.findById(createdOrder.id, tx)
 
-                    const transformedOrder = {
-                        ...finalOrder,
-                        totalAmount: finalOrder.totalAmount.toNumber(),
-                        orderItems: finalOrder.orderItems.map(item => ({
-                            ...item,
-                            initialPrice: item.initialPrice.toNumber(),
-                            finalPrice: item.finalPrice.toNumber(),
-                        })),
-                    };
+                    if(!finalOrder){throw new NotFoundException()}
+
+                    const transformedOrder = convertDecimalsToNumbers(finalOrder);
 
                     return transformedOrder as Order;
                 },
@@ -135,4 +127,22 @@ export class OrdersService {
     }
 
 
+    async getOrder(orderId: number, userId: number): Promise<Order> {
+        const foundOrder = await this.ordersRepository.findById(orderId);
+
+        if(!foundOrder){
+            throw new NotFoundException(`Order with id ${orderId} not found`);
+        }
+
+        return convertDecimalsToNumbers(foundOrder);
+    }
+
+    async findOrdersWithDetailsByUserId(userId: number): Promise<Order[]> {
+        const result: Order[] = convertDecimalsToNumbers(
+            await this.ordersRepository.findAllWithDetailsByUserId(userId)
+        );
+
+        return result;
+
+    }
 }

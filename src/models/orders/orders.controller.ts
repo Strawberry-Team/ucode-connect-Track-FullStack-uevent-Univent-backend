@@ -2,7 +2,7 @@ import {
     Controller,
     Post,
     Body,
-    UseGuards,
+    UseGuards, Get, Param,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -12,12 +12,12 @@ import { UserId } from '../../common/decorators/user.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('orders')
+@UseGuards(JwtAuthGuard)
 @Controller('orders')
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) {}
 
     @Post()
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Create a new orders' })
     @ApiResponse({
         status: 201,
@@ -29,5 +29,19 @@ export class OrdersController {
         @UserId() userId: number,
     ): Promise<Order> {
         return this.ordersService.create(dto, userId);
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get the order' })
+    @ApiResponse({
+        status: 201,
+        description: 'Get the order ',
+        type: Order,
+    })
+    async getOrder(
+        @Param('id') id: number,
+        @UserId() userId: number,
+    ): Promise<Order> {
+        return this.ordersService.getOrder(id, userId);
     }
 }

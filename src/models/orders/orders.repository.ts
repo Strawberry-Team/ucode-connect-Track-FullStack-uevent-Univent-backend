@@ -1,11 +1,8 @@
 // src/models/orders/orders.repository.ts
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../db/database.service';
-import { Prisma,
-         PaymentStatus,
-         PaymentMethod,
-} from '@prisma/client';
-import {CreateOrderDto} from "./dto/create-order.dto";
+import { Order, PaymentStatus, Prisma } from '@prisma/client';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 
 @Injectable()
@@ -33,12 +30,55 @@ export class OrdersRepository {
         });
     }
 
-    async findById(id: number): Promise<Prisma.OrderGetPayload<{
+    async findById(id: number, tx?: Prisma.TransactionClient,): Promise<Prisma.OrderGetPayload<{
         include: { orderItems: true };
     }> | null> {
-        return this.db.order.findUnique({
+        const prismaClient = tx || this.db;
+
+        return prismaClient.order.findUnique({
             where: { id },
             include: { orderItems: true },
+        });
+    }
+
+    async findAllWithDetailsByUserId(userId: number): Promise<Partial<Order>[]> {
+        return this.db.order.findMany({
+            where: { userId },
+            select: {
+                id: true,
+                totalAmount: true,
+                paymentStatus: true,
+                //TODO: promocode percent
+                paymentMethod: true,
+                createdAt: true,
+                orderItems: {
+                    select: {
+                        id: true,
+                        initialPrice: false,
+                        finalPrice: true,
+                        ticket: {
+                            select: {
+                                id: true,
+                                title: true,
+                                price: true,
+                                number: true,
+                                status: false,
+                                event: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        startedAt: true,
+                                        endedAt: true,
+                                        venue: false,
+                                        posterName: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' },
         });
     }
 
@@ -76,4 +116,12 @@ export class OrdersRepository {
     //         where: { id },
     //     });
     // }
+
+    async findAll(): Promise<Order[]> {
+        return this.db.order.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            }
+        })
+    }
 }
