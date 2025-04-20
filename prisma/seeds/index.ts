@@ -24,7 +24,6 @@ import { initialNews } from './news';
 import { HashingService } from '../../src/common/services/hashing.service';
 import { PromoCodesRepository } from 'src/models/promo-codes/promo-codes.repository';
 import { initialPromoCodes } from './promo-codes';
-import { PromoCodesService } from '../../src/models/promo-codes/promo-codes.service';
 import { HashingPromoCodesService } from 'src/models/promo-codes/hashing-promo-codes.service';
 import { EventAttendeesRepository } from '../../src/models/events/event-attendees/event-attendees.repository';
 import { generateEventAttendees } from './event-attendees';
@@ -33,8 +32,9 @@ import { OrderItemsRepository } from '../../src/models/orders/order-items/order-
 import { OrdersService } from '../../src/models/orders/orders.service';
 import { TicketsService } from '../../src/models/tickets/tickets.service';
 import { seedOrders } from './orders';
+import { SubscriptionsRepository } from '../../src/models/subscriptions/subscriptions.repository';
+import { initialSubscriptions } from './subscriptions';
 
-// import { seedOrdersAndItems } from './order-items';
 
 class MockCompaniesService {
     constructor(private readonly repository: CompaniesRepository) {}
@@ -58,9 +58,8 @@ class Seeder {
         private readonly promoCodesRepository: PromoCodesRepository,
         private readonly hashingPromoCodesService: HashingPromoCodesService,
         private readonly ordersService: OrdersService,
-        // private readonly ordersRepository: OrdersRepository,
-        // private readonly orderItemsRepository: OrderItemsRepository,
-    ) {}
+        private readonly subscriptionsRepository: SubscriptionsRepository,
+) {}
 
     async start() {
         await this.seedUsers();
@@ -84,6 +83,8 @@ class Seeder {
         await this.seedOrders();
         console.log('Orders were created 🛒');
         console.log('Order items were created 📋');
+        await this.seedSubscriptions();
+        console.log('Subscriptions were created 📢');
         console.log('Seeding completed 🍹');
     }
 
@@ -153,10 +154,23 @@ class Seeder {
         }
     }
 
+
     async seedOrders() {
         await seedOrders(this.databaseService, this.ordersService);
+
     }
-}
+
+    async seedSubscriptions() {
+        for (const subscription of initialSubscriptions) {
+            await this.subscriptionsRepository.create(
+                subscription.userId,
+                subscription.entityId,
+                subscription.entityType
+            );
+        }
+
+    }
+
 
 async function start() {
     try {
@@ -177,12 +191,10 @@ async function start() {
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);
         const promoCodesRepository = new PromoCodesRepository(dbService);
-        const eventAttendeesRepository = new EventAttendeesRepository(
-            dbService,
-        );
-
-        const orderRepository = new OrdersRepository(dbService);
+        const ordersRepository = new OrdersRepository(dbService);
         const orderItemsRepository = new OrderItemsRepository(dbService);
+        const eventAttendeesRepository = new EventAttendeesRepository(dbService);
+        const subscriptionsRepository = new SubscriptionsRepository(dbService);
 
         const seeder = new Seeder(
             dbService,
@@ -202,7 +214,7 @@ async function start() {
             promoCodesRepository,
             hashingPromoCodesService,
             new OrdersService(
-                orderRepository,
+                ordersRepository,
                 orderItemsRepository,
                 new TicketsService(
                     new TicketsRepository(dbService),
@@ -210,8 +222,7 @@ async function start() {
                 ),
                 dbService,
             ),
-            // orderRepository,
-            // orderItemsRepository,
+            subscriptionsRepository,
         );
         await seeder.start();
     } catch (e) {

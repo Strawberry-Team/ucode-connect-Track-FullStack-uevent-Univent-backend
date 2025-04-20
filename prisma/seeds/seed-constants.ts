@@ -137,5 +137,10 @@ export const SEEDS = {
                 PREMIUM: 10,
             },
         },
+    SUBSCRIPTIONS: {
+        MIN_EVENTS_PER_USER: 0,
+        MAX_EVENTS_PER_USER: 8,
+        MIN_COMPANIES_PER_USER: 0,
+        MAX_COMPANIES_PER_USER: 6,
     },
 } as const;
