@@ -24,10 +24,11 @@ import { initialNews } from './news';
 import { HashingService } from '../../src/common/services/hashing.service';
 import { PromoCodesRepository } from 'src/models/promo-codes/promo-codes.repository';
 import { initialPromoCodes } from './promo-codes';
-import { PromoCodesService } from '../../src/models/promo-codes/promo-codes.service';
 import { HashingPromoCodesService } from 'src/models/promo-codes/hashing-promo-codes.service';
 import { EventAttendeesRepository } from '../../src/models/events/event-attendees/event-attendees.repository';
 import { generateEventAttendees } from './event-attendees';
+import { SubscriptionsRepository } from '../../src/models/subscriptions/subscriptions.repository';
+import { initialSubscriptions } from './subscriptions';
 
 class MockCompaniesService {
     constructor(private readonly repository: CompaniesRepository) {}
@@ -49,7 +50,8 @@ class Seeder {
         private readonly eventAttendeesRepository: EventAttendeesRepository,
         private readonly promoCodesRepository: PromoCodesRepository,
         private readonly hashingPromoCodesService: HashingPromoCodesService,
-    ) {}
+        private readonly subscriptionsRepository: SubscriptionsRepository,
+) {}
 
     async start() {
         await this.seedUsers();
@@ -70,6 +72,8 @@ class Seeder {
         console.log('News were created 📰');
         await this.seedPromoCodes();
         console.log('Promo codes were created 🎟️');
+        await this.seedSubscriptions();
+        console.log('Subscriptions were created 📢');
         console.log('Seeding completed 🍹');
     }
 
@@ -135,6 +139,16 @@ class Seeder {
             }
         }
     }
+
+    async seedSubscriptions() {
+        for (const subscription of initialSubscriptions) {
+            await this.subscriptionsRepository.create(
+                subscription.userId,
+                subscription.entityId,
+                subscription.entityType
+            );
+        }
+    }
 }
 
 async function start() {
@@ -157,6 +171,7 @@ async function start() {
         const newsRepository = new NewsRepository(dbService);
         const promoCodesRepository = new PromoCodesRepository(dbService);
         const eventAttendeesRepository = new EventAttendeesRepository(dbService);
+        const subscriptionsRepository = new SubscriptionsRepository(dbService);
 
         const seeder = new Seeder(
             new UsersService(
@@ -173,6 +188,7 @@ async function start() {
             eventAttendeesRepository,
             promoCodesRepository,
             hashingPromoCodesService,
+            subscriptionsRepository,
         );
 
         await seeder.start();

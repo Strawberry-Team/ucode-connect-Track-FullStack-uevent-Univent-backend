@@ -2,11 +2,9 @@
 import { SEEDS } from './seed-constants';
 import { faker } from '@faker-js/faker';
 
-// Create promo codes for each event
 export const initialPromoCodes = Array.from(
     { length: SEEDS.EVENTS.TOTAL },
     (_, eventIndex) => {
-        // Use 1-based index for event IDs
         const eventId = eventIndex + 1;
 
         return SEEDS.PROMO_CODES.CODES.map((promoCode) => ({
