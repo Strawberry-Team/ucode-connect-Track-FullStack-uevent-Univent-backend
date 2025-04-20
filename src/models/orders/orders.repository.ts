@@ -48,6 +48,7 @@ export class OrdersRepository {
                 id: true,
                 totalAmount: true,
                 paymentStatus: true,
+                //TODO: promocode percent
                 paymentMethod: true,
                 createdAt: true,
                 orderItems: {
