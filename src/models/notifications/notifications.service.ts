@@ -18,13 +18,8 @@ export class NotificationsService {
 
     async findAll(userId: number): Promise<Notification[]> {
         const notifications = await this.notificationsRepository.findAll(userId);
-        const unhiddenNotifications = notifications.filter(notification => !notification.hiddenAt);
         
-        unhiddenNotifications.sort((a, b) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        
-        return plainToInstance(Notification, unhiddenNotifications, {
+        return plainToInstance(Notification, notifications, {
             excludeExtraneousValues: true,
             groups: ['basic'],
         });
@@ -161,19 +156,19 @@ export class NotificationsService {
     private getStatusChangeMessage(newStatus: EventStatus): string {
         switch (newStatus) {
             case EventStatus.SALES_STARTED:
-                return "Розпочався продаж квитків на подію";
+                return "Ticket sales for the event have started";
             case EventStatus.ONGOING:
-                return "Подія розпочалася";
+                return "The event has started";
             case EventStatus.FINISHED:
-                return "Подія завершилася";
+                return "The event has finished";
             case EventStatus.CANCELLED:
-                return "Подію скасовано";
+                return "The event has been cancelled";
             case EventStatus.PUBLISHED:
-                return "Подію опубліковано";
+                return "The event has been published";
             case EventStatus.DRAFT:
-                return "Подію переведено в чернетку";
+                return "The event has been moved to draft";
             default:
-                return "Статус події змінено";
+                return "The event status has changed";
         }
     }
 }

@@ -26,7 +26,6 @@ export class EventsService {
     async create(eventDto: CreateEventDto): Promise<Event> {
         const event = await this.eventsRepository.create(eventDto);
         
-        // Емітуємо подію про створення події
         this.eventEmitter.emit('event.created', {
             eventId: event.id,
             title: event.title,
@@ -42,7 +41,6 @@ export class EventsService {
     async createWithThemes(eventDto: CreateEventDto & { themes?: number[] }): Promise<Event> {
         const event = await this.eventsRepository.createWithThemes(eventDto);
         
-        // Емітуємо подію про створення події
         this.eventEmitter.emit('event.created', {
             eventId: event.id,
             title: event.title,
@@ -87,14 +85,12 @@ export class EventsService {
             throw new NotFoundException('Event not found');
         }
         
-        // Запам'ятовуємо старий статус для емітування події
         const oldStatus = event.status;
 
         event = await this.eventsRepository.update(id, {
             ...eventDto,
         });
         
-        // Якщо статус змінився, емітуємо подію
         if (eventDto.status && oldStatus !== event.status) {
             this.eventEmitter.emit('event.status.changed', {
                 eventId: event.id,
