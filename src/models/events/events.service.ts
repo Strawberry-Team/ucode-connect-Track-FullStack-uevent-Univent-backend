@@ -14,13 +14,26 @@ import { plainToInstance } from 'class-transformer';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateEventThemesDto } from './dto/create-event-themes.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class EventsService {
-    constructor(private readonly eventsRepository: EventsRepository) {}
+    constructor(
+        private readonly eventsRepository: EventsRepository,
+        private readonly eventEmitter: EventEmitter2
+    ) {}
 
     async create(eventDto: CreateEventDto): Promise<Event> {
         const event = await this.eventsRepository.create(eventDto);
+        
+        // Емітуємо подію про створення події
+        this.eventEmitter.emit('event.created', {
+            eventId: event.id,
+            title: event.title,
+            companyId: event.companyId,
+            status: event.status,
+        });
+        
         return plainToInstance(Event, event, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
@@ -28,6 +41,15 @@ export class EventsService {
 
     async createWithThemes(eventDto: CreateEventDto & { themes?: number[] }): Promise<Event> {
         const event = await this.eventsRepository.createWithThemes(eventDto);
+        
+        // Емітуємо подію про створення події
+        this.eventEmitter.emit('event.created', {
+            eventId: event.id,
+            title: event.title,
+            companyId: event.companyId,
+            status: event.status,
+        });
+        
         return plainToInstance(Event, event, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });
@@ -64,10 +86,25 @@ export class EventsService {
         if (!event) {
             throw new NotFoundException('Event not found');
         }
+        
+        // Запам'ятовуємо старий статус для емітування події
+        const oldStatus = event.status;
 
         event = await this.eventsRepository.update(id, {
             ...eventDto,
         });
+        
+        // Якщо статус змінився, емітуємо подію
+        if (eventDto.status && oldStatus !== event.status) {
+            this.eventEmitter.emit('event.status.changed', {
+                eventId: event.id,
+                title: event.title,
+                companyId: event.companyId,
+                oldStatus: oldStatus,
+                newStatus: event.status,
+            });
+        }
+        
         return plainToInstance(Event, event, {
             groups: SERIALIZATION_GROUPS.BASIC,
         });

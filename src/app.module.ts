@@ -10,6 +10,7 @@ import { RefreshTokenNoncesModule } from './models/refresh-token-nonces/refresh-
 import { JwtConfigModule } from './jwt/jwt.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DatabaseModule } from './db/database.module';
 import { TicketsModule } from './models/tickets/tickets.module';
 import { CompaniesModule } from './models/companies/companies.module';
@@ -19,12 +20,14 @@ import { EventThemesModule } from './models/events/themes/event-themes.module';
 import { NewsModule } from './models/news/news.module';
 import { PromoCodesModule } from './models/promo-codes/promo-codes.module';
 import { EventAttendeesModule } from './models/events/event-attendees/event-attendees.module';
-import {OrdersModule} from "./models/orders/orders.module";
+import { NotificationsModule } from './models/notifications/notifications.module';
+import { OrdersModule } from './models/orders/orders.module';
 import { SubscriptionsModule } from './models/subscriptions/subscriptions.module';
 
 @Module({
     imports: [
         ScheduleModule.forRoot(),
+        EventEmitterModule.forRoot(),
         ConfigModule.forRoot({
             isGlobal: true,
             load: [databaseConfig, appConfig, jwtConfig],
@@ -47,7 +50,8 @@ import { SubscriptionsModule } from './models/subscriptions/subscriptions.module
         OrdersModule,
         PromoCodesModule,
         EventAttendeesModule,
-        SubscriptionsModule
+        SubscriptionsModule,
+        NotificationsModule,
     ],
     controllers: [],
     providers: [],

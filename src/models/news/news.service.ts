@@ -12,6 +12,7 @@ import { NewsRepository } from './news.repository';
 import { plainToInstance } from 'class-transformer';
 import { SERIALIZATION_GROUPS } from './entities/news.entity';
 import { CreateNewsDto } from './dto/create-news.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class NewsService {
@@ -20,6 +21,7 @@ export class NewsService {
         private readonly usersService: UsersService,
         private readonly companiesService: CompaniesService,
         private readonly eventsService: EventsService,
+        private readonly eventEmitter: EventEmitter2
     ) {}
 
     async create(
@@ -54,6 +56,15 @@ export class NewsService {
             authorId: userId,
             companyId: companyId,
             eventId: eventId,
+        });
+        
+        // Емітуємо подію про створення новини
+        this.eventEmitter.emit('news.created', {
+            newsId: news.id,
+            title: news.title,
+            authorId: news.authorId,
+            companyId: news.companyId,
+            eventId: news.eventId,
         });
 
         return plainToInstance(News, news, {

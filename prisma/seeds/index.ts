@@ -34,6 +34,7 @@ import { TicketsService } from '../../src/models/tickets/tickets.service';
 import { seedOrders } from './orders';
 import { SubscriptionsRepository } from '../../src/models/subscriptions/subscriptions.repository';
 import { initialSubscriptions } from './subscriptions';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 
 class MockCompaniesService {
@@ -208,7 +209,7 @@ async function start() {
             new EventFormatsService(new EventFormatsRepository(dbService)),
             new EventThemesService(new EventThemesRepository(dbService)),
             companiesRepository,
-            new EventsService(eventsRepository),
+            new EventsService(eventsRepository, new EventEmitter2()),
             ticketsRepository,
             newsRepository,
             eventAttendeesRepository,
