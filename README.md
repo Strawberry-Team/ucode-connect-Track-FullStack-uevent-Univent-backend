@@ -66,6 +66,24 @@ In the examples of all commands in the text `<env>` is the name of the environme
     ```
 10. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
 
+## 🐋 Docker
+Environment variables are taken from `.env.development` file. You can start containers with the command:
+```
+docker-compose --env-file .env.development up -d
+```
+To view a list of running containers:
+```
+docker ps
+```
+To stop running containers:
+```
+docker-compose stop
+```
+To stop and delete containers, networks, and associated resources (with volumes):
+```
+docker-compose down -v
+```
+
 ## 📫 Mailing Service
 
 [Ethereal](https://ethereal.email/) is a fake SMTP service, mostly aimed at Nodemailer and EmailEngine users (but not
