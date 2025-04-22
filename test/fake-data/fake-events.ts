@@ -38,27 +38,38 @@ export function generateFakeBasicEvent(): Event {
         status: faker.helpers.arrayElement(Object.values(EventStatus)),
         createdAt: new Date(),
         updatedAt: new Date()
-    };
+    } as Event;
 }
 
 export function generateFakeEventWithRelations(): EventWithRelations {
     const basicEvent = generateFakeBasicEvent();
+    const now = new Date();
+
     return {
         ...basicEvent,
         themes: [
             {
                 id: faker.number.int({ min: 1, max: 1000 }),
-                title: faker.lorem.words(2)
+                title: faker.lorem.words(2),
+                createdAt: now,
+                updatedAt: now
             }
         ],
         company: {
             id: basicEvent.companyId,
+            ownerId: faker.number.int({ min: 1, max: 1000 }),
+            email: faker.internet.email(),
             title: faker.company.name(),
-            logoName: faker.system.fileName({ extensionCount: 0 }) + '.png'
+            description: faker.company.catchPhrase(),
+            logoName: faker.system.fileName({ extensionCount: 0 }) + '.png',
+            createdAt: now,
+            updatedAt: now
         },
         format: {
             id: basicEvent.formatId,
-            title: faker.helpers.arrayElement(['Conference', 'Workshop', 'Meetup', 'Webinar'])
+            title: faker.helpers.arrayElement(['Conference', 'Workshop', 'Meetup', 'Webinar']),
+            createdAt: now,
+            updatedAt: now
         }
     };
 }

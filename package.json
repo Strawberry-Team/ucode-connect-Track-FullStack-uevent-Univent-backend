@@ -5,7 +5,12 @@
     "author": "",
     "private": true,
     "license": "UNLICENSED",
-    "scripts": {
+    "scripts": {        
+        "docker:up": "docker-compose --env-file .env.development up -d",
+        "docker:view": "docker ps -a",
+        "docker:stop": "docker-compose stop",
+        "docker:down": "docker-compose down -v",
+
         "setup:db": "ts-node src/setupdb.ts",
 
         "migrate": "dotenv -e .env.development -- npx prisma migrate deploy",
@@ -20,7 +25,7 @@
         "start:dev": "nest start --watch",
         "start:debug:dev": "nest start --debug --watch",
 
-        "test": "npx jest",
+        "test": "npx jest --clearCache && npx jest",
         "test:unit": "npx jest --watch --config jest-unit.config.ts",
         "test:e2e": "npx jest --watch --config jest-e2e.config.ts",
         "test:watch": "npx jest --watch",

@@ -9,7 +9,7 @@ import { generateFakeRefreshTokenNonce } from '../../fake-data/fake-refresh-toke
 
 describe('RefreshTokenNoncesService', () => {
     let nonceService: RefreshTokenNoncesService;
-    let nonceRepository: jest.Mocked<RefreshTokenNoncesRepository>;
+    let nonceRepository: RefreshTokenNoncesRepository;
 
     beforeEach(async () => {
         const nonceRepositoryMock = {
@@ -23,12 +23,25 @@ describe('RefreshTokenNoncesService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 RefreshTokenNoncesService,
-                { provide: RefreshTokenNoncesRepository, useValue: nonceRepositoryMock },
+                {
+                    provide: RefreshTokenNoncesRepository,
+                    useValue: {
+                        findAll: jest.fn(),
+                        findByNonceAndUserId: jest.fn(),
+                        create: jest.fn(),
+                        deleteByUserId: jest.fn(),
+                        deleteById: jest.fn(),
+                    },
+                },
             ],
         }).compile();
 
         nonceService = module.get<RefreshTokenNoncesService>(RefreshTokenNoncesService);
-        nonceRepository = module.get(RefreshTokenNoncesRepository) as jest.Mocked<RefreshTokenNoncesRepository>;
+        nonceRepository = module.get<RefreshTokenNoncesRepository>(RefreshTokenNoncesRepository);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     describe('getAll', () => {
@@ -39,27 +52,27 @@ describe('RefreshTokenNoncesService', () => {
                 generateFakeRefreshTokenNonce(),
                 generateFakeRefreshTokenNonce(),
             ];
-            nonceRepository.findAll.mockResolvedValue(fakeNonces);
+            jest.spyOn(nonceRepository, 'findAll').mockResolvedValue(fakeNonces);
 
             // Act
             const result = await nonceService.findAllRefreshTokenNonces(seconds);
 
             // Assert
-            expect(nonceRepository.findAll).toHaveBeenCalledWith(seconds);
             expect(result).toEqual(fakeNonces);
+            expect(nonceRepository.findAll).toHaveBeenCalledWith(seconds);
         });
 
         it('should return all refresh token nonces when time parameter is not provided', async () => {
             // Arrange
             const fakeNonces: RefreshTokenNonce[] = [generateFakeRefreshTokenNonce()];
-            nonceRepository.findAll.mockResolvedValue(fakeNonces);
+            jest.spyOn(nonceRepository, 'findAll').mockResolvedValue(fakeNonces);
 
             // Act
             const result = await nonceService.findAllRefreshTokenNonces();
 
             // Assert
-            expect(nonceRepository.findAll).toHaveBeenCalledWith(undefined);
             expect(result).toEqual(fakeNonces);
+            expect(nonceRepository.findAll).toHaveBeenCalledWith(undefined);
         });
     });
 
@@ -69,25 +82,25 @@ describe('RefreshTokenNoncesService', () => {
             const userId = 1;
             const nonce = 'testNonce';
             const fakeNonce = generateFakeRefreshTokenNonce({ userId, nonce });
-            nonceRepository.findByNonceAndUserId.mockResolvedValue(fakeNonce);
+            jest.spyOn(nonceRepository, 'findByNonceAndUserId').mockResolvedValue(fakeNonce);
 
             // Act
             const result = await nonceService.findRefreshTokenNonceByNonceAndUserId(userId, nonce);
 
             // Assert
-            expect(nonceRepository.findByNonceAndUserId).toHaveBeenCalledWith(userId, nonce);
             expect(result).toEqual(fakeNonce);
+            expect(nonceRepository.findByNonceAndUserId).toHaveBeenCalledWith(userId, nonce);
         });
 
         it('should throw NotFoundException when nonce is not found', async () => {
             // Arrange
             const userId = 1;
             const nonce = 'nonexistentNonce';
-            nonceRepository.findByNonceAndUserId.mockResolvedValue(null);
+            jest.spyOn(nonceRepository, 'findByNonceAndUserId').mockResolvedValue(null);
 
             // Act & Assert
             await expect(
-                nonceService.findRefreshTokenNonceByNonceAndUserId(userId, nonce),
+                nonceService.findRefreshTokenNonceByNonceAndUserId(userId, nonce)
             ).rejects.toThrow(NotFoundException);
             expect(nonceRepository.findByNonceAndUserId).toHaveBeenCalledWith(userId, nonce);
         });
@@ -96,19 +109,19 @@ describe('RefreshTokenNoncesService', () => {
     describe('createRefreshTokenNonce', () => {
         it('should create and return a refresh token nonce', async () => {
             // Arrange
-            const createDto: CreateRefreshTokenNonceDto = {
+            const createDto = {
                 userId: 1,
                 nonce: 'newNonce',
             };
             const createdNonce = generateFakeRefreshTokenNonce({ userId: createDto.userId, nonce: createDto.nonce });
-            nonceRepository.create.mockResolvedValue(createdNonce);
+            jest.spyOn(nonceRepository, 'create').mockResolvedValue(createdNonce);
 
             // Act
             const result = await nonceService.createRefreshTokenNonce(createDto);
 
             // Assert
-            expect(nonceRepository.create).toHaveBeenCalledWith(createDto);
             expect(result).toEqual(createdNonce);
+            expect(nonceRepository.create).toHaveBeenCalledWith(createDto);
         });
     });
 
@@ -116,14 +129,14 @@ describe('RefreshTokenNoncesService', () => {
         it('should delete all refresh token nonces for a given user', async () => {
             // Arrange
             const userId = 1;
-            nonceRepository.deleteByUserId.mockResolvedValue();
+            jest.spyOn(nonceRepository, 'deleteByUserId').mockResolvedValue();
 
             // Act
             const result = await nonceService.deleteRefreshTokenNonceByUserId(userId);
 
             // Assert
-            expect(nonceRepository.deleteByUserId).toHaveBeenCalledWith(userId);
             expect(result).toBeUndefined();
+            expect(nonceRepository.deleteByUserId).toHaveBeenCalledWith(userId);
         });
     });
 
@@ -131,14 +144,14 @@ describe('RefreshTokenNoncesService', () => {
         it('should delete a refresh token nonce by its id', async () => {
             // Arrange
             const nonceId = 100;
-            nonceRepository.deleteById.mockResolvedValue();
+            jest.spyOn(nonceRepository, 'deleteById').mockResolvedValue();
 
             // Act
             const result = await nonceService.deleteRefreshTokenNonceById(nonceId);
 
             // Assert
-            expect(nonceRepository.deleteById).toHaveBeenCalledWith(nonceId);
             expect(result).toBeUndefined();
+            expect(nonceRepository.deleteById).toHaveBeenCalledWith(nonceId);
         });
     });
 });

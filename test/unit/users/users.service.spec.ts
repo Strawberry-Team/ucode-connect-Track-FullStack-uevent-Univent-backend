@@ -18,17 +18,21 @@ import {
     generateUpdateUserDto,
     generateFakeProfilePictureName,
 } from '../../fake-data/fake-users'
+import { CompaniesService } from '../../../src/models/companies/companies.service';
+import { OrdersRepository } from '../../../src/models/orders/orders.repository';
 
 describe('UsersService', () => {
     let usersService: UsersService;
     let usersRepository: jest.Mocked<UsersRepository>;
     let passwordService: jest.Mocked<HashingPasswordsService>;
+    let companiesService: jest.Mocked<CompaniesService>;
+    let ordersRepository: jest.Mocked<OrdersRepository>;
 
     beforeEach(async () => {
         const usersRepositoryMock = {
             findById: jest.fn(),
             findByEmail: jest.fn(),
-            findAllUnactivatedUsers: jest.fn(), // обновлённое имя метода
+            findAllUnactivatedUsers: jest.fn(),
             create: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
@@ -39,19 +43,34 @@ describe('UsersService', () => {
             compare: jest.fn(),
         };
 
+        const companiesServiceMock = {
+            findCompanyById: jest.fn(),
+            findCompanyByOwnerId: jest.fn(),
+        };
+
+        const ordersRepositoryMock = {
+            findByUserId: jest.fn(),
+        };
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 UsersService,
                 { provide: UsersRepository, useValue: usersRepositoryMock },
                 { provide: HashingPasswordsService, useValue: passwordServiceMock },
+                { provide: CompaniesService, useValue: companiesServiceMock },
+                { provide: OrdersRepository, useValue: ordersRepositoryMock },
             ],
         }).compile();
 
         usersService = module.get<UsersService>(UsersService);
-        usersRepository = module.get(UsersRepository) as jest.Mocked<UsersRepository>;
-        passwordService = module.get(
-            HashingPasswordsService
-        ) as jest.Mocked<HashingPasswordsService>;
+        // usersRepository = module.get(UsersRepository) as jest.Mocked<UsersRepository>;
+        // passwordService = module.get(
+        //     HashingPasswordsService
+        // ) as jest.Mocked<HashingPasswordsService>;
+        usersRepository = module.get(UsersRepository);
+        passwordService = module.get(HashingPasswordsService);
+        companiesService = module.get(CompaniesService);
+        ordersRepository = module.get(OrdersRepository);
     });
 
     describe('findUserById', () => {

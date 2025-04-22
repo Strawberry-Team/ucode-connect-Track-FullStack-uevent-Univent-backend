@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 import { CreateUserDto } from '../../src/models/users/dto/create-user.dto';
 import { UpdateUserDto } from '../../src/models/users/dto/update-user.dto';
 import { UpdateUserPasswordDto } from '../../src/models/users/dto/update-user-password.dto';
+import { UserRole } from '@prisma/client';
 
 export function generateFakeFirstName(): string {
     return faker.person.firstName();
@@ -48,6 +49,7 @@ export function generateFakeUser<K extends keyof User>(
         createdAt: new Date(),
         updatedAt: new Date(),
         refreshTokenNonces: [],
+        role: UserRole.USER,
     };
 
     if (allFields) {
@@ -113,7 +115,6 @@ export function generateUpdateUserPasswordDto(): UpdateUserPasswordDto {
         newPassword: 'NewPassword123!$',
     };
 }
-
 export function generateUnactivatedUsers(
     count: number,
     seconds: number,
@@ -130,3 +131,4 @@ export function generateUnactivatedUsers(
         return user;
     });
 }
+

@@ -4,6 +4,8 @@ import { NotificationsRepository } from '../../../src/models/notifications/notif
 import { NotFoundException } from '@nestjs/common';
 import { SubscriptionsService } from '../../../src/models/subscriptions/subscriptions.service';
 import { EventStatusChangedEvent } from '../../../src/common/events/notification-events.interface';
+import { EntityType } from '../../../src/models/subscriptions/dto/create-subscription.dto';
+
 describe('NotificationsService', () => {
   let service: NotificationsService;
   let repository: NotificationsRepository;
@@ -18,8 +20,7 @@ describe('NotificationsService', () => {
     companyId: null,
     readAt: null,
     hiddenAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2025-04-22T11:49:40.728Z'),
   };
 
   // Мок події зміни статусу
@@ -41,7 +42,7 @@ describe('NotificationsService', () => {
   };
 
   // Мок списку підписників
-  const mockSubscribers = [{ userId: 1 }, { userId: 2 }];
+  const mockSubscribers = [1, 2]; // Змінено на масив ID користувачів
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -61,6 +62,7 @@ describe('NotificationsService', () => {
           useValue: {
             findAllUserIdsByEventId: jest.fn().mockResolvedValue(mockSubscribers),
             findAllUserIdsByCompanyId: jest.fn().mockResolvedValue(mockSubscribers),
+            findAllUserIdsByEntityId: jest.fn().mockResolvedValue(mockSubscribers),
           },
         },
       ],
@@ -142,7 +144,7 @@ describe('NotificationsService', () => {
       
       await service.createNewsNotification(mockNewsCreatedEvent);
       
-      expect(subscriptionsService.findAllUserIdsByEventId).toHaveBeenCalledWith(1);
+      expect(subscriptionsService.findAllUserIdsByEntityId).toHaveBeenCalledWith(1, EntityType.EVENT);
       expect(createSpy).toHaveBeenCalledTimes(2); // по одному для кожного підписника
     });
 
@@ -152,7 +154,7 @@ describe('NotificationsService', () => {
       
       await service.createNewsNotification(companyNews);
       
-      expect(subscriptionsService.findAllUserIdsByCompanyId).toHaveBeenCalledWith(1);
+      expect(subscriptionsService.findAllUserIdsByEntityId).toHaveBeenCalledWith(1, EntityType.COMPANY);
       expect(createSpy).toHaveBeenCalledTimes(2); // по одному для кожного підписника
     });
 

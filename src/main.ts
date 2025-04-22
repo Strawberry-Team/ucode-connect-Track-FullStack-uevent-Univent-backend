@@ -98,13 +98,6 @@ async function bootstrap() {
             },
             'csrf-token',
         )
-        .addTag('Auth')
-        .addTag('Users')
-        .addTag('Companies')
-        .addTag('Events')
-        .addTag('News')
-        .addTag('Orders')
-        .addTag('Tickets')
         .build();
 
     const document = SwaggerModule.createDocument(app, configAPIDoc);

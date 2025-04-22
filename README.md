@@ -71,9 +71,9 @@ Environment variables are taken from `.env.development` file. You can start cont
 ```
 docker-compose --env-file .env.development up -d
 ```
-To view a list of running containers:
+To view a list of containers:
 ```
-docker ps
+docker ps -a
 ```
 To stop running containers:
 ```

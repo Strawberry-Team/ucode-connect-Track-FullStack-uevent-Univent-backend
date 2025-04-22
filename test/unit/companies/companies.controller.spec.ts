@@ -4,7 +4,6 @@ import { CompaniesController } from '../../../src/models/companies/companies.con
 import { CompaniesService } from '../../../src/models/companies/companies.service';
 import { User } from '../../../src/models/users/entities/user.entity';
 import { Company } from '../../../src/models/companies/entities/company.entity';
-import { NotImplementedException } from '@nestjs/common';
 import { CreateCompanyDto } from '../../../src/models/companies/dto/create-company.dto';
 import { UpdateCompanyDto } from '../../../src/models/companies/dto/update-company.dto';
 import {
@@ -13,30 +12,47 @@ import {
     pickCompanyFields,
 } from '../../fake-data/fake-companies';
 import { generateFakeUser } from '../../fake-data/fake-users';
-import { RefreshTokenNoncesService } from '../../../src/models/refresh-token-nonces/refresh-token-nonces.service';
 import { CompanyOwnerGuard } from '../../../src/models/companies/guards/company-owner.guard';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../../../src/models/users/users.service';
+import { Reflector } from '@nestjs/core';
+import { JwtAuthGuard } from '../../../src/models/auth/guards/auth.guards';
+import { NotFoundException } from '@nestjs/common';
+import { EventsService } from '../../../src/models/events/events.service';
+import { NewsService } from '../../../src/models/news/news.service';
+import { SubscriptionsService } from '../../../src/models/subscriptions/subscriptions.service';
+import { ad } from '@faker-js/faker/dist/airline-CBNP41sR';
+import { News } from 'src/models/news/entities/news.entity';
+import { AttendeeVisibility, EventStatus } from '@prisma/client';
+
+class MockJwtAuthGuard {
+    canActivate() {
+        return true;
+    }
+}
 
 describe('CompaniesController', () => {
     let controller: CompaniesController;
     let companiesService: CompaniesService;
+    let eventsService: EventsService;
+    let newsService: NewsService;
+    let subscriptionsService: SubscriptionsService;
 
     const fakeUser: User = generateFakeUser();
     const fakeCompany: Company = generateFakeCompany(fakeUser.id);
     const fakeCreateCompanyDto: CreateCompanyDto = pickCompanyFields(
         fakeCompany,
-        ['ownerId', 'email', 'title', 'description'],
+        ['email', 'title', 'description'],
     );
-    const fakeUpdateCompanyDto: UpdateCompanyDto = generateFakeCompany(
-        fakeUser.id,
-        false,
-        ['ownerId', 'email', 'title', 'description'],
+    const fakeUpdateCompanyDto: UpdateCompanyDto = pickCompanyFields(
+        generateFakeCompany(fakeUser.id),
+        ['title', 'description'],
     );
     const fakeUpdatedCompany: Company = {
         ...fakeCompany,
         ...fakeUpdateCompanyDto,
     };
-    const mockFrontUrl = 'http://localhost:8080';
+    const mockFrontUrl = 'http://localhost:3000';
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -45,15 +61,57 @@ describe('CompaniesController', () => {
                 {
                     provide: CompaniesService,
                     useValue: {
-                        createCompany: jest.fn().mockResolvedValue(null),
-                        findAllCompanies: jest.fn().mockResolvedValue([]),
-                        findCompanyById: jest.fn().mockResolvedValue(null),
-                        findCompanyByOwnerId: jest.fn().mockResolvedValue(null),
-                        findCompanyByEmail: jest.fn().mockResolvedValue(null),
-                        findByTitle: jest.fn().mockResolvedValue(null),
-                        updateCompany: jest.fn().mockResolvedValue(null),
-                        updateCompanyLogo: jest.fn().mockResolvedValue(null),
-                        removeCompany: jest.fn().mockResolvedValue(undefined),
+                        create: jest.fn().mockResolvedValue(null),
+                        findAll: jest.fn().mockResolvedValue([]),
+                        findById: jest.fn().mockResolvedValue(null),
+                        findByOwnerId: jest.fn().mockResolvedValue(null),
+                        findByEmail: jest.fn().mockResolvedValue(null),
+                        update: jest.fn().mockResolvedValue(null),
+                        updateLogo: jest.fn().mockResolvedValue(null),
+                        delete: jest.fn().mockResolvedValue(undefined),
+                    },
+                },
+                {
+                    provide: EventsService,
+                    useValue: {
+                        findById: jest.fn().mockResolvedValue(null),
+                        findByCompanyId: jest.fn().mockImplementation((companyId) => {
+                            if (companyId === -1) throw new NotFoundException('Company not found');
+                            return Promise.resolve([]);
+                        }),
+                    },
+                },
+                {
+                    provide: NewsService,
+                    useValue: {
+                        create: jest.fn().mockImplementation((dto, userId, companyId) => {
+                            if (companyId === -1) throw new NotFoundException('Company not found');
+                            return Promise.resolve({
+                                id: 1,
+                                ...dto,
+                                authorId: userId,
+                                companyId: companyId,
+                                eventId: null,
+                                createdAt: new Date(),
+                                updatedAt: new Date()
+                            });
+                        }),
+                        findByCompanyId: jest.fn().mockImplementation((companyId) => {
+                            if (companyId === -1) throw new NotFoundException('Company not found');
+                            return Promise.resolve([]);
+                        }),
+                    },
+                },
+                {
+                    provide: SubscriptionsService,
+                    useValue: {
+                        getSubscriptionInfo: jest.fn().mockImplementation((type, id) => {
+                            if (id === -1) throw new NotFoundException('Company not found');
+                            return Promise.resolve({
+                                isSubscribed: true,
+                                subscribersCount: 10
+                            });
+                        }),
                     },
                 },
                 {
@@ -69,22 +127,29 @@ describe('CompaniesController', () => {
                     },
                 },
                 {
-                    provide: RefreshTokenNoncesService,
+                    provide: UsersService,
                     useValue: {
-                        getRefreshTokenNonceByNonceAndUserId: jest
-                            .fn()
-                            .mockResolvedValue({
-                                id: 1,
-                                userId: fakeUser.id,
-                                nonce: 'mock-nonce',
-                            }),
+                        findById: jest.fn().mockResolvedValue(fakeUser),
+                    },
+                },
+                {
+                    provide: Reflector,
+                    useValue: {
+                        get: jest.fn().mockReturnValue(true),
+                        getAllAndOverride: jest.fn().mockReturnValue(true),
                     },
                 },
             ],
-        }).compile();
+        })
+        .overrideGuard(JwtAuthGuard).useClass(MockJwtAuthGuard)
+        .overrideGuard(CompanyOwnerGuard).useValue({ canActivate: () => true })
+        .compile();
 
         controller = module.get<CompaniesController>(CompaniesController);
         companiesService = module.get<CompaniesService>(CompaniesService);
+        eventsService = module.get<EventsService>(EventsService);
+        newsService = module.get<NewsService>(NewsService);
+        subscriptionsService = module.get<SubscriptionsService>(SubscriptionsService);
     });
 
     afterEach(() => {
@@ -92,7 +157,7 @@ describe('CompaniesController', () => {
     });
 
     describe('Create Company', () => {
-        it('Should create a company and send welcome email', async () => {
+        it('Should create a company', async () => {
             jest.spyOn(companiesService, 'create').mockResolvedValue(
                 fakeCompany,
             );
@@ -104,6 +169,7 @@ describe('CompaniesController', () => {
             expect(result).toEqual(fakeCompany);
             expect(companiesService.create).toHaveBeenCalledWith(
                 fakeCreateCompanyDto,
+                fakeUser.id,
             );
         });
     });
@@ -126,34 +192,13 @@ describe('CompaniesController', () => {
                 fakeCompany,
             );
 
-            const result = await controller.findOne(
-                fakeCompany.id,
-            );
+            const result = await controller.findOne(fakeCompany.id);
             expect(result).toEqual(fakeCompany);
             expect(companiesService.findById).toHaveBeenCalledWith(
                 fakeCompany.id,
             );
         });
     });
-
-    /*describe('Find One Company by title', () => {
-        it('Should return a company by title', async () => {
-            jest.spyOn(
-                companiesService,
-                'findByTitle',
-            ).mockResolvedValue(fakeCompany);
-
-            const result = await controller.findOneByTitle(
-                fakeCompany.title,
-                fakeUser.id,
-            );
-            expect(result).toEqual(fakeCompany);
-            expect(companiesService.findByTitle).toHaveBeenCalledWith(
-                fakeCompany.title,
-                fakeCompany.ownerId,
-            );
-        });
-    });*/
 
     describe('Update Company', () => {
         it('Should update a company', async () => {
@@ -197,13 +242,176 @@ describe('CompaniesController', () => {
     });
 
     describe('Remove Company', () => {
-        it('Should throw NotImplementedException', async () => {
-            jest.spyOn(companiesService, 'delete');
+        it('Should remove a company', async () => {
+            const deleteMessage = { message: 'Company successfully deleted' };
+            jest.spyOn(companiesService, 'delete').mockResolvedValue(deleteMessage);
 
-            await expect(
-                controller.delete(fakeCompany.id),
-            ).rejects.toThrow(NotImplementedException);
-            expect(companiesService.delete).not.toHaveBeenCalled();
+            const result = await controller.delete(fakeCompany.id);
+            expect(result).toEqual(deleteMessage);
+            expect(companiesService.delete).toHaveBeenCalledWith(fakeCompany.id);
+        });
+    });
+
+    describe('Create Company News', () => {
+        const fakeNewsDto = {
+            title: 'Test News',
+            description: 'Test Description'
+        };
+
+        const fakeNews = {
+            id: 1,
+            authorId: fakeUser.id,
+            companyId: fakeCompany.id,
+            eventId: null,
+            title: fakeNewsDto.title,
+            description: fakeNewsDto.description,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+
+        it('Should create news for company', async () => {
+            jest.spyOn(newsService, 'create').mockResolvedValue(fakeNews);
+
+            const result = await controller.createNews(fakeCompany.id, fakeNewsDto, fakeUser.id);
+            expect(result).toEqual(fakeNews);
+            expect(newsService.create).toHaveBeenCalledWith(fakeNewsDto, fakeUser.id, fakeCompany.id, undefined);
+        });
+
+        it('Should throw NotFoundException when company is not found', async () => {
+            jest.spyOn(companiesService, 'findById').mockRejectedValue(new NotFoundException('Company not found'));
+            await expect(controller.createNews(-1, fakeNewsDto, fakeUser.id)).rejects.toThrow(NotFoundException);
+        });
+    });
+
+    describe('Find All Company Events', () => {
+        const fakeEvents = [
+            {
+                id: 1,
+                companyId: fakeCompany.id,
+                title: 'Event 1',
+                description: 'Description 1',
+                formatId: 1,
+                venue: 'Venue 1',
+                locationCoordinates: '40.7128,-74.0060',
+                startedAt: new Date(),
+                endedAt: new Date(),
+                publishedAt: new Date(),
+                ticketsAvailableFrom: new Date(),
+                posterUrl: '',
+                posterName: '',
+                attendeeVisibility: AttendeeVisibility.EVERYONE,
+                status: EventStatus.DRAFT,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                themes: [],
+                news: [],
+                tickets: [],
+                promoCodes: [],
+                attendees: []
+            },
+            {
+                id: 2,
+                companyId: fakeCompany.id,
+                title: 'Event 2',
+                description: 'Description 2',
+                formatId: 2,
+                venue: 'Venue 2',
+                locationCoordinates: '51.5074,-0.1278',
+                startedAt: new Date(),
+                endedAt: new Date(),
+                publishedAt: new Date(),
+                ticketsAvailableFrom: new Date(),
+                posterUrl: '',
+                posterName: '',
+                attendeeVisibility: AttendeeVisibility.EVERYONE,
+                status: EventStatus.DRAFT,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                themes: [],
+                news: [],
+                tickets: [],
+                promoCodes: [],
+                attendees: []
+            }
+        ];
+
+        it('Should return all company events', async () => {
+            jest.spyOn(eventsService, 'findByCompanyId').mockResolvedValue(fakeEvents);
+
+            const result = await controller.findAllEvents(fakeCompany.id);
+            expect(result).toEqual(fakeEvents);
+            expect(eventsService.findByCompanyId).toHaveBeenCalledWith(fakeCompany.id);
+        });
+
+        it('Should throw NotFoundException when company is not found', async () => {
+            jest.spyOn(companiesService, 'findById').mockRejectedValue(new NotFoundException('Company not found'));
+            await expect(controller.findAllEvents(-1)).rejects.toThrow(NotFoundException);
+        });
+    });
+
+    describe('Find All Company News', () => {
+        const fakeNewsList = [
+            {
+                id: 1,
+                authorId: fakeUser.id,
+                companyId: fakeCompany.id,
+                eventId: null,
+                title: 'News 1',
+                description: 'Description 1',
+                createdAt: new Date(),
+                updatedAt: new Date()
+            },
+            {
+                id: 2,
+                authorId: fakeUser.id,
+                companyId: fakeCompany.id,
+                eventId: null,
+                title: 'News 2',
+                description: 'Description 2',
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+        ];
+
+        it('Should return all company news', async () => {
+            jest.spyOn(newsService, 'findByCompanyId').mockResolvedValue(fakeNewsList);
+
+            const result = await controller.findAllNews(fakeCompany.id);
+            expect(result).toEqual(fakeNewsList);
+            expect(newsService.findByCompanyId).toHaveBeenCalledWith(fakeCompany.id);
+        });
+
+        it('Should throw NotFoundException when company is not found', async () => {
+            jest.spyOn(companiesService, 'findById').mockRejectedValue(new NotFoundException('Company not found'));
+            await expect(controller.findAllNews(-1)).rejects.toThrow(NotFoundException);
+        });
+    });
+
+    describe('Get Company Subscription Info', () => {
+        const mockSubscriptionInfo = {
+            isSubscribed: true,
+            subscribersCount: 10
+        };
+
+        it('Should return subscription info for authenticated user', async () => {
+            jest.spyOn(subscriptionsService, 'getSubscriptionInfo').mockResolvedValue(mockSubscriptionInfo);
+
+            const result = await controller.getSubscriptionInfo(fakeCompany.id, fakeUser.id);
+            expect(result).toEqual(mockSubscriptionInfo);
+            expect(subscriptionsService.getSubscriptionInfo).toHaveBeenCalledWith('company', fakeCompany.id, fakeUser.id);
+        });
+
+        it('Should return subscription info for unauthenticated user', async () => {
+            jest.spyOn(subscriptionsService, 'getSubscriptionInfo').mockResolvedValue(mockSubscriptionInfo);
+
+            const result = await controller.getSubscriptionInfo(fakeCompany.id, null);
+            expect(result).toEqual(mockSubscriptionInfo);
+            expect(subscriptionsService.getSubscriptionInfo).toHaveBeenCalledWith('company', fakeCompany.id, null);
+        });
+
+        it('Should throw NotFoundException when company is not found', async () => {
+            jest.spyOn(companiesService, 'findById').mockRejectedValue(new NotFoundException('Company not found'));
+            await expect(controller.getSubscriptionInfo(-1, fakeUser.id)).rejects.toThrow(NotFoundException);
         });
     });
 });
