@@ -115,11 +115,31 @@ export class EventsRepository {
         return events.map((event) => EventsRepository.transformEventData(event));
     }
 
-    async update(id: number, event: Partial<Event>): Promise<Event> {
-        return this.db.event.update({
+    async update(id: number, event: Partial<Event>): Promise<EventWithRelations> {
+        const updatedEvent = await this.db.event.update({
             where: { id },
             data: event as Prisma.EventUpdateInput,
+            include: {
+                themesRelation: {
+                    include: { theme: true },
+                },
+                company: {
+                    select: {
+                        id: true,
+                        title: true,
+                        logoName: true,
+                    },
+                },
+                format: {
+                    select: {
+                        id: true,
+                        title: true,
+                    },
+                },
+            },
         });
+
+        return EventsRepository.transformEventData(updatedEvent);
     }
 
     async delete(id: number): Promise<void> {
