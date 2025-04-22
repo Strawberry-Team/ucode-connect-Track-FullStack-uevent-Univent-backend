@@ -34,7 +34,7 @@ model User {
   eventAttendees     EventAttendee[]     @relation(map: "event_attendees_user_id_fk")
   orders             Order[]             @relation(map: "orders_user_id_fk")
   subscriptions      Subscription[]      @relation(map: "subscriptions_user_id_fk")
-  // notifications  Notification[]
+  notifications      Notification[]      @relation(map: "notifications_user_id_fk")
 
   @@map("users")
 }
@@ -66,6 +66,7 @@ model Company {
   events        Event[]        @relation(map: "events_company_id_fk")
   news          News[]         @relation(map: "news_company_id_fk")
   subscriptions Subscription[] @relation(map: "subscriptions_company_id_fk")
+  notifications Notification[] @relation(map: "notifications_company_id_fk")
 
   @@index([ownerId], map: "companies_owner_id_fk")
   @@map("companies")
@@ -119,6 +120,7 @@ model Event {
   tickets        Ticket[]             @relation(map: "tickets_event_id_fk")
   promoCodes     PromoCode[]          @relation(map: "promo_codes_event_id_fk")
   subscriptions  Subscription[]       @relation(map: "subscriptions_event_id_fk")
+  notifications  Notification[]       @relation(map: "notifications_event_id_fk")
 
   @@index([companyId], map: "events_company_id_fk")
   @@index([formatId], map: "events_format_id_fk")
@@ -258,25 +260,29 @@ model Subscription {
   @@map("subscriptions")
 }
 
-// // Notifications model
-// model Notification {
-//   id         Int        @id @default(autoincrement())
-//   userId     Int        @map("user_id")
-//   title      String     @db.VarChar(100)
-//   content    String     @db.VarChar(100)
-//   relatedId  Int        @map("related_id")
-//   sourceType SourceType @map("source_type")
-//   readAt     DateTime?  @map("read_at")
-//   hiddenAt   DateTime?  @map("hidden_at")
-//   createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
-//   updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-//
-//   // Relations
-//   users User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "notifications_user_id_fk")
-//
-//   @@index([userId], map: "notifications_user_id_fk")
-//   @@map("notifications")
-// }
+// Notifications model
+model Notification {
+  id         Int        @id @default(autoincrement())
+  userId     Int        @map("user_id")
+  title      String     @db.VarChar(100)
+  content    String     @db.VarChar(100)
+  eventId    Int?       @map("event_id")
+  companyId  Int?       @map("company_id")
+  readAt     DateTime?  @map("read_at")
+  hiddenAt   DateTime?  @map("hidden_at")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "notifications_user_id_fk")
+  event Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull, map: "notifications_event_id_fk")
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull, map: "notifications_company_id_fk")
+
+  @@index([userId], map: "notifications_user_id_fk")
+  @@index([eventId], map: "notifications_event_id_fk")
+  @@index([companyId], map: "notifications_company_id_fk")
+  @@map("notifications")
+}
 
 model News {
   id          Int      @id @default(autoincrement())
@@ -335,9 +341,3 @@ enum PaymentStatus {
 enum PaymentMethod {
   STRIPE @map("stripe")
 }
-
-//
-// enum SourceType {
-//   EVENT   @map("event")
-//   COMPANY @map("company")
-// }

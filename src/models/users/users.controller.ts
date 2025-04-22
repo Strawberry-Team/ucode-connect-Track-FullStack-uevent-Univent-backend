@@ -38,7 +38,8 @@ import {Order} from "../orders/entities/order.entity";
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { SubscriptionWithCompanies, SubscriptionWithEvents } from '../subscriptions/entities/subscription.entity';
 import {OrdersService} from "../orders/orders.service";
-
+import { NotificationsService } from '../notifications/notifications.service';
+import { Notification } from '../notifications/entities/notification.entity';
 // TODO create get user events route
 @Controller('users')
 @ApiTags('Users')
@@ -48,6 +49,7 @@ export class UsersController {
         private readonly usersService: UsersService,
         private readonly subscriptionsService: SubscriptionsService,
         private readonly ordersService: OrdersService,
+        private readonly notificationsService: NotificationsService,
     ) {}
 
     @UseGuards(JwtAuthGuard)
@@ -669,5 +671,69 @@ export class UsersController {
             throw new NotFoundException('User not found');
         }
         return await this.ordersService.findOrdersWithDetailsByUserId(id);
+    }
+
+    @Get(':id/notifications')
+    @UseGuards(AccountOwnerGuard)
+    @ApiOperation({ summary: 'Get user notifications' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'User identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: Notification,
+        isArray: true,
+        description: 'Successfully retrieved user notifications',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                }
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You can only access your own account',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                }
+            },
+        },
+    })
+
+    async getNotifications(@Param('id') id: number): Promise<Notification[]> {
+        return this.notificationsService.findAll(id);
     }
 }
