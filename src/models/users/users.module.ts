@@ -14,13 +14,14 @@ import { CompaniesService } from '../companies/companies.service';
 import { HashingService } from '../../common/services/hashing.service';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import {OrdersModule} from "../orders/orders.module";
-
+import { NotificationsModule } from '../notifications/notifications.module';
 @Module({
     imports: [EmailModule,
               GoogleModule,
               forwardRef(() => OrdersModule),
               forwardRef(() => CompaniesModule),
-              forwardRef(() => SubscriptionsModule)
+              forwardRef(() => SubscriptionsModule),
+              forwardRef(() => NotificationsModule)
     ],
     controllers: [UsersController],
     providers: [

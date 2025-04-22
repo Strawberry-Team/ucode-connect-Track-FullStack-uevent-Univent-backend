@@ -13,15 +13,6 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user notifications' })
-  @ApiResponse({ status: 200, description: 'Returns user notifications', type: [Notification] })
-  async getNotifications(@UserId() userId: number): Promise<Notification[]> {
-    return this.notificationsService.findAll(userId);
-  }
-
   @Patch(':id')
   @UseGuards(JwtAuthGuard, NotificationOwnerGuard)
   @ApiBearerAuth()
