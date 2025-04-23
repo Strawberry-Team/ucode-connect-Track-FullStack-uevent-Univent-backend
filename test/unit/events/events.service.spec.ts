@@ -7,6 +7,7 @@ import { NotFoundException } from '@nestjs/common';
 import { CreateEventDto } from '../../../src/models/events/dto/create-event.dto';
 import { AttendeeVisibility, EventStatus } from '@prisma/client';
 import { generateFakeBasicEvent, generateFakeEventWithRelations, generateFakeCreateEventDto } from '../../fake-data/fake-events';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 // TODO: Додати тести для перевірки бізнес-логіки, наприклад:
 // - Перевірка зміни статусу події при різних умовах
@@ -24,6 +25,7 @@ import { generateFakeBasicEvent, generateFakeEventWithRelations, generateFakeCre
 describe('EventsService', () => {
     let service: EventsService;
     let repository: EventsRepository;
+    let eventEmitter: EventEmitter2;
 
     // Мок даних, які повертає репозиторій (з системними полями)
     const mockRepositoryEvent: Event = generateFakeBasicEvent();
@@ -52,12 +54,18 @@ describe('EventsService', () => {
                         findAll: jest.fn().mockResolvedValue([mockRepositoryEventWithRelations]),
                     },
                 },
-                // TODO: Додати моки для інших залежностей сервісу, якщо вони є
+                {
+                    provide: EventEmitter2,
+                    useValue: {
+                        emit: jest.fn(),
+                    },
+                },
             ],
         }).compile();
 
         service = module.get<EventsService>(EventsService);
         repository = module.get<EventsRepository>(EventsRepository);
+        eventEmitter = module.get<EventEmitter2>(EventEmitter2);
     });
 
     afterEach(() => {

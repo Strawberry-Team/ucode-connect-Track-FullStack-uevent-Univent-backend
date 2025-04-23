@@ -10,6 +10,7 @@ import { generateFakeTicket } from '../../fake-data/fake-tickets';
 import { plainToInstance } from 'class-transformer';
 import { SERIALIZATION_GROUPS } from '../../../src/models/tickets/entities/ticket.entity';
 import {EventsRepository} from "../../../src/models/events/events.repository";
+import { Prisma } from '@prisma/client';
 
 describe('TicketsService', () => {
     let service: TicketsService;
@@ -100,8 +101,9 @@ describe('TicketsService', () => {
 
     describe('Find All Tickets', () => {
         it('Should return a list of Tickets with total count', async () => {
+            // Arrange
             const fakeTickets: Ticket[] = [fakeTicket];
-            const serializedTickets = plainToInstance(Ticket, fakeTickets, {
+            const serializedTickets: Ticket[] = plainToInstance(Ticket, fakeTickets, {
                 groups: SERIALIZATION_GROUPS.BASIC,
             });
 
@@ -115,10 +117,42 @@ describe('TicketsService', () => {
                 title: fakeTicket.title,
                 status: fakeTicket.status,
             };
+
+            // Act
             const result = await service.findAllTickets(params);
 
-            expect(repository.findAll).toHaveBeenCalledWith(params);
-            expect(repository.count).toHaveBeenCalledWith(params);
+            // Assert
+            expect(repository.findAll).toHaveBeenCalledWith(params, undefined);
+            expect(repository.count).toHaveBeenCalledWith(params, undefined);
+            expect(result).toEqual({
+                items: serializedTickets,
+                total: fakeTickets.length,
+            });
+        });
+
+        it('Should handle transaction parameter correctly', async () => {
+            // Arrange
+            const fakeTickets: Ticket[] = [fakeTicket];
+            const serializedTickets: Ticket[] = plainToInstance(Ticket, fakeTickets, {
+                groups: SERIALIZATION_GROUPS.BASIC,
+            });
+            const mockTx = {} as Prisma.TransactionClient;
+
+            jest.spyOn(repository, 'findAll').mockResolvedValue(fakeTickets);
+            jest.spyOn(repository, 'count').mockResolvedValue(fakeTickets.length);
+
+            const params = {
+                eventId: fakeTicket.eventId,
+                title: fakeTicket.title,
+                status: fakeTicket.status,
+            };
+
+            // Act
+            const result = await service.findAllTickets(params, mockTx);
+
+            // Assert
+            expect(repository.findAll).toHaveBeenCalledWith(params, mockTx);
+            expect(repository.count).toHaveBeenCalledWith(params, mockTx);
             expect(result).toEqual({
                 items: serializedTickets,
                 total: fakeTickets.length,

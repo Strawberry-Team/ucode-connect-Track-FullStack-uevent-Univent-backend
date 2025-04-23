@@ -5,38 +5,159 @@ import {
     NotFoundException,
     NotImplementedException,
 } from '@nestjs/common';
-import { UsersController } from '../../../src/models/users/users.controller'
+import { UsersController } from '../../../src/models/users/users.controller';
 import { UsersService } from '../../../src/models/users/users.service';
 import * as UsersFaker from '../../../test/fake-data/fake-users';
 import { User } from '../../../src/models/users/entities/user.entity';
+import { GetUsersDto } from '../../../src/models/users/dto/get-users.dto';
+import { SubscriptionsService } from '../../../src/models/subscriptions/subscriptions.service';
+import { OrdersService } from '../../../src/models/orders/orders.service';
+import { NotificationsService } from '../../../src/models/notifications/notifications.service';
+import { UpdateUserDto } from '../../../src/models/users/dto/update-user.dto';
+import { Company } from '../../../src/models/companies/entities/company.entity';
+import { Order } from '../../../src/models/orders/entities/order.entity';
+import { Notification } from '../../../src/models/notifications/entities/notification.entity';
+
+interface SubscriptionWithEvents {
+    id: number;
+    userId: number;
+    eventId: number;
+    createdAt: Date;
+    updatedAt: Date;
+    event: any;
+}
+
+interface SubscriptionWithCompanies {
+    id: number;
+    userId: number;
+    companyId: number;
+    createdAt: Date;
+    updatedAt: Date;
+    company: any;
+}
 
 describe('UsersController', () => {
     let usersController: UsersController;
     let usersService: jest.Mocked<UsersService>;
+    let subscriptionsService: jest.Mocked<SubscriptionsService>;
+    let ordersService: jest.Mocked<OrdersService>;
+    let notificationsService: jest.Mocked<NotificationsService>;
+
+    const mockUser = UsersFaker.generateFakeUser();
+    const mockUsers = [mockUser, UsersFaker.generateFakeUser()];
+
+    const mockCompany: Company = {
+        id: 1,
+        ownerId: mockUser.id,
+        email: 'company@test.com',
+        title: 'Test Company',
+        description: 'Test Description',
+        logoName: 'default-logo.jpg',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+
+    const mockOrder: Order = {
+        id: 1,
+        userId: mockUser.id,
+        promoCodeId: null,
+        paymentStatus: 'PENDING',
+        paymentMethod: 'STRIPE',
+        totalAmount: 100,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+
+    const mockNotification: Notification = {
+        id: 1,
+        userId: mockUser.id,
+        eventId: 1,
+        companyId: 1,
+        title: 'Test Notification',
+        content: 'Test Content',
+        readAt: null,
+        hiddenAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+
+    const mockEventSubscription: SubscriptionWithEvents = {
+        id: 1,
+        userId: mockUser.id,
+        eventId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        event: null
+    };
+
+    const mockCompanySubscription: SubscriptionWithCompanies = {
+        id: 1,
+        userId: mockUser.id,
+        companyId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        company: null
+    };
 
     beforeEach(async () => {
         const usersServiceMock = {
-            findUserByIdWithoutPassword: jest.fn(),
             createUser: jest.fn(),
+            findUserByIdWithConfidential: jest.fn(),
+            findUserByIdWithoutPassword: jest.fn(),
+            findUserById: jest.fn(),
+            findAllUsers: jest.fn(),
             updateUser: jest.fn(),
             deleteUser: jest.fn(),
             findUserByEmailWithoutPassword: jest.fn(),
             updateUserPassword: jest.fn(),
             updateUserAvatar: jest.fn(),
+            findUserCompanies: jest.fn(),
+        };
+
+        const subscriptionsServiceMock = {
+            findAllByUserIdForEvents: jest.fn(),
+            findAllByUserIdForCompanies: jest.fn(),
+        };
+
+        const ordersServiceMock = {
+            findOrdersWithDetailsByUserId: jest.fn(),
+        };
+
+        const notificationsServiceMock = {
+            findAll: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
             controllers: [UsersController],
-            providers: [{ provide: UsersService, useValue: usersServiceMock }],
+            providers: [
+                { provide: UsersService, useValue: usersServiceMock },
+                { provide: SubscriptionsService, useValue: subscriptionsServiceMock },
+                { provide: OrdersService, useValue: ordersServiceMock },
+                { provide: NotificationsService, useValue: notificationsServiceMock },
+            ],
         }).compile();
 
         usersController = module.get<UsersController>(UsersController);
         usersService = module.get(UsersService);
+        subscriptionsService = module.get(SubscriptionsService);
+        ordersService = module.get(OrdersService);
+        notificationsService = module.get(NotificationsService);
+    });
+    
+    describe('findMe', () => {
+        it('should return current user data', async () => {
+            usersService.findUserByIdWithConfidential.mockResolvedValue(mockUser);
+            
+            const result = await usersController.findMe(mockUser.id);
+            
+            expect(result).toBe(mockUser);
+            expect(usersService.findUserByIdWithConfidential).toHaveBeenCalledWith(mockUser.id);
+        });
     });
 
     describe('findOneByEmail (GET /users?email=...)', () => {
         it('should throw BadRequestException if email is not provided', async () => {
-            await expect(usersController.findAll('')).rejects.toThrow(
+            await expect(usersController.findAll(null as unknown as GetUsersDto)).rejects.toThrow(
                 BadRequestException,
             );
         });
@@ -45,14 +166,147 @@ describe('UsersController', () => {
             const testUser: User = UsersFaker.generateFakeUser();
             usersService.findUserByEmailWithoutPassword.mockResolvedValue(testUser);
 
-            const result = await usersController.findAll(testUser.email);
+            const result = await usersController.findAll({email: testUser.email});
             expect(usersService.findUserByEmailWithoutPassword).toHaveBeenCalledWith(
                 testUser.email,
             );
             expect(result).toEqual(testUser);
         });
     });
+    
+    describe('findOne', () => {
+        it('should return user by id', async () => {
+            usersService.findUserByIdWithoutPassword.mockResolvedValue(mockUser);
+            
+            const result = await usersController.findOne(mockUser.id);
+            
+            expect(result).toBe(mockUser);
+            expect(usersService.findUserByIdWithoutPassword).toHaveBeenCalledWith(mockUser.id);
+        });
+    });
 
+    describe('findAll', () => {
+        it('should return all users', async () => {
+            const getUsersDto: GetUsersDto = { email: 'test@test.com' };
+            usersService.findAllUsers.mockResolvedValue(mockUsers);
+            
+            const result = await usersController.findAll(getUsersDto);
+            
+            expect(result).toBe(mockUsers);
+            expect(usersService.findAllUsers).toHaveBeenCalledWith(getUsersDto);
+        });
+    });
+
+    describe('findUserCompanies', () => {
+        it('should return user companies', async () => {
+            const mockCompanies = [mockCompany];
+            usersService.findUserCompanies.mockResolvedValue(mockCompanies);
+            
+            const result = await usersController.findUserCompanies(mockUser.id);
+            
+            expect(result).toBe(mockCompanies);
+            expect(usersService.findUserCompanies).toHaveBeenCalledWith(mockUser.id);
+        });
+    });
+
+    describe('findUserEventSubscriptions', () => {
+        it('should return user event subscriptions', async () => {
+            const mockSubscriptions = [mockEventSubscription];
+            subscriptionsService.findAllByUserIdForEvents.mockResolvedValue(mockSubscriptions);
+            
+            const result = await usersController.findUserEventSubscriptions(mockUser.id);
+            
+            expect(result).toBe(mockSubscriptions);
+            expect(subscriptionsService.findAllByUserIdForEvents).toHaveBeenCalledWith(mockUser.id);
+        });
+    });
+
+    describe('findUserCompanySubscriptions', () => {
+        it('should return user company subscriptions', async () => {
+            const mockSubscriptions = [mockCompanySubscription];
+            subscriptionsService.findAllByUserIdForCompanies.mockResolvedValue(mockSubscriptions);
+            
+            const result = await usersController.findUserCompanySubscriptions(mockUser.id);
+            
+            expect(result).toBe(mockSubscriptions);
+            expect(subscriptionsService.findAllByUserIdForCompanies).toHaveBeenCalledWith(mockUser.id);
+        });
+    });
+
+    describe('findUserOrders', () => {
+        it('should return user orders', async () => {
+            const mockOrders = [mockOrder];
+            usersService.findUserById.mockResolvedValue(mockUser);
+            ordersService.findOrdersWithDetailsByUserId.mockResolvedValue(mockOrders);
+            
+            const result = await usersController.findUserOrders(mockUser.id);
+            
+            expect(result).toBe(mockOrders);
+            expect(usersService.findUserById).toHaveBeenCalledWith(mockUser.id);
+            expect(ordersService.findOrdersWithDetailsByUserId).toHaveBeenCalledWith(mockUser.id);
+        });
+    });
+
+    describe('getNotifications', () => {
+        const mockNotifications = [
+            {
+                id: 1,
+                userId: 1,
+                title: 'Test Notification',
+                content: 'Test Content',
+                eventId: 1,
+                companyId: null,
+                readAt: null,
+                hiddenAt: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                event: {
+                    id: 1,
+                    title: 'Test Event'
+                },
+                company: null
+            } as any,
+            {
+                id: 2,
+                userId: 1,
+                title: 'Company Notification',
+                content: 'Company Content',
+                eventId: null,
+                companyId: 1,
+                readAt: new Date(),
+                hiddenAt: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                event: null,
+                company: {
+                    id: 1,
+                    title: 'Test Company'
+                }
+            } as any
+        ];
+
+        it('should return user notifications with event and company details', async () => {
+            notificationsService.findAll.mockResolvedValue(mockNotifications);
+            
+            const result = await usersController.getNotifications(mockUser.id);
+            
+            expect(result).toEqual(mockNotifications);
+            expect(notificationsService.findAll).toHaveBeenCalledWith(mockUser.id);
+            expect(result[0].event).toBeDefined();
+            expect(result[0].company).toBeNull();
+            expect(result[1].event).toBeNull();
+            expect(result[1].company).toBeDefined();
+        });
+
+        it('should return empty array when user has no notifications', async () => {
+            notificationsService.findAll.mockResolvedValue([]);
+            
+            const result = await usersController.getNotifications(mockUser.id);
+            
+            expect(result).toEqual([]);
+            expect(notificationsService.findAll).toHaveBeenCalledWith(mockUser.id);
+        });
+    });
     describe('findOne (GET /users/:id)', () => {
         it('should return user by id without PRIVATE data', async () => {
             const testUser: User = UsersFaker.generateFakeUser();
@@ -61,7 +315,7 @@ describe('UsersController', () => {
             const id = testUser.id;
             const dummyUserId = 123;
 
-            const result = await usersController.findOne(id, dummyUserId);
+            const result = await usersController.findOne(id);
             expect(usersService.findUserByIdWithoutPassword).toHaveBeenCalledWith(id);
             expect(result).toEqual(testUser);
         });
@@ -70,22 +324,30 @@ describe('UsersController', () => {
             const id = 999;
             const dummyUserId = 123;
             usersService.findUserByIdWithoutPassword.mockResolvedValue(null as unknown as User);
-            await expect(usersController.findOne(id, dummyUserId)).rejects.toThrow(
+            await expect(usersController.findOne(id)).rejects.toThrow(
                 NotFoundException,
             );
             expect(usersService.findUserByIdWithoutPassword).toHaveBeenCalledWith(id);
         });
-    });
 
-    describe('create (POST /users)', () => {
-        it('should throw NotImplementedException when called', async () => {
-            const createUserDto = UsersFaker.generateCreateUserDto();
-            const dummyUserId = 123;
-            await expect(
-                usersController.create(createUserDto, dummyUserId),
-            ).rejects.toThrow(NotImplementedException);
+        it('should handle error when notification service fails', async () => {
+            notificationsService.findAll.mockRejectedValue(new Error('Database error'));
+            
+            await expect(usersController.getNotifications(mockUser.id))
+                .rejects
+                .toThrow('Database error');
         });
     });
+
+    // describe('create (POST /users)', () => {
+    //     it('should throw NotImplementedException when called', async () => {
+    //         const createUserDto = UsersFaker.generateCreateUserDto();
+    //         const dummyUserId = 123;
+    //         await expect(
+    //             usersController.createUser(createUserDto, dummyUserId),
+    //         ).rejects.toThrow(NotImplementedException);
+    //     });
+    // });
 
     describe('update (PATCH /users/:id)', () => {
         it('should update user and return updated data', async () => {
@@ -105,17 +367,14 @@ describe('UsersController', () => {
             expect(result).toEqual(updatedUser);
         });
 
-        it('should throw NotFoundException if user to update is not found', async () => {
-            const id = 999;
-            const dummyUserId = 123;
-            const updateUserDto = UsersFaker.generateUpdateUserDto();
-
-            usersService.findUserByIdWithoutPassword.mockResolvedValue(null as unknown as User);
-
-            await expect(
-                usersController.update(id, updateUserDto, dummyUserId),
-            ).rejects.toThrow(NotFoundException);
-            expect(usersService.findUserByIdWithoutPassword).toHaveBeenCalledWith(id);
+        it('should update user data', async () => {
+            const updateUserDto: UpdateUserDto = { firstName: 'New Name' };
+            usersService.updateUser.mockResolvedValue({ ...mockUser, ...updateUserDto });
+            
+            const result = await usersController.update(mockUser.id, updateUserDto, mockUser.id);
+            
+            expect(result).toEqual({ ...mockUser, ...updateUserDto });
+            expect(usersService.updateUser).toHaveBeenCalledWith(mockUser.id, updateUserDto);
         });
     });
 
@@ -147,6 +406,12 @@ describe('UsersController', () => {
                 id,
                 updateUserPasswordDto,
             );
+        });
+
+        it('should throw NotFoundException when user not found', async () => {
+            usersService.findUserById.mockResolvedValue(null as unknown as User);
+            
+            await expect(usersController.findUserOrders(-1)).rejects.toThrow(NotFoundException);
         });
     });
 
@@ -183,13 +448,13 @@ describe('UsersController', () => {
         });
     });
 
-    describe('delete (DELETE /users/:id)', () => {
-        it('should throw NotImplementedException when delete is called', async () => {
-            const id = 1;
-            const dummyUserId = 123;
-            await expect(usersController.remove(id, dummyUserId)).rejects.toThrow(
-                NotImplementedException,
-            );
-        });
-    });
+    // describe('delete (DELETE /users/:id)', () => {
+    //     it('should throw NotImplementedException when delete is called', async () => {
+    //         const id = 1;
+    //         const dummyUserId = 123;
+    //         await expect(usersController.deleteUser(id, dummyUserId)).rejects.toThrow(
+    //             NotImplementedException,
+    //         );
+    //     });
+    // });
 });

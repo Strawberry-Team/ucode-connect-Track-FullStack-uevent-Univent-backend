@@ -1,6 +1,6 @@
 // test/unit/orders/orders.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Prisma, TicketStatus } from '@prisma/client';
 import { OrdersService } from '../../../src/models/orders/orders.service';
 import { OrdersRepository } from '../../../src/models/orders/orders.repository';
@@ -14,6 +14,7 @@ import {
     generateFakeTicket,
     generateFakeDbOrder
 } from '../../fake-data/fake-orders';
+import { convertDecimalsToNumbers } from 'src/common/utils/convert-decimal-to-number.utils';
 
 describe('OrdersService', () => {
     let service: OrdersService;
@@ -21,6 +22,7 @@ describe('OrdersService', () => {
     let orderItemsRepository: OrderItemsRepository;
     let ticketsService: TicketsService;
     let db: DatabaseService;
+    let consoleErrorSpy: jest.SpyInstance;
 
     const mockCreateOrderDto = generateFakeCreateOrderDto();
     const mockOrder = generateFakeOrder({}, true);
@@ -44,6 +46,9 @@ describe('OrdersService', () => {
     };
 
     beforeEach(async () => {
+        // Мокаємо console.error перед кожним тестом
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 OrdersService,
@@ -51,6 +56,8 @@ describe('OrdersService', () => {
                     provide: OrdersRepository,
                     useValue: {
                         create: jest.fn().mockResolvedValue(mockOrder),
+                        findById: jest.fn().mockResolvedValue(mockOrder),
+                        findAllWithDetailsByUserId: jest.fn().mockResolvedValue([mockOrder]),
                     },
                 },
                 {
@@ -62,14 +69,34 @@ describe('OrdersService', () => {
                 {
                     provide: TicketsService,
                     useValue: {
-                        findAllTickets: jest.fn(),
-                        reserveTickets: jest.fn(),
+                        findAllTickets: jest.fn().mockResolvedValue({
+                            items: mockTickets,
+                            total: mockTickets.length,
+                        }),
+                        reserveTickets: jest.fn().mockResolvedValue({
+                            count: mockTickets.length,
+                        }),
                     },
                 },
                 {
                     provide: DatabaseService,
                     useValue: {
-                        $transaction: jest.fn((callback) => callback(mockTransaction)),
+                        $transaction: jest.fn(async (callback) => {
+                            const txClient = {
+                                order: {
+                                    create: jest.fn().mockResolvedValue(mockOrder),
+                                    findUnique: jest.fn().mockResolvedValue(mockOrder),
+                                },
+                                orderItem: {
+                                    createMany: jest.fn().mockResolvedValue({ count: mockTickets.length }),
+                                },
+                                ticket: {
+                                    findMany: jest.fn().mockResolvedValue(mockTickets),
+                                    updateMany: jest.fn().mockResolvedValue({ count: mockTickets.length }),
+                                },
+                            };
+                            return callback(txClient);
+                        }),
                     },
                 },
             ],
@@ -84,27 +111,29 @@ describe('OrdersService', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+        // Відновлюємо оригінальну реалізацію console.error
+        consoleErrorSpy.mockRestore();
     });
 
     describe('create', () => {
         const userId = 1;
 
-        beforeEach(() => {
-            // Reset transaction mock to success state
-            (db.$transaction as jest.Mock).mockImplementation((callback) => callback(mockTransaction));
+        // beforeEach(() => {
+        //     // Reset transaction mock to success state
+        //     (db.$transaction as jest.Mock).mockImplementation((callback) => callback(mockTransaction));
 
-            // Setup ticketsService mocks
-            (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
-                items: mockTickets,
-                total: mockTickets.length,
-            });
+        //     // Setup ticketsService mocks
+        //     (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
+        //         items: mockTickets,
+        //         total: mockTickets.length,
+        //     });
 
-            (ticketsService.reserveTickets as jest.Mock).mockResolvedValue({
-                count: mockTickets.length,
-            });
-        });
+        //     (ticketsService.reserveTickets as jest.Mock).mockResolvedValue({
+        //         count: mockTickets.length,
+        //     });
+        // });
 
-        it('should create orders successfully with valid data', async () => {
+        it('should create order successfully with valid data', async () => {
             const result = await service.create(mockCreateOrderDto, userId);
 
             // Check if the result matches expected orders
@@ -136,8 +165,8 @@ describe('OrdersService', () => {
 
         it('should throw BadRequestException when not enough tickets available', async () => {
             // Make ticketsService return fewer tickets than requested
-            (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
-                items: [mockTickets[0]], // Only one ticket
+            jest.spyOn(ticketsService, 'findAllTickets').mockResolvedValueOnce({
+                items: [mockTickets[0]],
                 total: 1,
             });
 
@@ -151,26 +180,24 @@ describe('OrdersService', () => {
 
         it('should throw BadRequestException when no tickets are selected', async () => {
             // Make ticketsService return empty array
-            (ticketsService.findAllTickets as jest.Mock).mockResolvedValue({
+            jest.spyOn(ticketsService, 'findAllTickets').mockResolvedValueOnce({
                 items: [],
                 total: 0,
             });
 
-            await expect(async () => {
-                await service.create(mockCreateOrderDto, userId);
-            }).rejects.toThrow(BadRequestException);
+            await expect(service.create(mockCreateOrderDto, userId))
+                .rejects
+                .toThrow(BadRequestException);
         });
 
         it('should throw InternalServerErrorException when ticket reservation fails', async () => {
             // Setup reservation to fail (fewer tickets updated than expected)
-            (ticketsService.reserveTickets as jest.Mock).mockResolvedValue({
-                count: 1, // Only 1 ticket reserved but we have 2
+            jest.spyOn(ticketsService, 'reserveTickets').mockResolvedValueOnce({
+                count: 1,
             });
-
-            await expect(async () => {
-                await service.create(mockCreateOrderDto, userId);
-            }).rejects.toThrow(InternalServerErrorException);
-
+            await expect(service.create(mockCreateOrderDto, userId))
+                .rejects
+                .toThrow(new InternalServerErrorException('Failed to create orders due to an internal error.'));
             expect(ticketsService.findAllTickets).toHaveBeenCalled();
             expect(ticketsService.reserveTickets).toHaveBeenCalled();
         });
@@ -208,24 +235,20 @@ describe('OrdersService', () => {
 
         it('should handle database transaction failures gracefully', async () => {
             // Make the transaction throw an error
-            (db.$transaction as jest.Mock).mockImplementation(() => {
-                throw new Error('DB error');
-            });
+            (db.$transaction as jest.Mock).mockRejectedValueOnce(new Error('DB error'));
 
-            await expect(async () => {
-                await service.create(mockCreateOrderDto, userId);
-            }).rejects.toThrow(InternalServerErrorException);
+            await expect(service.create(mockCreateOrderDto, userId))
+                .rejects
+                .toThrow(new InternalServerErrorException('Failed to create orders due to an internal error.'));
         });
 
         it('should pass through BadRequestException from transaction', async () => {
             // Make the transaction throw a specific error
-            (db.$transaction as jest.Mock).mockImplementation(() => {
-                throw new BadRequestException('Specific validation error');
-            });
+            (db.$transaction as jest.Mock).mockRejectedValueOnce(new BadRequestException('Specific validation error'));
 
-            await expect(async () => {
-                await service.create(mockCreateOrderDto, userId);
-            }).rejects.toThrow(BadRequestException);
+            await expect(service.create(mockCreateOrderDto, userId))
+                .rejects
+                .toThrow(BadRequestException);
         });
 
         it('should correctly process multiple ticket types in one orders', async () => {
@@ -272,6 +295,62 @@ describe('OrdersService', () => {
                 [1, 2, 3], // All three ticket IDs
                 expect.anything()
             );
+        });
+
+        it('should handle transaction failures gracefully', async () => {
+            // Make the transaction throw an error
+            (db.$transaction as jest.Mock).mockRejectedValueOnce(new Error('DB error'));
+
+            await expect(service.create(mockCreateOrderDto, userId))
+                .rejects
+                .toThrow(new InternalServerErrorException('Failed to create orders due to an internal error.'));
+
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Order creation transaction failed:', expect.any(Error));
+        });
+
+    });
+
+    describe('getOrder', () => {
+        const mockDbOrderWithNumbers = convertDecimalsToNumbers(mockDbOrder);
+        
+        it('should return order by its id', async () => {
+            jest.spyOn(ordersRepository, 'findById').mockResolvedValueOnce(mockDbOrderWithNumbers);
+
+            const result = await service.getOrder(mockDbOrderWithNumbers.id, mockDbOrderWithNumbers.userId);
+
+            expect(result).toEqual(mockDbOrderWithNumbers);
+            expect(ordersRepository.findById).toHaveBeenCalledWith(mockDbOrderWithNumbers.id);
+        });
+
+        it('should throw NotFoundException when order not found', async () => {     
+            jest.spyOn(ordersRepository, 'findById').mockResolvedValueOnce(null);
+
+            await expect(service.getOrder(-1, mockDbOrderWithNumbers.userId))
+                .rejects
+                .toThrow(new NotFoundException('Order with id -1 not found'));
+                
+            expect(ordersRepository.findById).toHaveBeenCalledWith(-1);
+        });
+    });
+
+    describe('findOrdersWithDetailsByUserId', () => {
+        const mockDbOrderWithNumbers = convertDecimalsToNumbers(mockDbOrder);
+        it('should return all orders with details for user', async () => {
+            jest.spyOn(ordersRepository, 'findAllWithDetailsByUserId').mockResolvedValueOnce([mockDbOrderWithNumbers]);
+
+            const result = await service.findOrdersWithDetailsByUserId(mockDbOrderWithNumbers.userId);
+
+            expect(result).toEqual([mockDbOrderWithNumbers]);
+            expect(ordersRepository.findAllWithDetailsByUserId).toHaveBeenCalledWith(mockDbOrderWithNumbers.userId);
+        });
+
+        it('should throw NotFoundException when order not found', async () => {
+            jest.spyOn(ordersRepository, 'findAllWithDetailsByUserId').mockResolvedValueOnce([]);
+
+            const result = await service.findOrdersWithDetailsByUserId(mockDbOrderWithNumbers.userId);
+
+            expect(result).toEqual([]);
+            expect(ordersRepository.findAllWithDetailsByUserId).toHaveBeenCalledWith(mockDbOrderWithNumbers.userId);
         });
     });
 });
