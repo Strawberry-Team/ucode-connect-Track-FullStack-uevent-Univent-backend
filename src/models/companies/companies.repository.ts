@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { Company } from './entities/company.entity';
 import { DatabaseService } from '../../db/database.service';
 import { CompanyIncludeOptions } from './interfaces/company-include-options.interface';
+import { GetCompaniesDto } from './dto/get-companies.dto';
 
 @Injectable()
 export class CompaniesRepository {
@@ -50,10 +51,42 @@ export class CompaniesRepository {
         });
     }
 
-    async findAll(include: CompanyIncludeOptions = {}): Promise<Company[]> {
-        return this.db.company.findMany({
-            include,
-        });
+    async findAll(
+        query?: GetCompaniesDto,
+        include: CompanyIncludeOptions = {}
+    ): Promise<{ items: Company[]; count: number; total: number; }> {
+        const { 
+            email, 
+            title, 
+            description, 
+            skip = 0, 
+            take = 10 
+        } = query || {};
+
+        const where: Prisma.CompanyWhereInput = {
+            ...(email && { email: { contains: email } }),
+            ...(title && { title: { contains: title } }),
+            ...(description && { description: { contains: description } }),
+        };
+
+        const [items, total] = await Promise.all([
+            this.db.company.findMany({
+                where,
+                include,
+                orderBy: {
+                    title: 'asc',
+                },
+                skip,
+                take,
+            }),
+            this.db.company.count({ where })
+        ]);
+
+        return {
+            items,
+            count: items.length,
+            total,
+        };
     }
 
     async findById(

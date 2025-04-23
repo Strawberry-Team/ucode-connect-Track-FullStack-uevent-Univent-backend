@@ -46,6 +46,8 @@ import { EventWithRelations } from '../events/entities/event.entity';
 import { SubscriptionInfoDto } from '../subscriptions/dto/subscription-info.dto';
 import { EntityType } from '../subscriptions/dto/create-subscription.dto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { GetCompaniesDto } from './dto/get-companies.dto';
+import { News } from '../news/entities/news.entity';
 
 
 @Controller('companies')
@@ -142,7 +144,7 @@ export class CompaniesController {
             },
         },
     })
-    async create(@Body() dto: CreateCompanyDto, @UserId() userId: number) {
+    async create(@Body() dto: CreateCompanyDto, @UserId() userId: number): Promise<Company> {
         return await this.companyService.create(dto, userId);
     }
 
@@ -268,20 +270,45 @@ export class CompaniesController {
         @Param('id') id: number,
         @Body() dto: CreateNewsDto,
         @UserId() userId: number,
-    ) {
+    ): Promise<News> {
         return await this.newsService.create(dto, userId, id, undefined);
     }
 
     @Get()
     @Public()
-    @ApiOperation({ summary: 'Get all companies data' })
+    @ApiOperation({ summary: 'Get all companies' })
+    @ApiQuery({
+        name: 'query',
+        type: GetCompaniesDto,
+        required: false,
+        description: 'Query parameters for filtering companies',
+    })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'List of companies',
-        type: [Company],
+        description: 'Successfully retrieved companies sorted by title',
+        schema: {
+            type: 'object',
+            properties: {
+                items: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Company' }
+                },
+                count: {
+                    type: 'number',
+                    description: 'Number of companies in current page',
+                    example: 1
+                },
+                total: {
+                    type: 'number',
+                    description: 'Total number of companies matching the filter',
+                    example: 10
+                },
+            }
+        }
     })
-    async findAll() {
-        return await this.companyService.findAll();
+    async findAll(@Query() query?: GetCompaniesDto): 
+    Promise<{ items: Company[]; count: number; total: number; }>{
+        return await this.companyService.findAll(query);
     }
 
     @Get(':id')
@@ -323,7 +350,7 @@ export class CompaniesController {
             },
         },
     })
-    async findOne(@Param('id') id: number) {
+    async findOne(@Param('id') id: number): Promise<Company> {
         return await this.companyService.findById(id);
     }
 
@@ -345,7 +372,7 @@ export class CompaniesController {
             items: { $ref: getSchemaPath(Event) }
         }
     })
-    async findAllEvents(@Param('id') id: number) {
+    async findAllEvents(@Param('id') id: number): Promise<EventWithRelations[]> {
         return await this.eventsService.findByCompanyId(id);
     }
 
@@ -364,7 +391,7 @@ export class CompaniesController {
         description: 'List of company news',
         type: [CompanyNewsDto],
     })
-    async findAllNews(@Param('id') id: number) {
+    async findAllNews(@Param('id') id: number): Promise<News[]> {
         return await this.newsService.findByCompanyId(id);
     }
 
@@ -532,7 +559,7 @@ export class CompaniesController {
             },
         },
     })
-    async update(@Param('id') id: number, @Body() dto: UpdateCompanyDto) {
+    async update(@Param('id') id: number, @Body() dto: UpdateCompanyDto): Promise<Company> {
         return await this.companyService.update(id, dto);
     }
 
@@ -802,7 +829,7 @@ export class CompaniesController {
             },
         },
     })
-    async delete(@Param('id') id: number) {
+    async delete(@Param('id') id: number): Promise<{ message: string }> {
         return await this.companyService.delete(id);
     }
 }

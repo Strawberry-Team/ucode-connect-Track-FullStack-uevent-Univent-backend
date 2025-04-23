@@ -12,6 +12,7 @@ import { Company, SERIALIZATION_GROUPS } from './entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { EmailService } from '../../email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { GetCompaniesDto } from './dto/get-companies.dto';
 
 @Injectable()
 export class CompaniesService {
@@ -65,14 +66,17 @@ export class CompaniesService {
         });
     }
 
-    public async findAll(): Promise<Company[]> {
-        const companies = await this.companyRepository.findAll();
+    async findAll(query?: GetCompaniesDto): 
+    Promise<{ items: Company[]; count: number; total: number; }> {
+        const companies = await this.companyRepository.findAll(query);
 
-        return companies.map((company) =>
+        companies.items = companies.items.map((company) =>
             plainToInstance(Company, company, {
                 groups: SERIALIZATION_GROUPS.BASIC,
             }),
         );
+
+        return companies;
     }
 
     public async findById(id: number): Promise<Company> {

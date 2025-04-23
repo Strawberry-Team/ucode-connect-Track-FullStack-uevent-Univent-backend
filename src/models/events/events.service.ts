@@ -15,6 +15,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { GetEventsDto } from './dto/get-events.dto';
 
 @Injectable()
 export class EventsService {
@@ -53,11 +54,17 @@ export class EventsService {
         });
     }
 
-    async findAll(): Promise<EventWithRelations[]> {
-        const events = await this.eventsRepository.findAllWithTicketPrices();
-        return plainToInstance(Event, events, {
-            groups: SERIALIZATION_GROUPS.BASIC_WITH_TICKETS,
-        });
+    async findAll(query?: GetEventsDto): 
+    Promise<{ items: Event[]; count: number; total: number; }> {
+        const events = await this.eventsRepository.findAllWithTicketPrices(query);
+        
+        events.items = events.items.map((event) =>  
+            plainToInstance(Event, event, {
+                groups: SERIALIZATION_GROUPS.BASIC_WITH_TICKETS,
+            }),
+        );
+        
+        return events;
     }
 
     async findById(id: number): Promise<EventWithRelations> {

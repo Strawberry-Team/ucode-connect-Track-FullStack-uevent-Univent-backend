@@ -5,6 +5,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Event, EventWithRelations } from './entities/event.entity';
 import { Prisma, TicketStatus } from '@prisma/client';
+import { GetEventsDto } from './dto/get-events.dto';
 
 @Injectable()
 export class EventsRepository {
@@ -38,70 +39,194 @@ export class EventsRepository {
         });
     }
 
-    async findAll(): Promise<EventWithRelations[]> {
-        const events = await this.db.event.findMany({
-            include: {
-                themesRelation: {
-                    include: { theme: true },
-                },
-                company: {
-                    select: {
-                        id: true,
-                        title: true,
-                        logoName: true,
-                    },
-                },
-                format: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
-            },
-        });
+    async findAll(query?: GetEventsDto): 
+    Promise<{ items: EventWithRelations[]; count: number; total: number; }> {
+        const {
+            title,
+            description,
+            venue,
+            startedAt,
+            status,
+            companyId,
+            formatId,
+            themes,
+            minPrice,
+            maxPrice,
+            skip = 0,
+            take = 10
+        } = query || {};
 
-        return events.map((event) => EventsRepository.transformEventData(event));
+        const where: Prisma.EventWhereInput = {
+            ...(title && { title: { contains: title } }),
+            ...(description && { description: { contains: description } }),
+            ...(venue && { venue: { contains: venue } }),
+            ...(startedAt && { startedAt: { gte: new Date(startedAt) } }),
+            ...(status && { status }),
+            ...(companyId && { companyId }),
+            ...(formatId && { formatId }),
+            ...(themes && themes.length > 0 && {
+                themesRelation: {
+                    some: {
+                        themeId: {
+                            in: themes
+                        }
+                    }
+                }
+            }),
+            ...(minPrice !== undefined || maxPrice !== undefined) && {
+                tickets: {
+                    some: {
+                        AND: [
+                            { status: TicketStatus.AVAILABLE },
+                            ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
+                            ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
+                        ]
+                    }
+                }
+            }
+        };
+
+        const [items, total] = await Promise.all([
+            this.db.event.findMany({
+                where,
+                include: {
+                    themesRelation: {
+                        include: {
+                            theme: true
+                        }
+                    },
+                    company: {
+                        select: {
+                            id: true,
+                            title: true,
+                            logoName: true,
+                        },
+                    },
+                    format: {
+                        select: {
+                            id: true,
+                            title: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    startedAt: 'asc',
+                    endedAt: 'asc',
+                    title: 'asc',
+                },
+                skip,
+                take,
+            }),
+            this.db.event.count({ where }),
+        ]);
+
+        return {
+            items: items.map((event) => EventsRepository.transformEventData(event)),
+            count: items.length,
+            total,
+        };
     }
 
-    async findAllWithTicketPrices(): Promise<EventWithRelations[]> {
-        const events = await this.db.event.findMany({
-            include: {
-                themesRelation: {
-                    include: { theme: true },
-                },
-                company: {
-                    select: {
-                        id: true,
-                        title: true,
-                        logoName: true,
-                    },
-                },
-                format: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
-                tickets: {
-                    where: {
-                        status: TicketStatus.AVAILABLE,
-                    },
-                    select: {
-                        id: true,
-                        eventId: true,
-                        title: true,
-                        price: true,
-                        status: true,
-                    },
-                    distinct: ['title'],
-                    orderBy: {
-                        price: 'asc',
-                    },
-                },
-            },
-        });
+    async findAllWithTicketPrices(query?: GetEventsDto): 
+    Promise<{ items: EventWithRelations[]; count: number; total: number; }> {
+        const {
+            title,
+            description,
+            venue,
+            startedAt,
+            status,
+            companyId,
+            formatId,
+            themes,
+            minPrice,
+            maxPrice,
+            skip = 0, 
+            take = 10 
+        } = query || {};
 
-        return events.map((event) => EventsRepository.transformEventData(event));
+        const where: Prisma.EventWhereInput = {
+            ...(title && { title: { contains: title } }),
+            ...(description && { description: { contains: description } }),
+            ...(venue && { venue: { contains: venue } }),
+            ...(startedAt && { startedAt: { gte: new Date(startedAt) } }),
+            ...(status && { status }),
+            ...(companyId && { companyId }),
+            ...(formatId && { formatId }),
+            ...(themes && themes.length > 0 && {
+                themesRelation: {
+                    some: {
+                        themeId: {
+                            in: themes
+                        }
+                    }
+                }
+            }),
+            ...(minPrice !== undefined || maxPrice !== undefined) && {
+                tickets: {
+                    some: {
+                        AND: [
+                            { status: TicketStatus.AVAILABLE },
+                            ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
+                            ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
+                        ]
+                    }
+                }
+            }
+        };
+
+        const [items, total] = await Promise.all([
+            this.db.event.findMany({
+                where,
+                include: {
+                    themesRelation: {
+                        include: { theme: true },
+                    },
+                    company: {
+                        select: {
+                            id: true,
+                            title: true,
+                            logoName: true,
+                        },
+                    },
+                    format: {
+                        select: {
+                            id: true,
+                            title: true,
+                        },
+                    },
+                    tickets: {
+                        where: {
+                            status: TicketStatus.AVAILABLE,
+                            ...(minPrice !== undefined && { price: { gte: minPrice } }),
+                            ...(maxPrice !== undefined && { price: { lte: maxPrice } })
+                        },
+                        select: {
+                            id: true,
+                            eventId: true,
+                            title: true,
+                            price: true,
+                            status: true,
+                        },
+                        distinct: ['title'],
+                        orderBy: {
+                            price: 'asc',
+                        },
+                    },
+                },
+                orderBy: {
+                    startedAt: 'asc'
+                },
+                skip,
+                take,
+            }),
+            this.db.event.count({ where }),
+        ]);
+
+        return {
+            items: items.map((event) => EventsRepository.transformEventData(event)),
+            count: items.length,
+            total,
+        };
     }
 
     async findById(id: number): Promise<EventWithRelations | null> {
