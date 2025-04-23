@@ -15,24 +15,27 @@ function generateTicketsForEvent(eventId: number, count: number) {
     const ticketTypes = [
         {
             title: SEEDS.TICKETS.TYPES.STANDARD.TITLE,
-            priceRange: {
+            price: faker.number.float({
                 min: SEEDS.TICKETS.TYPES.STANDARD.MIN_PRICE,
                 max: SEEDS.TICKETS.TYPES.STANDARD.MAX_PRICE,
-            },
+                fractionDigits: 2,
+            }),
         },
         {
             title: SEEDS.TICKETS.TYPES.VIP.TITLE,
-            priceRange: {
+            price: faker.number.float({
                 min: SEEDS.TICKETS.TYPES.VIP.MIN_PRICE,
                 max: SEEDS.TICKETS.TYPES.VIP.MAX_PRICE,
-            },
+                fractionDigits: 2,
+            }),
         },
         {
             title: SEEDS.TICKETS.TYPES.PREMIUM.TITLE,
-            priceRange: {
+            price: faker.number.float({
                 min: SEEDS.TICKETS.TYPES.PREMIUM.MIN_PRICE,
                 max: SEEDS.TICKETS.TYPES.PREMIUM.MAX_PRICE,
-            },
+                fractionDigits: 2,
+            }),
         },
     ];
 
@@ -49,11 +52,7 @@ function generateTicketsForEvent(eventId: number, count: number) {
             eventId,
             title: ticketType.title,
             number: generateTicketNumber(eventId),
-            price: faker.number.float({
-                min: ticketType.priceRange.min,
-                max: ticketType.priceRange.max,
-                fractionDigits: 2,
-            }),
+            price: ticketType.price,
             status,
         };
     });

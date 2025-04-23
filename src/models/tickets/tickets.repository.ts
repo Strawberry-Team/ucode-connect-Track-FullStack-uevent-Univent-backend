@@ -43,9 +43,6 @@ export class TicketsRepository {
                 ...(title && { title }),
             },
             take: params?.limit,
-            orderBy: {
-                createdAt: 'desc',
-            },
         });
 
         const finalResult: Ticket[] = [];
@@ -57,6 +54,40 @@ export class TicketsRepository {
         });
 
         return finalResult;
+    }
+
+    async findAllTicketTypes(params?: {
+                      eventId?: number;
+                  },
+                  tx?: Prisma.TransactionClient
+    ): Promise<{ items: { title: string; price: number; count: number }[]; total: number }> {
+        const {eventId} = params || {};
+        const prismaClient = tx || this.db;
+
+        const groupedTickets = await prismaClient.ticket.groupBy({
+            by: ['title', 'price'],
+            where: {
+                ...(eventId && { eventId }),
+                status: TicketStatus.AVAILABLE,
+            },
+            _count: {
+                _all: true,
+            },
+            orderBy: {
+                price: 'asc'
+            }
+        });
+
+        const items = groupedTickets.map(group => ({
+            title: group.title,
+            price: Number(group.price),
+            count: group._count._all
+        }));
+
+        return { 
+            items,
+            total: items.length 
+        };
     }
 
     async reserveTickets(

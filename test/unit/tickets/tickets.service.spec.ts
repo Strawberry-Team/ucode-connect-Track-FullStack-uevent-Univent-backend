@@ -6,11 +6,12 @@ import { Ticket } from '../../../src/models/tickets/entities/ticket.entity';
 import { CreateTicketDto } from '../../../src/models/tickets/dto/create-ticket.dto';
 import { UpdateTicketDto } from '../../../src/models/tickets/dto/update-ticket.dto';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { generateFakeTicket } from '../../fake-data/fake-tickets';
+import { generateFakeTicket, generateFakeTicketTypes } from '../../fake-data/fake-tickets';
 import { plainToInstance } from 'class-transformer';
 import { SERIALIZATION_GROUPS } from '../../../src/models/tickets/entities/ticket.entity';
-import {EventsRepository} from "../../../src/models/events/events.repository";
+import { EventsRepository } from "../../../src/models/events/events.repository";
 import { Prisma } from '@prisma/client';
+import { TicketTypeDto } from '../../../src/models/tickets/dto/ticket-type.dto';
 
 describe('TicketsService', () => {
     let service: TicketsService;
@@ -47,6 +48,10 @@ describe('TicketsService', () => {
                         findByNumber: jest.fn().mockResolvedValue(null),
                         update: jest.fn().mockResolvedValue(fakeUpdatedTicket),
                         delete: jest.fn().mockResolvedValue(undefined),
+                        findAllTicketTypes: jest.fn().mockResolvedValue({
+                            items: [],
+                            total: 0
+                        }),
                     },
                 },
                 {
@@ -230,6 +235,90 @@ describe('TicketsService', () => {
             await expect(service.deleteTicket(fakeTicket.id)).rejects.toThrow(
                 NotFoundException,
             );
+        });
+    });
+
+    describe('Find All Ticket Types', () => {
+        it('should return ticket types with total count', async () => {
+            // Arrange
+            const fakeTicketTypes = generateFakeTicketTypes();
+            const expectedResponse = {
+                items: fakeTicketTypes,
+                total: fakeTicketTypes.length
+            };
+
+            jest.spyOn(repository, 'findAllTicketTypes').mockResolvedValue(expectedResponse);
+
+            // Act
+            const result = await service.findAllTicketTypes({ eventId: 1 });
+
+            // Assert
+            expect(repository.findAllTicketTypes).toHaveBeenCalledWith({ eventId: 1 }, undefined);
+            expect(result).toEqual(expectedResponse);
+            expect(result.items).toHaveLength(3);
+            expect(result.total).toBe(3);
+        });
+
+        it('should handle empty ticket types', async () => {
+            // Arrange
+            const expectedResponse = {
+                items: [],
+                total: 0
+            };
+
+            jest.spyOn(repository, 'findAllTicketTypes').mockResolvedValue(expectedResponse);
+
+            // Act
+            const result = await service.findAllTicketTypes({ eventId: 1 });
+
+            // Assert
+            expect(repository.findAllTicketTypes).toHaveBeenCalledWith({ eventId: 1 }, undefined);
+            expect(result.items).toEqual([]);
+            expect(result.total).toBe(0);
+        });
+
+        it('should handle transaction parameter correctly', async () => {
+            // Arrange
+            const fakeTicketTypes = generateFakeTicketTypes();
+            const expectedResponse = {
+                items: fakeTicketTypes,
+                total: fakeTicketTypes.length
+            };
+            const mockTx = {} as Prisma.TransactionClient;
+
+            jest.spyOn(repository, 'findAllTicketTypes').mockResolvedValue(expectedResponse);
+
+            // Act
+            const result = await service.findAllTicketTypes({ eventId: 1 }, mockTx);
+
+            // Assert
+            expect(repository.findAllTicketTypes).toHaveBeenCalledWith({ eventId: 1 }, mockTx);
+            expect(result).toEqual(expectedResponse);
+        });
+
+        it('should return sorted ticket types by price', async () => {
+            // Arrange
+            const fakeTicketTypes = [
+                { title: 'Economy', price: 50, count: 100 },
+                { title: 'VIP', price: 200, count: 50 },
+                { title: 'Standard', price: 100, count: 75 },                
+            ];
+            const expectedResponse = {
+                items: fakeTicketTypes,
+                total: fakeTicketTypes.length
+            };
+
+            jest.spyOn(repository, 'findAllTicketTypes').mockResolvedValue(expectedResponse);
+
+            // Act
+            const result = await service.findAllTicketTypes({ eventId: 1 });
+
+            fakeTicketTypes.sort((a, b) => a.price - b.price);
+
+            // Assert
+            expect(result.items[0].price).toBeLessThanOrEqual(result.items[1].price);
+            expect(result.items[1].price).toBeLessThanOrEqual(result.items[2].price);
+            expect(result.items).toEqual(fakeTicketTypes);
         });
     });
 });

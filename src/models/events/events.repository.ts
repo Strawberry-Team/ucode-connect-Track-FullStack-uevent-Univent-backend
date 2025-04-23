@@ -4,7 +4,7 @@ import { DatabaseService } from '../../db/database.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Event, EventWithRelations } from './entities/event.entity';
-import { Prisma } from '@prisma/client';
+import { Prisma, TicketStatus } from '@prisma/client';
 
 @Injectable()
 export class EventsRepository {
@@ -55,6 +55,47 @@ export class EventsRepository {
                     select: {
                         id: true,
                         title: true,
+                    },
+                },
+            },
+        });
+
+        return events.map((event) => EventsRepository.transformEventData(event));
+    }
+
+    async findAllWithTicketPrices(): Promise<EventWithRelations[]> {
+        const events = await this.db.event.findMany({
+            include: {
+                themesRelation: {
+                    include: { theme: true },
+                },
+                company: {
+                    select: {
+                        id: true,
+                        title: true,
+                        logoName: true,
+                    },
+                },
+                format: {
+                    select: {
+                        id: true,
+                        title: true,
+                    },
+                },
+                tickets: {
+                    where: {
+                        status: TicketStatus.AVAILABLE,
+                    },
+                    select: {
+                        id: true,
+                        eventId: true,
+                        title: true,
+                        price: true,
+                        status: true,
+                    },
+                    distinct: ['title'],
+                    orderBy: {
+                        price: 'asc',
                     },
                 },
             },
@@ -164,6 +205,10 @@ export class EventsRepository {
                         title: relation.theme.title,
                     })) || [],
             themesRelation: undefined,
+            tickets: event.tickets?.map(ticket => ({
+                ...ticket,
+                price: ticket.price ? Number(ticket.price) : null
+            })) || undefined,
         };
     }
 }

@@ -54,9 +54,9 @@ export class EventsService {
     }
 
     async findAll(): Promise<EventWithRelations[]> {
-        const events = await this.eventsRepository.findAll();
+        const events = await this.eventsRepository.findAllWithTicketPrices();
         return plainToInstance(Event, events, {
-            groups: SERIALIZATION_GROUPS.BASIC,
+            groups: SERIALIZATION_GROUPS.BASIC_WITH_TICKETS,
         });
     }
 

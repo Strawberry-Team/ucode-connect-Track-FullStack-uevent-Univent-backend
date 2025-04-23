@@ -3,6 +3,7 @@ import {
     AttendeeVisibility,
     EventStatus,
     Event as PrismaEvent,
+    TicketStatus,
 } from '@prisma/client';
 import { Expose } from 'class-transformer';
 import { ApiProperty, PickType } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { News } from '../../news/entities/news.entity';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
+    BASIC_WITH_TICKETS: ['basic', 'tickets'],
     PRIVATE: ['basic', 'confidential'],
     SYSTEMIC: ['basic', 'confidential', 'systemic'],
 };
@@ -188,7 +190,47 @@ export class Event implements PrismaEvent {
     })
     company?: Company;
 
-    @Expose({ groups: ['systemic'] })
+    @Expose({ groups: ['systemic', 'tickets'] })
+    @ApiProperty({
+        description: 'Unique Ticket prices for Events',
+        nullable: false,
+        type: 'array',  
+        items: {
+            type: 'object',
+            nullable: true,
+            properties: {
+                id: { type: 'number', description: 'Ticket identifier', example: 1 },
+                eventId: { type: 'number', description: 'Event identifier', example: 1 },
+                title: { type: 'string', description: 'Ticket title', example: 'Standard' },
+                price: { type: 'number', description: 'Ticket price', example: 100.00 },
+                status: { type: 'enum', description: 'Ticket status', example: TicketStatus.AVAILABLE },
+            },
+            required: ['id', 'eventId', 'title', 'price', 'status'],
+        },
+        example: [
+            {
+                "id": 1,
+                "eventId": 1,
+                "title": "Standard",
+                "price": 428.05,
+                "status": "AVAILABLE"
+            },
+            {
+                "id": 2,
+                "eventId": 1,
+                "title": "VIP",
+                "price": 1106.6,
+                "status": "AVAILABLE"
+            },
+            {
+                "id": 4,
+                "eventId": 1,
+                "title": "Premium",
+                "price": 3946.19,
+                "status": "AVAILABLE"
+            }
+        ],
+    })
     tickets?: Ticket[];
 
     @Expose({ groups: ['systemic'] })

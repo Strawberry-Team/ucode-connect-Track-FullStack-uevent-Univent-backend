@@ -13,6 +13,7 @@ import {Prisma, TicketStatus} from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import {EventsRepository} from "../events/events.repository";
 import { randomBytes } from 'crypto';
+import { TicketTypeDto } from './dto/ticket-type.dto';
 
 @Injectable()
 export class TicketsService {
@@ -108,6 +109,19 @@ export class TicketsService {
         );
 
         return { items: ticketItems, total };
+    }
+
+    async findAllTicketTypes(
+        params?: {
+            eventId?: number;
+        },
+        tx?: Prisma.TransactionClient,
+    ): Promise<{ items: TicketTypeDto[]; total: number }> {
+        const { eventId } = params || {};
+
+        const result = await this.ticketsRepository.findAllTicketTypes({ eventId }, tx);
+
+        return result;
     }
 
     async findOneTicket(id: number, eventId?: number): Promise<Ticket> {

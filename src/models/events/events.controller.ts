@@ -52,6 +52,7 @@ import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import { SubscriptionInfoDto } from '../subscriptions/dto/subscription-info.dto';
 import { EntityType } from '../subscriptions/dto/create-subscription.dto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { TicketTypeDto } from '../tickets/dto/ticket-type.dto';
 
 @Controller('events')
 @ApiTags('Events')
@@ -68,7 +69,7 @@ export class EventsController {
 
     @Post()
     @ApiOperation({ summary: 'Event creation' })
-    @ApiBody({
+    @ApiBody({  
         required: true,
         type: CreateEventDto,
         description: 'Event registration data',
@@ -447,7 +448,23 @@ export class EventsController {
             properties: {
                 items: {
                     type: 'array',
-                    items: { $ref: '#/components/schemas/Ticket' },
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'number', description: 'ID of the ticket', example: 1 },
+                            eventId: { type: 'number', description: 'ID of the event', example: 1 },
+                            title: { type: 'string', description: 'Title of the ticket', example: 'Standard' },
+                            number: { type: 'string', description: 'Number of the ticket', example: 'TICKET-42-A8B1C3D7E9F0' },
+                            price: { type: 'number', description: 'Price of the ticket', example: 99.99 },
+                            status: {
+                                type: 'string',
+                                description: 'Status of the ticket',
+                                example: TicketStatus.AVAILABLE,
+                                enum: Object.values(TicketStatus),
+                            },
+                        },
+                        required: ['id', 'eventId', 'title', 'number', 'price', 'status'],
+                    },
                 },
                 total: { type: 'number', example: 10 },
             },
@@ -462,6 +479,71 @@ export class EventsController {
             eventId: id,
             ...query,
         });
+    }
+
+    @Get(':id/ticket-types')
+    @Public()
+    @ApiOperation({ summary: 'Get all ticket types for an event' })
+    @ApiParam({
+        name: 'id',
+        required: true,
+        type: Number,
+        description: 'Event identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Tickets types sorted by price ascending retrieved successfully',
+        content: {
+            'application/json': {
+                schema: {
+                    type: 'object',
+                    properties: {
+                        items: {
+                            type: 'array',
+                            items: {
+                                $ref: '#/components/schemas/TicketTypeDto'
+                            },
+                            description: 'List of ticket types'
+                        },
+                        total: {
+                            type: 'number',
+                            description: 'Total number of ticket types',
+                            example: 3
+                        }
+                    }
+                },
+                examples: {
+                    'Multiple ticket types': {
+                        value: {
+                            items: [
+                                {
+                                    title: 'Standard',
+                                    price: 49.99,
+                                    count: 50
+                                },
+                                {
+                                    title: 'VIP',
+                                    price: 99.99,
+                                    count: 100
+                                },
+                                {
+                                    title: 'Premium',
+                                    price: 149.99,
+                                    count: 75
+                                }
+                            ],
+                            total: 3
+                        }
+                    }
+                }
+            }
+        }
+    })
+    async findAllTicketTypes(
+        @Param('id') id: number,
+    ): Promise<{ items: TicketTypeDto[]; total: number }> {
+        return await this.ticketsService.findAllTicketTypes({ eventId: id });
     }
 
     @Get(':id/promo-codes')
