@@ -4,16 +4,17 @@ import { CreateOrderItemDto } from '../order-items/dto/create-order-item.dto';
 import { IsId } from '../../../common/validators/id.validator';
 import { IsEnumValue } from '../../../common/validators/enum.validator';
 import { ValidateNestedArray } from '../../../common/validators/validate-nested-array.validator';
+import {IsEnglishNameWithNumbers} from "../../../common/validators/name.validator";
 
 export class CreateOrderDto {
     @ApiPropertyOptional({
-        description: 'Promo code identifier applied to the orders',
-        type: Number,
-        example: 123,
+        description: 'Promo code applied to the orders',
+        type: String,
+        example: 'TECH2023',
         nullable: true,
     })
-    @IsId(true, true)
-    promoCodeId?: number | null;
+    @IsEnglishNameWithNumbers(true, true, 5, 30)
+    promoCode?: string | null;
 
     @ApiProperty({
         description: 'Payment method for the orders',

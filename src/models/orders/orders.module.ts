@@ -7,10 +7,12 @@ import {CompaniesModule} from "../companies/companies.module";
 import {OrdersRepository} from "./orders.repository";
 import {DatabaseModule} from "../../db/database.module";
 import {UsersModule} from "../users/users.module";
+import {PromoCodesModule} from "../promo-codes/promo-codes.module";
 
 @Module({
     imports: [TicketsModule,
               DatabaseModule,
+              PromoCodesModule,
               forwardRef(() => UsersModule),
               forwardRef(() => OrderItemsModule)],
     controllers: [OrdersController],

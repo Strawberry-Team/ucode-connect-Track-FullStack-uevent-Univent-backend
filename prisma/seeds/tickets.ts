@@ -3,14 +3,12 @@ import { faker } from '@faker-js/faker';
 import { TicketStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { SEEDS } from './seed-constants';
+import {randomBytes} from "crypto";
 
 function generateTicketNumber(eventId: number): string {
-    const timestamp = new Date()
-        .toISOString()
-        .replace(/[-:]/g, '')
-        .replace(/\..+/, '');
-    const uniqueId = uuidv4().split('-')[0];
-    return `${SEEDS.TICKETS.NUMBER_PREFIX}-${eventId}-${timestamp}-${uniqueId}`;
+    const randomPart = randomBytes(6).toString('hex').toUpperCase();
+
+    return `${SEEDS.TICKETS.NUMBER_PREFIX}-${eventId}-${randomPart}`;
 }
 
 function generateTicketsForEvent(eventId: number, count: number) {

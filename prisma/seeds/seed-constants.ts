@@ -125,7 +125,7 @@ export const SEEDS = {
         PAYMENT_METHOD_WEIGHTS: {
             STRIPE: 70
         },
-        DISCOUNT_PROBABILITY: 0.3,
+        DISCOUNT_PROBABILITY: 0.5,
         ITEMS: {
             MIN_PER_ORDER: 1,
             MAX_PER_ORDER: 5,

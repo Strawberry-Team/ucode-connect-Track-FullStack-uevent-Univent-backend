@@ -6,6 +6,7 @@ import {
 import {Expose, Type} from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OrderItem } from '../order-items/entities/order-item.entity';
+import {PromoCodeInfoDto} from "../dto/promo-code-info.dto";
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
@@ -74,6 +75,15 @@ export class Order implements OrderWithNumberTotalAmount {
     })
     @Type(() => OrderItem)
     items?: OrderItem[];
+
+    @Expose({ groups: ['basic'] })
+    @ApiPropertyOptional({
+        description: 'Applied promo code details',
+        type: () => PromoCodeInfoDto,
+        nullable: true,
+    })
+    @Type(() => PromoCodeInfoDto)
+    promoCode?: PromoCodeInfoDto | null;
 
     @ApiProperty({
         description: 'Creation date',

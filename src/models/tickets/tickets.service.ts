@@ -12,6 +12,7 @@ import { SERIALIZATION_GROUPS, Ticket } from './entities/ticket.entity';
 import {Prisma, TicketStatus} from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import {EventsRepository} from "../events/events.repository";
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class TicketsService {
@@ -164,8 +165,9 @@ export class TicketsService {
     }
 
     generateTicketNumber(eventId: number): string {
-        //TODO: Then decide how to properly generate the yicket number
-        return `TICKET-${eventId}-${new Date().getTime()}`;
+        const randomPart = randomBytes(6).toString('hex').toUpperCase();
+
+        return `TICKET-${eventId}-${randomPart}`;
     }
 
     async reserveTickets(ticketIdsToReserve: number[], tx: Prisma.TransactionClient){

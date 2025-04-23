@@ -11,7 +11,7 @@ import { HashingPromoCodesService } from './hashing-promo-codes.service';
 import { plainToInstance } from 'class-transformer';
 import {
     PromoCode,
-    PromoCodeWithBasic,
+    PromoCodeWithBasic, PromoCodeWithConfidential,
     SERIALIZATION_GROUPS,
 } from './entities/promo-code.entity';
 import { ValidatePromoCodeDto } from './dto/validate-promo-code.dto';
@@ -66,9 +66,10 @@ export class PromoCodesService {
     }
 
     async validatePromoCode(
-        dto: ValidatePromoCodeDto
+        dto: ValidatePromoCodeDto,
+        isWithConfidential: boolean = false
     ): Promise<{
-        promoCode: PromoCodeWithBasic;
+        promoCode: PromoCodeWithBasic | PromoCodeWithConfidential;
     }> {
         const allCodes = await this.promoCodesRepository.findAllByEventId(dto.eventId);
 
@@ -84,15 +85,26 @@ export class PromoCodesService {
             throw new NotFoundException('Promo code not found for this event');
         }
 
-        const result = {
-            promoCode: plainToInstance(PromoCode, matchingPromoCode, {
-                groups: SERIALIZATION_GROUPS.BASIC,
-            }),
-        };
-
         if (!matchingPromoCode.isActive) {
             throw new UnprocessableEntityException("Promo code is not active");
             // throw new ImATeapotException("Promo code is not active");
+        }
+
+        let result: any;
+
+        if (isWithConfidential) {
+            result = {
+                promoCode: plainToInstance(PromoCode, matchingPromoCode, {
+                    groups: SERIALIZATION_GROUPS.CONFIDENTIAL,
+                }),
+            };
+        }
+        else {
+            result = {
+                promoCode: plainToInstance(PromoCode, matchingPromoCode, {
+                    groups: SERIALIZATION_GROUPS.BASIC,
+                }),
+            };
         }
 
         return result;

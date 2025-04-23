@@ -4,7 +4,6 @@ import { DatabaseService } from '../../db/database.service';
 import { Order, PaymentStatus, Prisma } from '@prisma/client';
 import { CreateOrderDto } from './dto/create-order.dto';
 
-
 @Injectable()
 export class OrdersRepository {
     constructor(private readonly db: DatabaseService) {}
@@ -13,6 +12,7 @@ export class OrdersRepository {
         createOrderDto: CreateOrderDto & {
             userId: number;
             totalAmount: Prisma.Decimal;
+            promoCodeId?: number;
         },
         tx?: Prisma.TransactionClient,
     ): Promise<Prisma.OrderGetPayload<{ include: { orderItems: true } }>> {
@@ -30,27 +30,51 @@ export class OrdersRepository {
         });
     }
 
-    async findById(id: number, tx?: Prisma.TransactionClient,): Promise<Prisma.OrderGetPayload<{
-        include: { orderItems: true };
+    async findById(
+        id: number,
+        tx?: Prisma.TransactionClient,
+    ): Promise<Prisma.OrderGetPayload<{
+        include: { orderItems: true; promoCode: {
+                select: {
+                    discountPercent: true,
+                },
+            },
+        };
     }> | null> {
         const prismaClient = tx || this.db;
 
         return prismaClient.order.findUnique({
             where: { id },
-            include: { orderItems: true },
+            include: {
+                orderItems: true,
+                promoCode: {
+                    select: {
+                        discountPercent: true,
+                    },
+                },
+            },
         });
     }
 
-    async findAllWithDetailsByUserId(userId: number): Promise<Partial<Order>[]> {
+    async findAllWithDetailsByUserId(
+        userId: number,
+    ): Promise<Partial<Order>[]> {
         return this.db.order.findMany({
             where: { userId },
             select: {
                 id: true,
                 totalAmount: true,
                 paymentStatus: true,
-                //TODO: promocode percent
                 paymentMethod: true,
                 createdAt: true,
+                promoCode: {
+                    select: {
+                        id: false,
+                        title: false,
+                        code: false,
+                        discountPercent: true,
+                    },
+                },
                 orderItems: {
                     select: {
                         id: true,
@@ -71,12 +95,12 @@ export class OrdersRepository {
                                         endedAt: true,
                                         venue: false,
                                         posterName: true,
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
             orderBy: { createdAt: 'desc' },
         });
@@ -121,7 +145,7 @@ export class OrdersRepository {
         return this.db.order.findMany({
             orderBy: {
                 createdAt: 'desc',
-            }
-        })
+            },
+        });
     }
 }

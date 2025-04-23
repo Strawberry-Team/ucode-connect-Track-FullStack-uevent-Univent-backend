@@ -3,7 +3,7 @@ import {
     PromoCode as PrismaPromoCode,
 } from '@prisma/client';
 import { Expose } from 'class-transformer';
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import {ApiProperty, OmitType, PickType} from '@nestjs/swagger';
 
 type PromoCodeWithDiscountPercent = Omit<PrismaPromoCode, 'discountPercent'> & {
     discountPercent: number;
@@ -82,4 +82,6 @@ export class PromoCode implements PromoCodeWithDiscountPercent {
 }
 
 export class PromoCodeWithBasic extends PickType(PromoCode, ['discountPercent']) {}
+
+export class PromoCodeWithConfidential extends OmitType(PromoCode, ['code', 'updatedAt']) {}
 
