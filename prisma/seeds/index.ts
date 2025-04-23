@@ -31,9 +31,10 @@ import { OrdersRepository } from '../../src/models/orders/orders.repository';
 import { OrderItemsRepository } from '../../src/models/orders/order-items/order-items.repository';
 import { OrdersService } from '../../src/models/orders/orders.service';
 import { TicketsService } from '../../src/models/tickets/tickets.service';
-import { seedOrders } from './orders';
+import { initialOrders } from './orders';
 import { SubscriptionsRepository } from '../../src/models/subscriptions/subscriptions.repository';
 import { initialSubscriptions } from './subscriptions';
+import {PromoCodesService} from "../../src/models/promo-codes/promo-codes.service";
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 
@@ -57,6 +58,7 @@ class Seeder {
         private readonly newsRepository: NewsRepository,
         private readonly eventAttendeesRepository: EventAttendeesRepository,
         private readonly promoCodesRepository: PromoCodesRepository,
+        private readonly promoCodesService: PromoCodesService,
         private readonly hashingPromoCodesService: HashingPromoCodesService,
         private readonly ordersService: OrdersService,
         private readonly subscriptionsRepository: SubscriptionsRepository,
@@ -158,8 +160,7 @@ class Seeder {
 
 
     async seedOrders() {
-        await seedOrders(this.databaseService, this.ordersService);
-
+        await initialOrders(this.databaseService, this.ordersService, this.promoCodesService);
     }
 
     async seedSubscriptions() {
@@ -193,6 +194,8 @@ async function start() {
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);
         const promoCodesRepository = new PromoCodesRepository(dbService);
+        const eventsService = new EventsService(eventsRepository, new EventEmitter2());
+        const promoCodesService = new PromoCodesService(promoCodesRepository, hashingPromoCodesService, eventsService);
         const ordersRepository = new OrdersRepository(dbService);
         const orderItemsRepository = new OrderItemsRepository(dbService);
         const eventAttendeesRepository = new EventAttendeesRepository(dbService);
@@ -209,11 +212,12 @@ async function start() {
             new EventFormatsService(new EventFormatsRepository(dbService)),
             new EventThemesService(new EventThemesRepository(dbService)),
             companiesRepository,
-            new EventsService(eventsRepository, new EventEmitter2()),
+            eventsService,
             ticketsRepository,
             newsRepository,
             eventAttendeesRepository,
             promoCodesRepository,
+            promoCodesService,
             hashingPromoCodesService,
             new OrdersService(
                 ordersRepository,
@@ -222,6 +226,7 @@ async function start() {
                     new TicketsRepository(dbService),
                     new EventsRepository(dbService),
                 ),
+                promoCodesService,
                 dbService,
             ),
             subscriptionsRepository,

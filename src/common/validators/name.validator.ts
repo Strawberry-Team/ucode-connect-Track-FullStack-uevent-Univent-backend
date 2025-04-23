@@ -49,7 +49,7 @@ export function IsEnglishNameWithNumbers(
     maxLength: number = 100
 ) {
     const baseDecorators = [
-        Matches(/^[a-zA-Z0-9-]+$/, {
+        Matches(/^[a-zA-Z0-9_-]+$/, {
             message: 'Value can only contain English letters, numbers, and hyphens'
         }),
         Length(minLength, maxLength)

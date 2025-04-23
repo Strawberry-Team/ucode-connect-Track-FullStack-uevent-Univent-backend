@@ -4,10 +4,12 @@ import { PaymentMethod, TicketStatus } from '@prisma/client';
 import { SEEDS } from './seed-constants';
 import { CreateOrderDto } from '../../src/models/orders/dto/create-order.dto';
 import { CreateOrderItemDto } from '../../src/models/orders/order-items/dto/create-order-item.dto';
+import {PromoCodesService} from "../../src/models/promo-codes/promo-codes.service";
 
-export async function seedOrders(db: any, ordersService: any) {
+export async function initialOrders(db: any, ordersService: any, promoCodesService: PromoCodesService) {
     for (let i = 0; i < SEEDS.ORDERS.TOTAL; i++) {
-        const userId = faker.number.int({ min: 1, max: SEEDS.USERS.TOTAL });
+        let userId: number = i == 0 ? 2 : faker.number.int({ min: 1, max: SEEDS.USERS.TOTAL });
+
         const eventId = faker.number.int({ min: 1, max: SEEDS.EVENTS.TOTAL });
 
         const availableTickets = await db.ticket.findMany({
@@ -45,14 +47,22 @@ export async function seedOrders(db: any, ordersService: any) {
 
         if (items.length === 0) continue;
 
-        const promoCodeId = faker.helpers.maybe(
-            () => faker.number.int({ min: 1, max: SEEDS.PROMO_CODES.CODES.length }),
-            { probability: SEEDS.ORDERS.DISCOUNT_PROBABILITY }
+        let promoCode = faker.helpers.maybe(
+            () => faker.helpers.arrayElement(SEEDS.PROMO_CODES.CODES),
+            { probability: i == 2 ? 1 : SEEDS.ORDERS.DISCOUNT_PROBABILITY },
         );
 
+        if (promoCode){
+            promoCode = promoCode + `_EVENT${eventId}`
+            const res = await promoCodesService.isValidPromoCode({eventId, code: promoCode});
+            if(!res){
+
+                promoCode = undefined;
+            }
+        }
         const orderDto: CreateOrderDto = {
             eventId,
-            promoCodeId,
+            ...(promoCode && { promoCode }),
             paymentMethod: PaymentMethod.STRIPE,
             items,
         };

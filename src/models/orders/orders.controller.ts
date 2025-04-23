@@ -11,7 +11,7 @@ import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { UserId } from '../../common/decorators/user.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('orders')
+@ApiTags('Orders')
 @UseGuards(JwtAuthGuard)
 @Controller('orders')
 export class OrdersController {

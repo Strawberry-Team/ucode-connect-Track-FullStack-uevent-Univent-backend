@@ -16,6 +16,7 @@ import { Prisma, TicketStatus } from '@prisma/client';
 import {Ticket} from "../tickets/entities/ticket.entity";
 import {DatabaseService} from "../../db/database.service";
 import {convertDecimalsToNumbers} from "../../common/utils/convert-decimal-to-number.utils";
+import {PromoCodesService} from "../promo-codes/promo-codes.service";
 
 @Injectable()
 export class OrdersService {
@@ -23,11 +24,12 @@ export class OrdersService {
         private readonly ordersRepository: OrdersRepository,
         private readonly orderItemsRepository: OrderItemsRepository,
         private readonly ticketsService: TicketsService,
-        private readonly db: DatabaseService
+        private readonly promoCodesService: PromoCodesService,
+        private readonly db: DatabaseService,
     ) {}
 
     async create(dto: CreateOrderDto, userId: number): Promise<Order> {
-        const { eventId, promoCodeId, paymentMethod, items } = dto;
+        const { eventId, promoCode, paymentMethod, items } = dto;
 
         try {
             const createdOrderData = await this.db.$transaction(
@@ -35,6 +37,9 @@ export class OrdersService {
                     const selectedTickets: Ticket[] = [];
                     const ticketIdsToReserve: number[] = [];
                     let totalAmount = new Prisma.Decimal(0);
+                    let discountMultiplier: Prisma.Decimal = Prisma.Decimal(1);
+                    let foundPromoCode;
+                    let promoCodeId: number | undefined;
 
                     for (const item of items) {
                         const availableTickets = await this.ticketsService.findAllTickets(
@@ -72,27 +77,50 @@ export class OrdersService {
                         );
                     }
 
+                    if(promoCode) {
+                        foundPromoCode = await this.promoCodesService.validatePromoCode({eventId, code: promoCode}, true)
+
+                        const promoCodeDiscountPercent: number = foundPromoCode.promoCode.discountPercent;
+
+                         discountMultiplier = new Prisma.Decimal(1).minus(
+                            new Prisma.Decimal(promoCodeDiscountPercent)
+                        );
+                         promoCodeId = foundPromoCode.promoCode.id;
+                    }
+
+                    const orderItemsData: Array<{
+                        ticketId: number;
+                        initialPrice: Prisma.Decimal;
+                        finalPrice: Prisma.Decimal;
+                    }> = [];
+
+
                     selectedTickets.forEach((ticket) => {
-                        // TODO: Apply the promo code logic here
-                        const finalPrice = new Prisma.Decimal(ticket.price);
+                        const initialPrice: Prisma.Decimal = new Prisma.Decimal(ticket.price);
+                        const finalPrice = initialPrice.mul(discountMultiplier).toDecimalPlaces(2);
+
                         totalAmount = totalAmount.add(finalPrice);
+                        orderItemsData.push({
+                            ticketId: ticket.id,
+                            initialPrice: initialPrice,
+                            finalPrice: finalPrice,
+                        })
                     });
 
                     const orderData = {
                         ...dto,
+                        ...(promoCodeId && { promoCodeId }),
                         userId,
                         totalAmount,
                     };
                     const createdOrder = await this.ordersRepository.create(orderData, tx);
 
-                    const orderItemsInputData = selectedTickets.map((ticket) => {
-                        // TODO: Apply promo code logic for finalPrice
-                        const finalPrice = new Prisma.Decimal(ticket.price);
+                    const orderItemsInputData = orderItemsData.map((ticket) => {
                         return {
                             orderId: createdOrder.id,
-                            ticketId: ticket.id,
-                            initialPrice: new Prisma.Decimal(ticket.price),
-                            finalPrice: finalPrice,
+                            ticketId: ticket.ticketId,
+                            initialPrice: ticket.initialPrice,
+                            finalPrice: ticket.finalPrice,
                         };
                     });
 
