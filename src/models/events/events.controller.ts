@@ -428,7 +428,7 @@ export class EventsController {
                     description: 'Error message',
                     items: {
                         type: 'string',
-                        example: `"each value in status must be one of the following values: DRAFT, PUBLISHED, SALES_STARTED, ONGOING, FINISHED, CANCELLED"`,
+                        example: 'each value in status must be one of the following values: DRAFT, PUBLISHED, SALES_STARTED, ONGOING, FINISHED, CANCELLED',
                     },
                 },
                 error: {
