@@ -12,8 +12,30 @@ export class EventFormatsRepository {
         return this.db.eventFormat.create({ data: format as any });
     }
 
-    async findAll(): Promise<Partial<EventFormat>[]> {
-        return this.db.eventFormat.findMany();
+    async findAll(): Promise<Pick<EventFormat, 'id' | 'title'>[]> {
+        const results = await this.db.eventFormat.findMany({
+            where: {
+                events: {
+                    some: {}
+                }
+            },
+            select: {
+                id: true,
+                title: true
+            },
+            orderBy: [
+                {
+                    events: {
+                        _count: 'desc'
+                    }
+                },
+                {
+                    title: 'asc'
+                }
+            ]
+        });
+
+        return results;
     }
 
     async findById(id: number): Promise<Partial<EventFormat> | null> {

@@ -8,6 +8,7 @@ import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { EntityType } from '../subscriptions/dto/create-subscription.dto';
 import { EventStatus } from '@prisma/client';
+import { GetNotificationsDto } from './dto/get-notifications.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -16,13 +17,18 @@ export class NotificationsService {
         private readonly subscriptionsService: SubscriptionsService
     ) {}
 
-    async findAll(userId: number): Promise<Notification[]> {
-        const notifications = await this.notificationsRepository.findAll(userId);
+    async findAll(userId: number, query?: GetNotificationsDto): 
+    Promise<{ items: Notification[]; count: number; total: number }> {
+        const result = await this.notificationsRepository.findAll(userId, query);
         
-        return plainToInstance(Notification, notifications, {
-            excludeExtraneousValues: true,
-            groups: ['basic'],
-        });
+        return {
+            items: plainToInstance(Notification, result.items, {
+                excludeExtraneousValues: true,
+                groups: ['basic'],
+            }),
+            count: result.count,
+            total: result.total
+        };
     }
 
     async findById(id: number): Promise<Notification | null> {

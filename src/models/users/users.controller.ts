@@ -30,6 +30,7 @@ import {
     ApiResponse,
     ApiTags,
     OmitType,
+    ApiQuery,
 } from '@nestjs/swagger';
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
@@ -40,6 +41,8 @@ import { SubscriptionWithCompanies, SubscriptionWithEvents } from '../subscripti
 import {OrdersService} from "../orders/orders.service";
 import { NotificationsService } from '../notifications/notifications.service';
 import { Notification } from '../notifications/entities/notification.entity';
+import { GetNotificationsDto } from '../notifications/dto/get-notifications.dto';
+
 // TODO create get user events route
 @Controller('users')
 @ApiTags('Users')
@@ -172,7 +175,7 @@ export class UsersController {
         },
     })
     async findAll(@Query() getUsersDto: GetUsersDto): Promise<User[]> {
-        // TODO: переписать на findOne с email/:email
+        // TODO: переписати на findOne з email/:email
         return await this.usersService.findAllUsers(getUsersDto);
     }
 
@@ -683,57 +686,39 @@ export class UsersController {
         description: 'User identifier',
         example: 1,
     })
+    @ApiQuery({
+        name: 'query',
+        type: GetNotificationsDto,
+        required: false,
+        description: 'Query parameters for filtering and pagination',
+    })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: Notification,
-        isArray: true,
-        description: 'Successfully retrieved user notifications',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
+        description: 'Successfully retrieved user notifications sorted by createdAt date descending',
         schema: {
             type: 'object',
             properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Unauthorized',
+                items: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Notification' }
                 },
-                statusCode: {
+                count: {
                     type: 'number',
-                    description: 'Error code',
-                    example: 401,
-                }
-            },
-        },
-    })
-    @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
-        description: 'Forbidden access',
-        schema: {
-            type: 'object',
-            properties: {
-                message: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'You can only access your own account',
+                    description: 'Number of notifications in current page',
+                    example: 1
                 },
-                error: {
-                    type: 'string',
-                    description: 'Error message',
-                    example: 'Forbidden',
-                },
-                statusCode: {
+                total: {
                     type: 'number',
-                    description: 'Error code',
-                    example: 403,
-                }
-            },
-        },
+                    description: 'Total number of notifications matching the filter',
+                    example: 10
+                },
+            }
+        }
     })
-
-    async getNotifications(@Param('id') id: number): Promise<Notification[]> {
-        return this.notificationsService.findAll(id);
+    async findUserNotifications(
+        @Param('id') id: number,
+        @Query() query?: GetNotificationsDto
+    ): Promise<{ items: Notification[]; count: number; total: number }> {
+        return this.notificationsService.findAll(id, query);
     }
 }

@@ -281,11 +281,11 @@ export class CompaniesController {
         name: 'query',
         type: GetCompaniesDto,
         required: false,
-        description: 'Query parameters for filtering companies',
+        description: 'Query parameters for filtering and pagination for companies',
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Successfully retrieved companies sorted by title',
+        description: 'Successfully retrieved companies sorted by title ascending',
         schema: {
             type: 'object',
             properties: {

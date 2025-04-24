@@ -288,7 +288,7 @@ describe('UsersController', () => {
         it('should return user notifications with event and company details', async () => {
             notificationsService.findAll.mockResolvedValue(mockNotifications);
             
-            const result = await usersController.getNotifications(mockUser.id);
+            const result = await usersController.findUserNotifications(mockUser.id);
             
             expect(result).toEqual(mockNotifications);
             expect(notificationsService.findAll).toHaveBeenCalledWith(mockUser.id);
@@ -301,7 +301,7 @@ describe('UsersController', () => {
         it('should return empty array when user has no notifications', async () => {
             notificationsService.findAll.mockResolvedValue([]);
             
-            const result = await usersController.getNotifications(mockUser.id);
+            const result = await usersController.findUserNotifications(mockUser.id);
             
             expect(result).toEqual([]);
             expect(notificationsService.findAll).toHaveBeenCalledWith(mockUser.id);
@@ -333,7 +333,7 @@ describe('UsersController', () => {
         it('should handle error when notification service fails', async () => {
             notificationsService.findAll.mockRejectedValue(new Error('Database error'));
             
-            await expect(usersController.getNotifications(mockUser.id))
+            await expect(usersController.findUserNotifications(mockUser.id))
                 .rejects
                 .toThrow('Database error');
         });

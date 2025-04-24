@@ -11,8 +11,30 @@ export class EventThemesRepository {
         return this.db.eventTheme.create({ data: eventTheme as any });
     }
 
-    async findAll(): Promise<EventTheme[]> {
-        return this.db.eventTheme.findMany();
+    async findAll(): Promise<Pick<EventTheme, 'id' | 'title'>[]> {
+        const results = await this.db.eventTheme.findMany({
+            where: {
+                eventsRelation: {
+                    some: {}
+                }
+            },
+            select: {
+                id: true,
+                title: true
+            },
+            orderBy: [
+                {
+                    eventsRelation: {
+                        _count: 'desc'
+                    }
+                },
+                { 
+                    title: 'asc' 
+                }
+            ]
+        });
+
+        return results;
     }
 
     async findById(id: number): Promise<EventTheme | null> {
