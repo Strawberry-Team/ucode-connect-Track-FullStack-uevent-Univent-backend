@@ -6,8 +6,8 @@ import { EventStatus } from '@prisma/client';
 import { IsName } from 'src/common/validators/name.validator';
 import { IsDescription } from 'src/common/validators/description.validator';
 import { IsISO8601Date } from 'src/common/validators/date.validator';
-import { IsEnumValue } from 'src/common/validators/enum.validator';
 import { IsId } from 'src/common/validators/id.validator';
+import { IsEnumArray } from 'src/common/validators/enum-array.validator';
 
 export class EventFilterDto {
     @IsName(true)
@@ -51,16 +51,26 @@ export class EventFilterDto {
     })
     startedAt?: Date;
 
-    @IsEnumValue(EventStatus, true)
+    @IsOptional()
+    @IsEnumArray(EventStatus)
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            return value.split(',');
+        }
+        return value;
+    })
     @ApiProperty({
         required: false,
-        description: 'Filter events by status',
-        type: 'string',
+        description: 'Filter events by status (comma-separated)',
+        type: 'array',
+        items: {
+            type: 'string',
+            enum: Object.values(EventStatus)
+        },
         nullable: true,
-        enum: EventStatus,
-        example: EventStatus.SALES_STARTED
+        example: `${EventStatus.PUBLISHED},${EventStatus.SALES_STARTED},${EventStatus.ONGOING}`
     })
-    status?: EventStatus;
+    status?: EventStatus[];
 
     @IsId(true)
     @ApiProperty({

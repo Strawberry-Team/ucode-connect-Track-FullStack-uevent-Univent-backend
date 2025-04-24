@@ -2,7 +2,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../db/database.service';
 import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
 import { Event, EventWithRelations } from './entities/event.entity';
 import { Prisma, TicketStatus } from '@prisma/client';
 import { GetEventsDto } from './dto/get-events.dto';
@@ -39,7 +38,7 @@ export class EventsRepository {
         });
     }
 
-    async findAll(query?: GetEventsDto): 
+    async findAll(query?: GetEventsDto):
     Promise<{ items: EventWithRelations[]; count: number; total: number; }> {
         const {
             title,
@@ -61,7 +60,7 @@ export class EventsRepository {
             ...(description && { description: { contains: description } }),
             ...(venue && { venue: { contains: venue } }),
             ...(startedAt && { startedAt: { gte: new Date(startedAt) } }),
-            ...(status && { status }),
+            ...(status && status.length > 0 && { status: { in: status } }),
             ...(companyId && { companyId }),
             ...(formatId && { formatId }),
             ...(themes && themes.length > 0 && {
@@ -127,7 +126,7 @@ export class EventsRepository {
         };
     }
 
-    async findAllWithTicketPrices(query?: GetEventsDto): 
+    async findAllWithTicketPrices(query?: GetEventsDto):
     Promise<{ items: EventWithRelations[]; count: number; total: number; }> {
         const {
             title,
@@ -140,8 +139,8 @@ export class EventsRepository {
             themes,
             minPrice,
             maxPrice,
-            skip = 0, 
-            take = 10 
+            skip = 0,
+            take = 10
         } = query || {};
 
         const where: Prisma.EventWhereInput = {
@@ -149,7 +148,7 @@ export class EventsRepository {
             ...(description && { description: { contains: description } }),
             ...(venue && { venue: { contains: venue } }),
             ...(startedAt && { startedAt: { gte: new Date(startedAt) } }),
-            ...(status && { status }),
+            ...(status && status.length > 0 && { status: { in: status } }),
             ...(companyId && { companyId }),
             ...(formatId && { formatId }),
             ...(themes && themes.length > 0 && {

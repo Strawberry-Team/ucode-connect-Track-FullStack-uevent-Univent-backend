@@ -12,7 +12,6 @@ import {
     UseInterceptors,
     UploadedFile,
     BadRequestException,
-    ForbiddenException,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { TicketsService } from '../tickets/tickets.service';
@@ -32,7 +31,7 @@ import {
 import { UserId } from '../../common/decorators/user.decorator';
 import { CreateTicketDto } from '../tickets/dto/create-ticket.dto';
 import { Ticket } from '../tickets/entities/ticket.entity';
-import { EventStatus, News, TicketStatus } from '@prisma/client';
+import { News, TicketStatus } from '@prisma/client';
 import { FindAllTicketsQueryDto } from '../tickets/dto/find-all-tickets-query.dto';
 import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 import { CreateNewsDto } from '../news/dto/create-news.dto';
@@ -70,7 +69,7 @@ export class EventsController {
 
     @Post()
     @ApiOperation({ summary: 'Event creation' })
-    @ApiBody({  
+    @ApiBody({
         required: true,
         type: CreateEventDto,
         description: 'Event registration data',
@@ -418,7 +417,34 @@ export class EventsController {
             }
         }
     })
-    async findAll(@Query() query: GetEventsDto): 
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Event not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'array',
+                    description: 'Error message',
+                    items: {
+                        type: 'string',
+                        example: `"each value in status must be one of the following values: DRAFT, PUBLISHED, SALES_STARTED, ONGOING, FINISHED, CANCELLED"`,
+                    },
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
+                },
+            },
+        },
+    })
+    async findAll(@Query() query: GetEventsDto):
     Promise<{ items: Event[]; count: number; total: number; }> {
         return await this.eventsService.findAll(query);
     }
