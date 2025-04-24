@@ -12,7 +12,6 @@ import {
     UseInterceptors,
     UploadedFile,
     BadRequestException,
-    ForbiddenException,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { TicketsService } from '../tickets/tickets.service';
@@ -32,7 +31,7 @@ import {
 import { UserId } from '../../common/decorators/user.decorator';
 import { CreateTicketDto } from '../tickets/dto/create-ticket.dto';
 import { Ticket } from '../tickets/entities/ticket.entity';
-import { TicketStatus } from '@prisma/client';
+import { News, TicketStatus } from '@prisma/client';
 import { FindAllTicketsQueryDto } from '../tickets/dto/find-all-tickets-query.dto';
 import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 import { CreateNewsDto } from '../news/dto/create-news.dto';
@@ -53,6 +52,7 @@ import { SubscriptionInfoDto } from '../subscriptions/dto/subscription-info.dto'
 import { EntityType } from '../subscriptions/dto/create-subscription.dto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TicketTypeDto } from '../tickets/dto/ticket-type.dto';
+import { GetEventsDto } from './dto/get-events.dto';
 
 @Controller('events')
 @ApiTags('Events')
@@ -69,7 +69,7 @@ export class EventsController {
 
     @Post()
     @ApiOperation({ summary: 'Event creation' })
-    @ApiBody({  
+    @ApiBody({
         required: true,
         type: CreateEventDto,
         description: 'Event registration data',
@@ -257,7 +257,7 @@ export class EventsController {
         @Param('id') id: number,
         @Body() dto: CreateNewsDto,
         @UserId() userId: number,
-    ) {
+    ): Promise<News> {
         return await this.newsService.create(dto, userId, undefined, id);
     }
 
@@ -387,14 +387,66 @@ export class EventsController {
 
     @Get()
     @Public()
-    @ApiOperation({ summary: 'Get all events data' })
+    @ApiOperation({ summary: 'Get all events' })
+    @ApiQuery({
+        name: 'query',
+        type: GetEventsDto,
+        required: false,
+        description: 'Query parameters for filtering events',
+    })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'List of events',
-        type: [Event],
+        description: 'Successfully retrieved events sorted by start date',
+        schema: {
+            type: 'object',
+            properties: {
+                items: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Event' }
+                },
+                count: {
+                    type: 'number',
+                    description: 'Number of events in current page',
+                    example: 1
+                },
+                total: {
+                    type: 'number',
+                    description: 'Total number of events matching the filter',
+                    example: 30
+                },
+            }
+        }
     })
-    async findAll(): Promise<Event[]> {
-        return await this.eventsService.findAll();
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Event not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'array',
+                    description: 'Error message',
+                    items: {
+                        type: 'string',
+                        example: 'each value in status must be one of the following values: DRAFT, PUBLISHED, SALES_STARTED, ONGOING, FINISHED, CANCELLED',
+                    },
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 400,
+                },
+            },
+        },
+    })
+    async findAll(@Query() query: GetEventsDto):
+    Promise<{ items: Event[]; count: number; total: number; }> {
+        return await this.eventsService.findAll(query);
     }
 
     @Get(':id/news')
@@ -412,7 +464,7 @@ export class EventsController {
         description: 'List of event news',
         type: [EventNewsDto],
     })
-    async findAllNews(@Param('id') id: number) {
+    async findAllNews(@Param('id') id: number): Promise<News[]> {
         return await this.newsService.findByEventId(id);
     }
 
@@ -698,6 +750,25 @@ export class EventsController {
             id,
             userId
         );
+    }
+
+    @Get(':id/attendees')
+    @Public()
+    @ApiOperation({ summary: 'Get event attendees' })
+    @ApiParam({
+        required: true,
+        name: 'id',
+        type: 'number',
+        description: 'Event identifier',
+        example: 1,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Event attendees successfully retrieved',
+        type: [EventAttendee],
+    })
+    async getEventAttendees(@Param('id') id: number, @UserId() userId: number | null): Promise<EventAttendee[]> {
+        return await this.eventAttendeesService.getEventAttendees(id, userId);
     }
 
     @Patch(':id')
@@ -1129,26 +1200,7 @@ export class EventsController {
             },
         },
     })
-    async delete(@Param('id') id: number) {
+    async delete(@Param('id') id: number): Promise<void> {
         return await this.eventsService.delete(id);
-    }
-
-    @Get(':id/attendees')
-    @Public()
-    @ApiOperation({ summary: 'Get event attendees' })
-    @ApiParam({
-        required: true,
-        name: 'id',
-        type: 'number',
-        description: 'Event identifier',
-        example: 1,
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Event attendees successfully retrieved',
-        type: [EventAttendee],
-    })
-    async getEventAttendees(@Param('id') id: number, @UserId() userId: number | null) {
-        return await this.eventAttendeesService.getEventAttendees(id, userId);
     }
 }
