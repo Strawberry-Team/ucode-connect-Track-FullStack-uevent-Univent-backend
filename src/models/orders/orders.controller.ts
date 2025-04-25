@@ -10,6 +10,7 @@ import { Order } from './entities/order.entity';
 import { JwtAuthGuard } from '../auth/guards/auth.guards';
 import { UserId } from '../../common/decorators/user.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {OrderDto} from "./dto/get-orders-dto";
 
 @ApiTags('Orders')
 @UseGuards(JwtAuthGuard)
@@ -34,9 +35,9 @@ export class OrdersController {
     @Get(':id')
     @ApiOperation({ summary: 'Get the order' })
     @ApiResponse({
-        status: 201,
-        description: 'Get the order ',
-        type: Order,
+        status: 200,
+        description: 'Get the order',
+        type: OrderDto,
     })
     async getOrder(
         @Param('id') id: number,

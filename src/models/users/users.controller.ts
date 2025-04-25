@@ -43,6 +43,7 @@ import {OrdersService} from "../orders/orders.service";
 import { NotificationsService } from '../notifications/notifications.service';
 import { Notification } from '../notifications/entities/notification.entity';
 import { NotificationOwnerGuard } from '../notifications/guards/notification-owner.guard';
+import {OrderDto} from "../orders/dto/get-orders-dto";
 
 // TODO create get user events route
 @Controller('users')
@@ -667,6 +668,21 @@ export class UsersController {
     }
 
     @Get(':id/orders')
+    @ApiOperation({ summary: 'Get all orders for a specific user' })
+    @ApiParam({
+        name: 'id',
+        description: 'Unique identifier of the user',
+        example: 123,
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'List of orders with details',
+        type: [OrderDto],
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'User not found',
+    })
     async findUserOrders(
         @Param('id') id: number,
     ): Promise<Order[]> {

@@ -4,6 +4,46 @@ import { DatabaseService } from '../../db/database.service';
 import { Order, PaymentStatus, Prisma } from '@prisma/client';
 import { CreateOrderDto } from './dto/create-order.dto';
 
+const orderWithDetailsSelect = {
+    id: true,
+    totalAmount: true,
+    paymentStatus: true,
+    paymentMethod: true,
+    createdAt: true,
+    promoCode: {
+        select: {
+            discountPercent: true,
+        },
+    },
+    orderItems: {
+        select: {
+            id: true,
+            finalPrice: true,
+            ticket: {
+                select: {
+                    id: true,
+                    title: true,
+                    price: true,
+                    number: true,
+                    event: {
+                        select: {
+                            id: true,
+                            title: true,
+                            startedAt: true,
+                            endedAt: true,
+                            posterName: true,
+                        },
+                    },
+                },
+            },
+        },
+    },
+} as const;
+
+type OrderWithDetails = Prisma.OrderGetPayload<{
+    select: typeof orderWithDetailsSelect;
+}>;
+
 @Injectable()
 export class OrdersRepository {
     constructor(private readonly db: DatabaseService) {}
@@ -33,75 +73,21 @@ export class OrdersRepository {
     async findById(
         id: number,
         tx?: Prisma.TransactionClient,
-    ): Promise<Prisma.OrderGetPayload<{
-        include: { orderItems: true; promoCode: {
-                select: {
-                    discountPercent: true,
-                },
-            },
-        };
-    }> | null> {
+    ): Promise<OrderWithDetails | null> {
         const prismaClient = tx || this.db;
 
         return prismaClient.order.findUnique({
             where: { id },
-            include: {
-                orderItems: true,
-                promoCode: {
-                    select: {
-                        discountPercent: true,
-                    },
-                },
-            },
+            select: orderWithDetailsSelect,
         });
     }
 
     async findAllWithDetailsByUserId(
         userId: number,
-    ): Promise<Partial<Order>[]> {
+    ): Promise<OrderWithDetails[]> {
         return this.db.order.findMany({
             where: { userId },
-            select: {
-                id: true,
-                totalAmount: true,
-                paymentStatus: true,
-                paymentMethod: true,
-                createdAt: true,
-                promoCode: {
-                    select: {
-                        id: false,
-                        title: false,
-                        code: false,
-                        discountPercent: true,
-                    },
-                },
-                orderItems: {
-                    select: {
-                        id: true,
-                        initialPrice: false,
-                        finalPrice: true,
-                        ticket: {
-                            select: {
-                                id: true,
-                                title: true,
-                                price: true,
-                                number: true,
-                                status: false,
-                                event: {
-                                    select: {
-                                        id: true,
-                                        title: true,
-                                        startedAt: true,
-                                        endedAt: true,
-                                        venue: false,
-                                        posterName: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
+            select: orderWithDetailsSelect,
             orderBy: { createdAt: 'desc' },
         });
     }
