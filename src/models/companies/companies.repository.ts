@@ -59,8 +59,8 @@ export class CompaniesRepository {
             email, 
             title, 
             description, 
-            skip = 0, 
-            take = 10 
+            skip, 
+            take 
         } = query || {};
 
         const where: Prisma.CompanyWhereInput = {

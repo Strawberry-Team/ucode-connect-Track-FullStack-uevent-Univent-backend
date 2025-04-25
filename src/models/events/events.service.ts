@@ -16,21 +16,24 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GetEventsDto } from './dto/get-events.dto';
-
+import { CompaniesRepository } from '../companies/companies.repository';
 @Injectable()
 export class EventsService {
     constructor(
         private readonly eventsRepository: EventsRepository,
-        private readonly eventEmitter: EventEmitter2
+        private readonly eventEmitter: EventEmitter2,
+        private readonly companiesRepository: CompaniesRepository,
     ) {}
 
     async create(eventDto: CreateEventDto): Promise<Event> {
         const event = await this.eventsRepository.create(eventDto);
+        const company = await this.companiesRepository.findById(event.companyId);
         
         this.eventEmitter.emit('event.created', {
             eventId: event.id,
             title: event.title,
             companyId: event.companyId,
+            companyTitle: company?.title,
             status: event.status,
         });
         
@@ -93,6 +96,9 @@ export class EventsService {
         }
         
         const oldStatus = event.status;
+        const oldStartAt = event.startedAt;
+        const oldTicketsAvailableFrom = event.ticketsAvailableFrom;
+        const oldVenue = event.venue;
 
         event = await this.eventsRepository.update(id, {
             ...eventDto,
@@ -105,6 +111,38 @@ export class EventsService {
                 companyId: event.companyId,
                 oldStatus: oldStatus,
                 newStatus: event.status,
+            });
+        }
+
+        if (eventDto.startedAt && oldStartAt.getTime() !== event.startedAt.getTime()) {
+            this.eventEmitter.emit('event.startAt.changed', {
+                eventId: event.id,
+                title: event.title,
+                companyId: event.companyId,
+                oldStartDate: oldStartAt,
+                newStartDate: event.startedAt,
+            });
+        }
+
+        if (eventDto.ticketsAvailableFrom && 
+            (!oldTicketsAvailableFrom || !event.ticketsAvailableFrom || 
+             oldTicketsAvailableFrom.getTime() !== event.ticketsAvailableFrom.getTime())) {
+            this.eventEmitter.emit('event.ticketsAvailableFrom.changed', {
+                eventId: event.id,
+                title: event.title,
+                companyId: event.companyId,
+                oldStartDate: oldTicketsAvailableFrom,
+                newStartDate: event.ticketsAvailableFrom,
+            });
+        }
+
+        if (eventDto.venue && oldVenue !== event.venue) {
+            this.eventEmitter.emit('event.venue.changed', {
+                eventId: event.id,
+                title: event.title,
+                companyId: event.companyId,
+                oldVenue: oldVenue,
+                newVenue: event.venue,
             });
         }
         

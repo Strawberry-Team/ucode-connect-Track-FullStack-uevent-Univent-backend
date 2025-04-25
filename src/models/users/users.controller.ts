@@ -31,6 +31,7 @@ import {
     ApiTags,
     OmitType,
     ApiQuery,
+    getSchemaPath,
 } from '@nestjs/swagger';
 import { GetUsersDto } from './dto/get-users.dto';
 import { Company } from '../companies/entities/company.entity';
@@ -41,7 +42,7 @@ import { SubscriptionWithCompanies, SubscriptionWithEvents } from '../subscripti
 import {OrdersService} from "../orders/orders.service";
 import { NotificationsService } from '../notifications/notifications.service';
 import { Notification } from '../notifications/entities/notification.entity';
-import { GetNotificationsDto } from '../notifications/dto/get-notifications.dto';
+import { NotificationOwnerGuard } from '../notifications/guards/notification-owner.guard';
 
 // TODO create get user events route
 @Controller('users')
@@ -686,39 +687,17 @@ export class UsersController {
         description: 'User identifier',
         example: 1,
     })
-    @ApiQuery({
-        name: 'query',
-        type: GetNotificationsDto,
-        required: false,
-        description: 'Query parameters for filtering and pagination',
-    })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Successfully retrieved user notifications sorted by createdAt date descending',
         schema: {
-            type: 'object',
-            properties: {
-                items: {
-                    type: 'array',
-                    items: { $ref: '#/components/schemas/Notification' }
-                },
-                count: {
-                    type: 'number',
-                    description: 'Number of notifications in current page',
-                    example: 1
-                },
-                total: {
-                    type: 'number',
-                    description: 'Total number of notifications matching the filter',
-                    example: 10
-                },
-            }
+            type: 'array',
+            items: { $ref: getSchemaPath(Notification) }
         }
     })
     async findUserNotifications(
         @Param('id') id: number,
-        @Query() query?: GetNotificationsDto
-    ): Promise<{ items: Notification[]; count: number; total: number }> {
-        return this.notificationsService.findAll(id, query);
+    ): Promise<Notification[]> {
+        return this.notificationsService.findAll(id);
     }
 }

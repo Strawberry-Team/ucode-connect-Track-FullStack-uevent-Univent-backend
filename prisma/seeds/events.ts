@@ -74,7 +74,7 @@ export const initialEvents = Array.from(
                 Array.from({ length: SEEDS.EVENTS.DESCRIPTION_PHRASES }, () =>
                     faker.company.catchPhrase(),
                 ).join('. ') + '.',
-            venue: `${faker.location.zipCode()}, ${faker.location.country()}, ${faker.location.city()}, '${faker.location.street()}'`,
+            venue: `${faker.location.country()}, ${faker.location.city()}, ${faker.location.street()}`,
             locationCoordinates: `${faker.location.latitude()},${faker.location.longitude()}`,
             startedAt: startDate,
             endedAt: endDate,

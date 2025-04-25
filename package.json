@@ -5,7 +5,7 @@
     "author": "",
     "private": true,
     "license": "UNLICENSED",
-    "scripts": {        
+    "scripts": {
         "docker:up": "docker-compose --env-file .env.development up -d",
         "docker:view": "docker ps -a",
         "docker:stop": "docker-compose stop",
@@ -24,7 +24,8 @@
         "start:prod": "node dist/main",
         "start:dev": "nest start --watch",
         "start:debug:dev": "nest start --debug --watch",
-
+        "refresh": "npm run setup:db; npm run migrate:refresh; npm run start:dev",
+        
         "test": "npx jest --clearCache && npx jest",
         "test:unit": "npx jest --watch --config jest-unit.config.ts",
         "test:e2e": "npx jest --watch --config jest-e2e.config.ts",
@@ -89,6 +90,7 @@
         "@types/passport-jwt": "^4.0.1",
         "@types/supertest": "^6.0.2",
         "cross-env": "^7.0.3",
+        "date-fns": "^4.1.0",
         "dotenv": "^16.4.7",
         "dotenv-cli": "^8.0.0",
         "eslint": "^9.18.0",

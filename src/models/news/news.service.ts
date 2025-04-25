@@ -58,13 +58,14 @@ export class NewsService {
             eventId: eventId,
         });
         
-        // Емітуємо подію про створення новини
         this.eventEmitter.emit('news.created', {
             newsId: news.id,
             title: news.title,
             authorId: news.authorId,
             companyId: news.companyId,
             eventId: news.eventId,
+            companyTitle: news.companyId ? (await this.companiesService.findById(news.companyId))?.title : null,
+            eventTitle: news.eventId ? (await this.eventsService.findById(news.eventId))?.title : null,
         });
 
         return plainToInstance(News, news, {

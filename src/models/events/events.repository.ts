@@ -51,8 +51,8 @@ export class EventsRepository {
             themes,
             minPrice,
             maxPrice,
-            skip = 0,
-            take = 10
+            skip,
+            take
         } = query || {};
 
         const where: Prisma.EventWhereInput = {
@@ -139,8 +139,8 @@ export class EventsRepository {
             themes,
             minPrice,
             maxPrice,
-            skip = 0,
-            take = 10
+            skip,
+            take
         } = query || {};
 
         const where: Prisma.EventWhereInput = {

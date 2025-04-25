@@ -194,7 +194,7 @@ async function start() {
         const ticketsRepository = new TicketsRepository(dbService);
         const newsRepository = new NewsRepository(dbService);
         const promoCodesRepository = new PromoCodesRepository(dbService);
-        const eventsService = new EventsService(eventsRepository, new EventEmitter2());
+        const eventsService = new EventsService(eventsRepository, new EventEmitter2(), companiesRepository);
         const promoCodesService = new PromoCodesService(promoCodesRepository, hashingPromoCodesService, eventsService);
         const ordersRepository = new OrdersRepository(dbService);
         const orderItemsRepository = new OrderItemsRepository(dbService);

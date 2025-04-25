@@ -8,6 +8,7 @@ import { EventAttendeesRepository } from './event-attendees.repository';
 import { UsersService } from 'src/models/users/users.service';
 import { EventsService } from '../events.service';
 import { AttendeeVisibility as EventAttendeeVisibility } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class EventAttendeesService {
@@ -16,6 +17,7 @@ export class EventAttendeesService {
         private readonly eventAttendeesRepository: EventAttendeesRepository,
         private readonly usersService: UsersService,
         private readonly eventsService: EventsService,
+        private readonly eventEmitter: EventEmitter2,
     ) {}
 
     async createByEventIdAndUserId(eventId: number, userId: number): Promise<EventAttendee> {
@@ -40,6 +42,13 @@ export class EventAttendeesService {
         const attendee = await this.eventAttendeesRepository.create({
             eventId,
             userId
+        });
+
+        this.eventEmitter.emit('eventAttendee.created', {
+            eventId: event.id,
+            eventTitle: event.title,
+            userId: user.id,
+            userFullName: `${user.firstName} ${user.lastName}`,
         });
 
         return plainToInstance(EventAttendee, attendee, {
