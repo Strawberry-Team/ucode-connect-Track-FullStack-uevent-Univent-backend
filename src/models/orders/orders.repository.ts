@@ -114,8 +114,11 @@ export class OrdersRepository {
     async update(
         id: number,
         data: Prisma.OrderUpdateInput,
+        tx?: Prisma.TransactionClient,
     ): Promise<Prisma.OrderGetPayload<{ include: { orderItems: true } }>> {
-        return this.db.order.update({
+        const prismaClient = tx || this.db;
+
+        return prismaClient.order.update({
             where: { id },
             data,
             include: { orderItems: true },

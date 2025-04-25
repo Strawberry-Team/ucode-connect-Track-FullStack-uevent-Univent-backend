@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
+import * as express from 'express';
 import * as csurf from 'csurf';
 import { CsrfExceptionFilter } from './common/filters/csrf-exception.filter';
 import { CsrfError } from './common/filters/csrf-exception.filter';
@@ -35,6 +36,15 @@ async function bootstrap() {
     app.useGlobalFilters(new CsrfExceptionFilter());
     app.setGlobalPrefix(globalPrefix);
     app.useStaticAssets('public');
+
+    app.use((req: any, res: any, next: any) => {
+        if (req.originalUrl === '/payments/stripe/webhook') {
+            express.raw({ type: 'application/json' })(req, res, next);
+        } else {
+            express.json()(req, res, next);
+        }
+    });
+
     app.enableCors({
         //TODO: read more about cors. about Postman.
         origin: frontendOrigin,

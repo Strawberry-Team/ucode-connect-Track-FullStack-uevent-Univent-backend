@@ -30,4 +30,16 @@ export class OrderItemsRepository {
             where: { orderId },
         });
     }
+
+    async findMany(
+        orderId: number,
+        tx?: Prisma.TransactionClient,
+    ): Promise<Prisma.OrderItemGetPayload<{ select: { ticketId: true } }>[]> {
+        const prismaClient = tx || this.db;
+
+        return prismaClient.orderItem.findMany({
+            where: { orderId },
+            select: { ticketId: true },
+        });
+    }
 }

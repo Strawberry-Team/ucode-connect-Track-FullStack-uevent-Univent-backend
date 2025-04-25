@@ -89,7 +89,8 @@ Table orders {
   "id" INT [pk, increment]
   "user_id" INT [not null]
   "promo_code_id" INT
-  "payment_status" ENUM('pending', 'paid', 'failed', 'refunded') [not null, default: 'pending']
+  "payment_intent_id" VARCHAR(255)
+  "payment_status" ENUM('pending', 'failed', 'paid', 'refunded') [not null, default: 'pending']
   "payment_method" ENUM('stripe') [not null]
   "total_amount" DECIMAL(10, 2) [not null]
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]

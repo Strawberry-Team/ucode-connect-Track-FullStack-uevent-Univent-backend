@@ -16,19 +16,12 @@ export class EventAttendeesController {
     @Patch(':id')
     @UseGuards(JwtAuthGuard, AttendeeGuard)
     @ApiOperation({ summary: 'Update event attendee' })
-    @ApiParam({ 
+    @ApiParam({
         required: true,
         name: 'id',
         type: 'number',
-        description: 'Event identifier',
-        example: 1,
-    })
-    @ApiParam({
-        required: true,
-        name: 'attendeeId',
-        type: 'number',
         description: 'Attendee identifier',
-        example: 5,
+        example: 1,
     })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -127,9 +120,9 @@ export class EventAttendeesController {
         },
     })
     async update(
-        @Param('id') id: number, 
+        @Param('id') id: number,
         @Body() dto: UpdateEventAttendeeDto
-    ) { 
+    ) {
         return await this.eventAttendeesService.update(id, dto);
     }
 }

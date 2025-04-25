@@ -12,7 +12,22 @@ interface SubscriptionSeed {
 export const initialSubscriptions = (() => {
     const allSubscriptions: SubscriptionSeed[] = [];
 
-    for (let userId = 2; userId <= SEEDS.USERS.TOTAL; userId++) {
+    const testUserEventIds = [1, 2];
+    testUserEventIds.forEach(eventId => {
+        allSubscriptions.push({
+            userId: 2,
+            entityId: eventId,
+            entityType: EntityType.EVENT,
+        });
+    });
+
+    allSubscriptions.push({
+        userId: 2,
+        entityId: 1,
+        entityType: EntityType.COMPANY,
+    });
+
+    for (let userId = 3; userId <= SEEDS.USERS.TOTAL; userId++) {
         const eventsCount = faker.number.int({
             min: SEEDS.SUBSCRIPTIONS.MIN_EVENTS_PER_USER,
             max: SEEDS.SUBSCRIPTIONS.MAX_EVENTS_PER_USER,
