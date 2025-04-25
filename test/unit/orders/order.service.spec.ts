@@ -1,6 +1,6 @@
 // test/unit/orders/orders.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { Prisma, TicketStatus } from '@prisma/client';
 import { OrdersService } from '../../../src/models/orders/orders.service';
 import { OrdersRepository } from '../../../src/models/orders/orders.repository';
@@ -15,6 +15,7 @@ import {
     generateFakeDbOrder
 } from '../../fake-data/fake-orders';
 import { convertDecimalsToNumbers } from 'src/common/utils/convert-decimal-to-number.utils';
+import { PromoCodesService } from '../../../src/models/promo-codes/promo-codes.service';
 
 describe('OrdersService', () => {
     let service: OrdersService;
@@ -23,6 +24,7 @@ describe('OrdersService', () => {
     let ticketsService: TicketsService;
     let db: DatabaseService;
     let consoleErrorSpy: jest.SpyInstance;
+    let promoCodesService: PromoCodesService;
 
     const mockCreateOrderDto = generateFakeCreateOrderDto();
     const mockOrder = generateFakeOrder({}, true);
@@ -79,6 +81,21 @@ describe('OrdersService', () => {
                     },
                 },
                 {
+                    provide: PromoCodesService,
+                    useValue: {
+                        validatePromoCode: jest.fn().mockResolvedValue({
+                            promoCode: {
+                                id: 1,
+                                eventId: 1,
+                                title: 'Test Promo',
+                                discountPercent: 0.1,
+                                isActive: true,
+                                createdAt: new Date(),
+                            },
+                        }),
+                    },
+                },
+                {
                     provide: DatabaseService,
                     useValue: {
                         $transaction: jest.fn(async (callback) => {
@@ -107,6 +124,7 @@ describe('OrdersService', () => {
         orderItemsRepository = module.get<OrderItemsRepository>(OrderItemsRepository);
         ticketsService = module.get<TicketsService>(TicketsService);
         db = module.get<DatabaseService>(DatabaseService);
+        promoCodesService = module.get<PromoCodesService>(PromoCodesService);
     });
 
     afterEach(() => {
@@ -308,6 +326,136 @@ describe('OrdersService', () => {
             expect(consoleErrorSpy).toHaveBeenCalledWith('Order creation transaction failed:', expect.any(Error));
         });
 
+        describe('promo code handling', () => {
+            it('should apply promo code discount correctly', async () => {
+                // Створюємо замовлення з промокодом
+                const orderWithPromoCode = generateFakeCreateOrderDto({
+                    promoCode: 'TEST10',
+                    items: [
+                        { ticketTitle: 'Standard Ticket', quantity: 2 },
+                    ],
+                });
+
+                // Налаштовуємо квитки з фіксованою ціною для легкої перевірки
+                const ticketsWithFixedPrice = [
+                    generateFakeTicket({ id: 1, title: 'Standard Ticket', price: 100 }),
+                    generateFakeTicket({ id: 2, title: 'Standard Ticket', price: 100 }),
+                ];
+
+                // Мокуємо відповідь сервісу промокодів
+                jest.spyOn(promoCodesService, 'validatePromoCode').mockResolvedValueOnce({
+                    promoCode: {
+                        id: 1,
+                        eventId: 1,
+                        title: 'Test Promo',
+                        discountPercent: 0.1,
+                        isActive: true,
+                        createdAt: new Date(),
+                    },
+                });
+
+                // Мокуємо повернення квитків
+                jest.spyOn(ticketsService, 'findAllTickets').mockResolvedValueOnce({
+                    items: ticketsWithFixedPrice,
+                    total: ticketsWithFixedPrice.length,
+                });
+
+                // Створюємо spy для перехоплення створення замовлення
+                const createSpy = jest.spyOn(ordersRepository, 'create');
+
+                await service.create(orderWithPromoCode, userId);
+
+                // Перевіряємо, що промокод був валідований
+                expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith({
+                    eventId: orderWithPromoCode.eventId,
+                    code: orderWithPromoCode.promoCode,
+                }, true);
+
+                // Перевіряємо, що сума була розрахована коректно зі знижкою
+                const passedTotalAmount = createSpy.mock.calls[0][0].totalAmount;
+                expect(passedTotalAmount.toString()).toBe('180'); // 200 - 10% = 180
+            });
+
+            it('should throw BadRequestException when promo code is invalid', async () => {
+                // Створюємо замовлення з промокодом
+                const orderWithInvalidPromoCode = generateFakeCreateOrderDto({
+                    promoCode: 'INVALID',
+                });
+
+                // Мокуємо відповідь сервісу промокодів з помилкою
+                jest.spyOn(promoCodesService, 'validatePromoCode').mockRejectedValueOnce(
+                    new BadRequestException('Invalid promo code'),
+                );
+
+                // Перевіряємо, що створення замовлення викидає помилку
+                await expect(service.create(orderWithInvalidPromoCode, userId))
+                    .rejects
+                    .toThrow(BadRequestException);
+
+                // Перевіряємо, що промокод був перевірений
+                expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith({
+                    eventId: orderWithInvalidPromoCode.eventId,
+                    code: orderWithInvalidPromoCode.promoCode,
+                }, true);
+            });
+
+            it('should create order without discount when no promo code provided', async () => {
+                // Створюємо замовлення без промокоду
+                const orderWithoutPromoCode = generateFakeCreateOrderDto({
+                    promoCode: null,
+                    items: [
+                        { ticketTitle: 'Standard Ticket', quantity: 2 },
+                    ],
+                });
+
+                // Налаштовуємо квитки з фіксованою ціною
+                const ticketsWithFixedPrice = [
+                    generateFakeTicket({ id: 1, title: 'Standard Ticket', price: 100 }),
+                    generateFakeTicket({ id: 2, title: 'Standard Ticket', price: 100 }),
+                ];
+
+                // Мокуємо повернення квитків
+                jest.spyOn(ticketsService, 'findAllTickets').mockResolvedValueOnce({
+                    items: ticketsWithFixedPrice,
+                    total: ticketsWithFixedPrice.length,
+                });
+
+                // Створюємо spy для перехоплення створення замовлення
+                const createSpy = jest.spyOn(ordersRepository, 'create');
+
+                await service.create(orderWithoutPromoCode, userId);
+
+                // Перевіряємо, що промокод не перевірявся
+                expect(promoCodesService.validatePromoCode).not.toHaveBeenCalled();
+
+                // Перевіряємо, що сума була розрахована без знижки
+                const passedTotalAmount = createSpy.mock.calls[0][0].totalAmount;
+                expect(passedTotalAmount.toString()).toBe('200'); // 2 * 100 = 200
+            });
+
+            it('should throw UnprocessableEntityException when promo code is inactive', async () => {
+                // Створюємо замовлення з промокодом
+                const orderWithInactivePromoCode = generateFakeCreateOrderDto({
+                    promoCode: 'INACTIVE',
+                });
+
+                // Мокуємо відповідь сервісу промокодів з помилкою для неактивного промокоду
+                jest.spyOn(promoCodesService, 'validatePromoCode').mockRejectedValueOnce(
+                    new UnprocessableEntityException('Promo code is not active')
+                );
+
+                // Перевіряємо, що створення замовлення викидає помилку
+                await expect(service.create(orderWithInactivePromoCode, userId))
+                    .rejects
+                    .toThrow(UnprocessableEntityException);
+
+                // Перевіряємо, що промокод був перевірений
+                expect(promoCodesService.validatePromoCode).toHaveBeenCalledWith({
+                    eventId: orderWithInactivePromoCode.eventId,
+                    code: orderWithInactivePromoCode.promoCode,
+                }, true);
+            });
+        });
     });
 
     describe('getOrder', () => {

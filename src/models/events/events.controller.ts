@@ -27,6 +27,7 @@ import {
     ApiResponse,
     ApiTags,
     ApiQuery,
+    getSchemaPath,
 } from '@nestjs/swagger';
 import { UserId } from '../../common/decorators/user.decorator';
 import { CreateTicketDto } from '../tickets/dto/create-ticket.dto';
@@ -402,7 +403,7 @@ export class EventsController {
             properties: {
                 items: {
                     type: 'array',
-                    items: { $ref: '#/components/schemas/Event' }
+                    items: { $ref: getSchemaPath(Event) }
                 },
                 count: {
                     type: 'number',
@@ -413,6 +414,16 @@ export class EventsController {
                     type: 'number',
                     description: 'Total number of events matching the filter',
                     example: 30
+                },
+                minPrice: {
+                    type: 'number',
+                    description: 'Minimum ticket price of filtered events',
+                    example: 210.00
+                },
+                maxPrice: {
+                    type: 'number',
+                    description: 'Maximum ticket price of filtered events',
+                    example: 4890.00
                 },
             }
         }
@@ -445,7 +456,7 @@ export class EventsController {
         },
     })
     async findAll(@Query() query: GetEventsDto):
-    Promise<{ items: Event[]; count: number; total: number; }> {
+    Promise<{ items: Event[]; count: number; total: number; minPrice: number | null; maxPrice: number | null; }> {
         return await this.eventsService.findAll(query);
     }
 

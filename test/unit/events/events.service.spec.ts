@@ -8,6 +8,7 @@ import { CreateEventDto } from '../../../src/models/events/dto/create-event.dto'
 import { AttendeeVisibility, EventStatus } from '@prisma/client';
 import { generateFakeBasicEvent, generateFakeEventWithRelations, generateFakeCreateEventDto } from '../../fake-data/fake-events';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CompaniesRepository } from '../../../src/models/companies/companies.repository';
 
 // TODO: Додати тести для перевірки бізнес-логіки, наприклад:
 // - Перевірка зміни статусу події при різних умовах
@@ -26,6 +27,7 @@ describe('EventsService', () => {
     let service: EventsService;
     let repository: EventsRepository;
     let eventEmitter: EventEmitter2;
+    let companiesRepository: CompaniesRepository;
 
     // Мок даних, які повертає репозиторій (з системними полями)
     const mockRepositoryEvent: Event = generateFakeBasicEvent();
@@ -52,6 +54,13 @@ describe('EventsService', () => {
                         update: jest.fn().mockResolvedValue(mockRepositoryEvent),
                         delete: jest.fn().mockResolvedValue(undefined),
                         findAll: jest.fn().mockResolvedValue([mockRepositoryEventWithRelations]),
+                        findAllWithTicketPrices: jest.fn().mockResolvedValue({
+                            items: [mockRepositoryEventWithRelations],
+                            count: 1,
+                            total: 1,
+                            minPrice: 100,
+                            maxPrice: 500
+                        }),
                     },
                 },
                 {
@@ -60,12 +69,19 @@ describe('EventsService', () => {
                         emit: jest.fn(),
                     },
                 },
+                {
+                    provide: CompaniesRepository,
+                    useValue: {
+                        findById: jest.fn().mockResolvedValue({ id: 1, name: 'Test Company' }),
+                    },
+                },
             ],
         }).compile();
 
         service = module.get<EventsService>(EventsService);
         repository = module.get<EventsRepository>(EventsRepository);
         eventEmitter = module.get<EventEmitter2>(EventEmitter2);
+        companiesRepository = module.get<CompaniesRepository>(CompaniesRepository);
     });
 
     afterEach(() => {
@@ -175,10 +191,19 @@ describe('EventsService', () => {
 
     describe('findAll', () => {
         it('should return events with relations and basic fields only', async () => {
+            const mockResponse = {
+                items: [mockRepositoryEventWithRelations],
+                count: 1,
+                total: 1,
+                minPrice: 100,
+                maxPrice: 500
+            };
+            jest.spyOn(repository, 'findAllWithTicketPrices').mockResolvedValue(mockResponse);
+
             const result = await service.findAll();
 
-            expect(result).toHaveLength(1);
-            const event = result[0];
+            expect(result.items).toHaveLength(1);
+            const event = result.items[0];
 
             // Перевіряємо, що системні поля відсутні
             expect(event['createdAt']).toBeUndefined();
@@ -193,13 +218,31 @@ describe('EventsService', () => {
             expect(event).toHaveProperty('id', mockRepositoryEventWithRelations.id);
             expect(event).toHaveProperty('title', mockRepositoryEventWithRelations.title);
 
-            expect(repository.findAll).toHaveBeenCalled();
+            // Перевіряємо поля пагінації та цін
+            expect(result).toHaveProperty('count', 1);
+            expect(result).toHaveProperty('total', 1);
+            expect(result).toHaveProperty('minPrice', 100);
+            expect(result).toHaveProperty('maxPrice', 500);
+
+            expect(repository.findAllWithTicketPrices).toHaveBeenCalled();
         });
 
         it('should return empty array when no events exist', async () => {
-            jest.spyOn(repository, 'findAll').mockResolvedValue([]);
+            const mockResponse = {
+                items: [],
+                count: 0,
+                total: 0,
+                minPrice: null,
+                maxPrice: null
+            };
+            jest.spyOn(repository, 'findAllWithTicketPrices').mockResolvedValue(mockResponse);
+
             const result = await service.findAll();
-            expect(result).toEqual([]);
+            expect(result.items).toHaveLength(0);
+            expect(result.count).toBe(0);
+            expect(result.total).toBe(0);
+            expect(result.minPrice).toBeNull();
+            expect(result.maxPrice).toBeNull();
         });
     });
 

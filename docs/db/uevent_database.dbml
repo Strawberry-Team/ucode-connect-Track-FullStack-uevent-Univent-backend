@@ -201,7 +201,7 @@ Table notifications {
   "id" INT [pk, increment]
   "user_id" INT [not null]
   "title" VARCHAR(100) [not null]
-  "content" VARCHAR(100) [not null]
+  "content" VARCHAR(255) [not null]
   "related_id" INT [not null]
   "source_type" ENUM('event', 'company') [not null]
   "read_at" DATETIME

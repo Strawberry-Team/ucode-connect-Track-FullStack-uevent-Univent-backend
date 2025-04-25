@@ -36,6 +36,8 @@ import { SubscriptionsRepository } from '../../src/models/subscriptions/subscrip
 import { initialSubscriptions } from './subscriptions';
 import {PromoCodesService} from "../../src/models/promo-codes/promo-codes.service";
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { NotificationsRepository } from '../../src/models/notifications/notifications.repository';
+import { createInitialNotifications } from './notifications';
 
 
 class MockCompaniesService {
@@ -62,6 +64,7 @@ class Seeder {
         private readonly hashingPromoCodesService: HashingPromoCodesService,
         private readonly ordersService: OrdersService,
         private readonly subscriptionsRepository: SubscriptionsRepository,
+        private readonly notificationsRepository: NotificationsRepository,
     ) {
     }
 
@@ -89,6 +92,8 @@ class Seeder {
         console.log('Order items were created 📋');
         await this.seedSubscriptions();
         console.log('Subscriptions were created 📢');
+        await this.seedNotifications();
+        console.log('Notifications were created 🔔');
         console.log('Seeding completed 🍹');
     }
 
@@ -173,6 +178,13 @@ class Seeder {
         }
 
     }
+
+    async seedNotifications() {
+        const notifications = await createInitialNotifications();
+        for (const notification of notifications) {
+            await this.notificationsRepository.create(notification);
+        }
+    }
 }
 
 async function start() {
@@ -200,6 +212,7 @@ async function start() {
         const orderItemsRepository = new OrderItemsRepository(dbService);
         const eventAttendeesRepository = new EventAttendeesRepository(dbService);
         const subscriptionsRepository = new SubscriptionsRepository(dbService);
+        const notificationsRepository = new NotificationsRepository(dbService);
 
         const seeder = new Seeder(
             dbService,
@@ -230,6 +243,7 @@ async function start() {
                 dbService,
             ),
             subscriptionsRepository,
+            notificationsRepository,
         );
         await seeder.start();
     } catch (e) {

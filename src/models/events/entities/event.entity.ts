@@ -212,21 +212,21 @@ export class Event implements PrismaEvent {
                 "id": 1,
                 "eventId": 1,
                 "title": "Standard",
-                "price": 428.05,
+                "price": 210.00,
                 "status": "AVAILABLE"
             },
             {
                 "id": 2,
                 "eventId": 1,
                 "title": "VIP",
-                "price": 1106.6,
+                "price": 580.00,
                 "status": "AVAILABLE"
             },
             {
                 "id": 4,
                 "eventId": 1,
                 "title": "Premium",
-                "price": 3946.19,
+                "price": 4890.00,
                 "status": "AVAILABLE"
             }
         ],

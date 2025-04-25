@@ -176,12 +176,15 @@ describe('CompaniesController', () => {
 
     describe('Find All Companies', () => {
         it('Should return all companies', async () => {
-            jest.spyOn(companiesService, 'findAll').mockResolvedValue([
-                fakeCompany,
-            ]);
+            const expectedResponse = {
+                items: [fakeCompany],
+                count: 1,
+                total: 1
+            };
+            jest.spyOn(companiesService, 'findAll').mockResolvedValue(expectedResponse);
 
             const result = await controller.findAll();
-            expect(result).toEqual([fakeCompany]);
+            expect(result).toEqual(expectedResponse);
             expect(companiesService.findAll).toHaveBeenCalled();
         });
     });

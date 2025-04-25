@@ -51,6 +51,17 @@ export class EventFilterDto {
     })
     startedAt?: Date;
 
+    @IsISO8601Date(true)
+    @Type(() => Date)
+    @ApiProperty({
+        required: false,
+        description: 'Filter events by end date',
+        type: 'string',
+        nullable: true,
+        example: '2025-05-20T00:00:00.000Z'
+    })
+    endAt?: Date;
+
     @IsOptional()
     @IsEnumArray(EventStatus)
     @Transform(({ value }) => {
@@ -82,15 +93,23 @@ export class EventFilterDto {
     })
     companyId?: number;
 
-    @IsId(true)
+    @IsArray()
+    @IsPositive({ each: true })
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            return value.split(',').map(Number);
+        }
+        return value;
+    })
     @ApiProperty({
         required: false,
-        description: 'Filter events by format identifier',
-        type: 'number',
+        description: 'Event format identifiers (comma-separated)',
         nullable: true,
-        example: 1
+        type: 'string',
+        example: '1,2,3',
     })
-    formatId?: number;
+    formats?: number[];
 
     @IsArray()
     @IsPositive({ each: true })

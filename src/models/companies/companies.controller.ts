@@ -48,6 +48,7 @@ import { EntityType } from '../subscriptions/dto/create-subscription.dto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { GetCompaniesDto } from './dto/get-companies.dto';
 import { News } from '../news/entities/news.entity';
+import { Event } from '../events/entities/event.entity';
 
 
 @Controller('companies')
@@ -372,7 +373,7 @@ export class CompaniesController {
             items: { $ref: getSchemaPath(Event) }
         }
     })
-    async findAllEvents(@Param('id') id: number): Promise<EventWithRelations[]> {
+    async findAllEvents(@Param('id') id: number): Promise<Event[]> {
         return await this.eventsService.findByCompanyId(id);
     }
 

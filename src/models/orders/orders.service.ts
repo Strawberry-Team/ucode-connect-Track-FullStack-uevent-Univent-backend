@@ -3,6 +3,7 @@ import {
     Injectable,
     NotFoundException,
     BadRequestException, InternalServerErrorException,
+    UnprocessableEntityException,
 } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { OrderItemsRepository } from './order-items/order-items.repository';
@@ -144,7 +145,9 @@ export class OrdersService {
                 groups: SERIALIZATION_GROUPS.BASIC,
             });
         } catch (error) {
-            if (error instanceof BadRequestException || error instanceof NotFoundException) {
+            if (error instanceof BadRequestException || 
+                error instanceof NotFoundException ||
+                error instanceof UnprocessableEntityException) {
                 throw error;
             }
             console.error('Order creation transaction failed:', error);

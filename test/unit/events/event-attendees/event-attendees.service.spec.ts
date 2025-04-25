@@ -9,6 +9,7 @@ import { NotFoundException } from '@nestjs/common';
 import { EventAttendee } from '../../../../src/models/events/event-attendees/entities/event-attendee.entities';
 import { AttendeeVisibility, EventStatus, User } from '@prisma/client';
 import { EventWithRelations } from '../../../../src/models/events/entities/event.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 // TODO: Створити фабрику для генерації тестових даних:
 // - Створити файл fake-event-attendees.ts
@@ -90,6 +91,12 @@ describe('EventAttendeesService', () => {
                 {
                     provide: DatabaseService,
                     useValue: {},
+                },
+                {
+                    provide: EventEmitter2,
+                    useValue: {
+                        emit: jest.fn(),
+                    },
                 },
             ],
         }).compile();

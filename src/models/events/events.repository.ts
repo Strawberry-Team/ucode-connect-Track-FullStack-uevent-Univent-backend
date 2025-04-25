@@ -39,15 +39,16 @@ export class EventsRepository {
     }
 
     async findAll(query?: GetEventsDto):
-    Promise<{ items: EventWithRelations[]; count: number; total: number; }> {
+    Promise<{ items: EventWithRelations[]; count: number; total: number; minPrice: number | null; maxPrice: number | null; }> {
         const {
             title,
             description,
             venue,
             startedAt,
+            endedAt,
             status,
             companyId,
-            formatId,
+            formats,
             themes,
             minPrice,
             maxPrice,
@@ -60,9 +61,10 @@ export class EventsRepository {
             ...(description && { description: { contains: description } }),
             ...(venue && { venue: { contains: venue } }),
             ...(startedAt && { startedAt: { gte: new Date(startedAt) } }),
+            ...(endedAt && { endedAt: { lte: new Date(endedAt) } }),
             ...(status && status.length > 0 && { status: { in: status } }),
             ...(companyId && { companyId }),
-            ...(formatId && { formatId }),
+            ...(formats && formats.length > 0 && { formatId: { in: formats } }),
             ...(themes && themes.length > 0 && {
                 themesRelation: {
                     some: {
@@ -71,23 +73,25 @@ export class EventsRepository {
                         }
                     }
                 }
-            }),
-            ...(minPrice !== undefined || maxPrice !== undefined) && {
-                tickets: {
-                    some: {
-                        AND: [
-                            { status: TicketStatus.AVAILABLE },
-                            ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
-                            ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
-                        ]
-                    }
-                }
-            }
+            })
         };
 
-        const [items, total] = await Promise.all([
+        const [items, total, priceStats] = await Promise.all([
             this.db.event.findMany({
-                where,
+                where: {
+                    ...where,
+                    ...(minPrice !== undefined || maxPrice !== undefined) && {
+                        tickets: {
+                            some: {
+                                AND: [
+                                    { status: TicketStatus.AVAILABLE },
+                                    ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
+                                    ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
+                                ]
+                            }
+                        }
+                    }
+                },
                 include: {
                     themesRelation: {
                         include: {
@@ -116,26 +120,56 @@ export class EventsRepository {
                 skip,
                 take,
             }),
-            this.db.event.count({ where }),
+            this.db.event.count({ 
+                where: {
+                    ...where,
+                    ...(minPrice !== undefined || maxPrice !== undefined) && {
+                        tickets: {
+                            some: {
+                                AND: [
+                                    { status: TicketStatus.AVAILABLE },
+                                    ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
+                                    ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
+                                ]
+                            }
+                        }
+                    }
+                } 
+            }),
+            this.db.ticket.aggregate({
+                where: {
+                    event: { ...where },
+                    status: TicketStatus.AVAILABLE
+                },
+                _min: {
+                    price: true
+                },
+                _max: {
+                    price: true
+                }
+            })
         ]);
 
         return {
             items: items.map((event) => EventsRepository.transformEventData(event)),
             count: items.length,
             total,
+            minPrice: priceStats._min.price ? Number(priceStats._min.price) : null,
+            maxPrice: priceStats._max.price ? Number(priceStats._max.price) : null,
         };
     }
 
     async findAllWithTicketPrices(query?: GetEventsDto):
-    Promise<{ items: EventWithRelations[]; count: number; total: number; }> {
+    Promise<{ items: EventWithRelations[]; count: number; total: number; minPrice: number | null; maxPrice: number | null; }> {
         const {
             title,
             description,
             venue,
             startedAt,
+            endedAt,
             status,
             companyId,
-            formatId,
+            formats,
             themes,
             minPrice,
             maxPrice,
@@ -148,9 +182,10 @@ export class EventsRepository {
             ...(description && { description: { contains: description } }),
             ...(venue && { venue: { contains: venue } }),
             ...(startedAt && { startedAt: { gte: new Date(startedAt) } }),
+            ...(endedAt && { endedAt: { lte: new Date(endedAt) } }),
             ...(status && status.length > 0 && { status: { in: status } }),
             ...(companyId && { companyId }),
-            ...(formatId && { formatId }),
+            ...(formats && formats.length > 0 && { formatId: { in: formats } }),
             ...(themes && themes.length > 0 && {
                 themesRelation: {
                     some: {
@@ -159,23 +194,25 @@ export class EventsRepository {
                         }
                     }
                 }
-            }),
-            ...(minPrice !== undefined || maxPrice !== undefined) && {
-                tickets: {
-                    some: {
-                        AND: [
-                            { status: TicketStatus.AVAILABLE },
-                            ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
-                            ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
-                        ]
-                    }
-                }
-            }
+            })
         };
 
-        const [items, total] = await Promise.all([
+        const [items, total, priceStats] = await Promise.all([
             this.db.event.findMany({
-                where,
+                where: {
+                    ...where,
+                    ...(minPrice !== undefined || maxPrice !== undefined) && {
+                        tickets: {
+                            some: {
+                                AND: [
+                                    { status: TicketStatus.AVAILABLE },
+                                    ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
+                                    ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
+                                ]
+                            }
+                        }
+                    }
+                },
                 include: {
                     themesRelation: {
                         include: { theme: true },
@@ -218,13 +255,42 @@ export class EventsRepository {
                 skip,
                 take,
             }),
-            this.db.event.count({ where }),
+            this.db.event.count({ 
+                where: {
+                    ...where,
+                    ...(minPrice !== undefined || maxPrice !== undefined) && {
+                        tickets: {
+                            some: {
+                                AND: [
+                                    { status: TicketStatus.AVAILABLE },
+                                    ...(minPrice !== undefined ? [{ price: { gte: minPrice } }] : []),
+                                    ...(maxPrice !== undefined ? [{ price: { lte: maxPrice } }] : [])
+                                ]
+                            }
+                        }
+                    }
+                } 
+            }),
+            this.db.ticket.aggregate({
+                where: {
+                    event: { ...where },
+                    status: TicketStatus.AVAILABLE
+                },
+                _min: {
+                    price: true
+                },
+                _max: {
+                    price: true
+                }
+            })
         ]);
 
         return {
             items: items.map((event) => EventsRepository.transformEventData(event)),
             count: items.length,
             total,
+            minPrice: priceStats._min.price ? Number(priceStats._min.price) : null,
+            maxPrice: priceStats._max.price ? Number(priceStats._max.price) : null,
         };
     }
 
@@ -274,6 +340,25 @@ export class EventsRepository {
                         title: true,
                     },
                 },
+                tickets: {
+                    where: {
+                        status: TicketStatus.AVAILABLE,
+                    },
+                    select: {
+                        id: true,
+                        eventId: true,
+                        title: true,
+                        price: true,
+                        status: true,
+                    },
+                    distinct: ['title'],
+                    orderBy: {
+                        price: 'asc',
+                    },
+                },
+            },
+            orderBy: {
+                startedAt: 'asc'
             },
         });
 

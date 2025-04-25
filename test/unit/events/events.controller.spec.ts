@@ -96,7 +96,13 @@ describe('EventsController', () => {
                     useValue: {
                         findById: jest.fn().mockResolvedValue(transformedEventWithRelations),
                         create: jest.fn().mockResolvedValue(transformedBasicEvent),
-                        findAll: jest.fn().mockResolvedValue([transformedEventWithRelations]),
+                        findAll: jest.fn().mockResolvedValue({
+                            items: [transformedEventWithRelations],
+                            count: 1,
+                            total: 1,
+                            minPrice: 100,
+                            maxPrice: 500
+                        }),
                         update: jest.fn().mockImplementation((id) => {
                             if (id === -1) throw new NotFoundException('Event not found');
                             return Promise.resolve(transformedBasicEvent);
@@ -311,13 +317,34 @@ describe('EventsController', () => {
     });
 
     describe('Find All Events', () => {
-        // TODO: Додати тести для перевірки параметрів запиту (пагінація, фільтрація, сортування)
-        // TODO: Додати тести для перевірки різних форматів відповіді (JSON, XML)
+        it('should return all events', async () => {
+            const expectedResponse = {
+                items: [transformedEventWithRelations],
+                count: 1,
+                total: 1,
+                minPrice: 100,
+                maxPrice: 500
+            };
+            jest.spyOn(eventsService, 'findAll').mockResolvedValue(expectedResponse);
 
-        it('Should return all events with relations and basic fields', async () => {
-            const result = await controller.findAll();
-            expect(result).toEqual([transformedEventWithRelations]);
-            expect(eventsService.findAll).toHaveBeenCalled();
+            const result = await controller.findAll({});
+            expect(result).toEqual(expectedResponse);
+            expect(eventsService.findAll).toHaveBeenCalledWith({});
+        });
+
+        it('should return empty array when no events exist', async () => {
+            const expectedResponse = {
+                items: [],
+                count: 0,
+                total: 0,
+                minPrice: null,
+                maxPrice: null
+            };
+            jest.spyOn(eventsService, 'findAll').mockResolvedValue(expectedResponse);
+
+            const result = await controller.findAll({});
+            expect(result).toEqual(expectedResponse);
+            expect(eventsService.findAll).toHaveBeenCalledWith({});
         });
     });
 

@@ -58,7 +58,7 @@ export class EventsService {
     }
 
     async findAll(query?: GetEventsDto): 
-    Promise<{ items: Event[]; count: number; total: number; }> {
+    Promise<{ items: Event[]; count: number; total: number; minPrice: number | null; maxPrice: number | null; }> {
         const events = await this.eventsRepository.findAllWithTicketPrices(query);
         
         events.items = events.items.map((event) =>  
@@ -82,10 +82,10 @@ export class EventsService {
         });
     }
 
-    async findByCompanyId(companyId: number): Promise<EventWithRelations[]> {
+    async findByCompanyId(companyId: number): Promise<Event[]> {
         const events = await this.eventsRepository.findByCompanyId(companyId);
         return plainToInstance(Event, events, {
-            groups: SERIALIZATION_GROUPS.BASIC,
+            groups: SERIALIZATION_GROUPS.BASIC_WITH_TICKETS,
         });
     }
 

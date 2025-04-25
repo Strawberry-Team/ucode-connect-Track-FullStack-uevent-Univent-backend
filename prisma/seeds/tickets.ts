@@ -18,7 +18,7 @@ function generateTicketsForEvent(eventId: number, count: number) {
             price: faker.number.float({
                 min: SEEDS.TICKETS.TYPES.STANDARD.MIN_PRICE,
                 max: SEEDS.TICKETS.TYPES.STANDARD.MAX_PRICE,
-                fractionDigits: 2,
+                multipleOf: SEEDS.TICKETS.PRICE_MULTIPLE_OF,
             }),
         },
         {
@@ -26,7 +26,7 @@ function generateTicketsForEvent(eventId: number, count: number) {
             price: faker.number.float({
                 min: SEEDS.TICKETS.TYPES.VIP.MIN_PRICE,
                 max: SEEDS.TICKETS.TYPES.VIP.MAX_PRICE,
-                fractionDigits: 2,
+                multipleOf: SEEDS.TICKETS.PRICE_MULTIPLE_OF,
             }),
         },
         {
@@ -34,7 +34,7 @@ function generateTicketsForEvent(eventId: number, count: number) {
             price: faker.number.float({
                 min: SEEDS.TICKETS.TYPES.PREMIUM.MIN_PRICE,
                 max: SEEDS.TICKETS.TYPES.PREMIUM.MAX_PRICE,
-                fractionDigits: 2,
+                multipleOf: SEEDS.TICKETS.PRICE_MULTIPLE_OF,
             }),
         },
     ];

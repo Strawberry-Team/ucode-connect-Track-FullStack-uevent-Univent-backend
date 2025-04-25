@@ -61,6 +61,7 @@ export const SEEDS = {
         NUMBER_PREFIX: 'TICKET',
         MIN_PER_EVENT: 10,
         MAX_PER_EVENT: 100,
+        PRICE_MULTIPLE_OF: 10,
         TYPES: {
             STANDARD: {
                 TITLE: 'Standard',
@@ -143,5 +144,52 @@ export const SEEDS = {
         MAX_EVENTS_PER_USER: 8,
         MIN_COMPANIES_PER_USER: 0,
         MAX_COMPANIES_PER_USER: 6,
+    },
+    NOTIFICATIONS: {
+        EVENT: {
+            STATUS_CHANGE: {
+                TITLE: 'Event status updated',
+                WEIGHTS: {
+                    SALES_STARTED: 30,
+                    ONGOING: 20,
+                    FINISHED: 20,
+                    CANCELLED: 10,
+                    PUBLISHED: 20,
+                },
+            },
+            START_DATE_CHANGE: {
+                TITLE: 'Event start date postponed',
+                MIN_DAYS_SHIFT: 1,
+                MAX_DAYS_SHIFT: 14,
+            },
+            TICKETS_SALE_DATE_CHANGE: {
+                TITLE: 'Ticket sales start date postponed',
+                MIN_DAYS_SHIFT: 1,
+                MAX_DAYS_SHIFT: 7,
+            },
+            VENUE_CHANGE: {
+                TITLE: 'Event venue updated',
+            },
+            CREATION: {
+                TITLE: 'New event published',
+            },
+            NEWS: {
+                TITLE: 'Event news published',
+            },
+            ATTENDEE: {
+                TITLE: 'New event attendee joined',
+            },
+        },
+        COMPANY: {
+            NEWS: {
+                TITLE: 'Company news published',
+            },
+        },
+        READ_PROBABILITY: 0.7,
+        HIDDEN_PROBABILITY: 0.3,
+        DATES: {
+            MIN_DAYS_AGO: 1,
+            MAX_DAYS_AGO: 30,
+        },
     },
 } as const;

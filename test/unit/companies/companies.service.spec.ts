@@ -186,18 +186,28 @@ describe('CompaniesService', () => {
 
     describe('Find all Companies', () => {
         it('Should return all Companies', async () => {
-            jest.spyOn(companyRepository, 'findAll').mockResolvedValue([fakeCompany]);
+            const expectedResponse = {
+                items: [fakeCompany],
+                count: 1,
+                total: 1
+            };
+            jest.spyOn(companyRepository, 'findAll').mockResolvedValue(expectedResponse);
 
             const result = await companyService.findAll();
-            expect(result).toEqual([fakeCompany]);
+            expect(result).toEqual(expectedResponse);
             expect(companyRepository.findAll).toHaveBeenCalled();
         });
 
         it('Should return empty array when no companies found', async () => {
-            jest.spyOn(companyRepository, 'findAll').mockResolvedValue([]);
+            const expectedResponse = {
+                items: [],
+                count: 0,
+                total: 0
+            };
+            jest.spyOn(companyRepository, 'findAll').mockResolvedValue(expectedResponse);
 
             const result = await companyService.findAll();
-            expect(result).toEqual([]);
+            expect(result).toEqual(expectedResponse);
             expect(companyRepository.findAll).toHaveBeenCalled();
         });
     });

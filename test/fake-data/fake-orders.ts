@@ -18,8 +18,8 @@ export function generateFakeCreateOrderDto(
     overrides: Partial<CreateOrderDto> = {},
 ): CreateOrderDto {
     return {
-        eventId: overrides.eventId || 1,
-        promoCodeId: overrides.promoCodeId ?? null,
+        eventId: overrides.eventId ?? 1,
+        promoCode: overrides.promoCode ?? null,
         paymentMethod: overrides.paymentMethod || PaymentMethod.STRIPE,
         items: overrides.items || [generateFakeCreateOrderItemDto()],
     };
