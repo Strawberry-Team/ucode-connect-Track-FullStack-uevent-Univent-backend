@@ -330,11 +330,10 @@ enum TicketStatus {
 
 enum PaymentStatus {
   PENDING  @map("pending")
-  // AWAITING_PAYMENT @map("awaiting_payment") // The user has started the payment process (PaymentIntent created)
   PAID     @map("paid")
   FAILED   @map("failed")
   REFUNDED @map("refunded")
-  // CANCELLED      @map("cancelled") // Optional: Order cancelled by user or system
+  // CANCELLED      @map("cancelled") // Optional: Order cancelled by user or system(for bookings)
 }
 
 enum PaymentMethod {

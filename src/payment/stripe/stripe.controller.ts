@@ -3,55 +3,123 @@ import {
     Controller,
     Post,
     Body,
-    UseGuards,
-    Req,
-    Headers,
-    RawBodyRequest,
-    HttpStatus,
-    HttpCode,
-    BadRequestException,
+    UseGuards, HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { Request } from 'express';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../models/auth/guards/auth.guards';
 import { UserId } from '../../common/decorators/user.decorator';
 import { StripeService } from './stripe.service';
-import { Logger } from '@nestjs/common';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
+import { PaymentIntentResponseDto } from './dto/payment-intent-response.dto';
 
-class PaymentIntentResponseDto {
-    clientSecret: string;
-    publishableKey: string;
-}
 
 @ApiTags('Payments')
 @Controller('payments/stripe')
+@UseGuards(JwtAuthGuard)
 export class StripeController {
-    private readonly logger = new Logger(StripeController.name);
-
     constructor(private readonly stripeService: StripeService) {}
 
     @Post('payment-intents')
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Create a payment intent for an order' })
-    @ApiParam({
-        name: 'orderId',
-        description: 'Order ID',
-        type: Number,
+    @ApiBody({
         required: true,
-        example: 1,
+        type: CreatePaymentIntentDto,
+        description: 'Order ID for payment intent'
     })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'Payment intent created successfully',
         type: PaymentIntentResponseDto,
     })
     @ApiResponse({
-        status: 400,
-        description: 'Invalid order or order already paid',
+        status: HttpStatus.BAD_REQUEST,
+        description: 'This order has already been paid or refunded',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'This order has already been paid',
+                },
+                error: {
+                    type: 'string',
+                    example: 'Bad Request',
+                },
+                statusCode: {
+                    type: 'number',
+                    example: 400,
+                },
+            },
+        },
     })
-    @ApiResponse({ status: 403, description: 'User does not own this order' })
-    @ApiResponse({ status: 404, description: 'Order not found' })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Unauthorized',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 401,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'User does not own this order',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'You do not own this order',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Forbidden',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 403,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Order not found',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    description: 'Error message',
+                    example: 'Order not found',
+                },
+                error: {
+                    type: 'string',
+                    description: 'Error type',
+                    example: 'Not Found',
+                },
+                statusCode: {
+                    type: 'number',
+                    description: 'Error code',
+                    example: 404,
+                },
+            },
+        },
+    })
     async createPaymentIntent(
         @Body() createPaymentIntentDto: CreatePaymentIntentDto,
         @UserId() userId: number,
@@ -60,47 +128,5 @@ export class StripeController {
             createPaymentIntentDto,
             userId,
         );
-    }
-
-    @Post('webhook')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Handle Stripe webhook events' })
-    @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
-    @ApiResponse({ status: 400, description: 'Invalid webhook payload' })
-    async handleWebhook(
-        @Req() request: RawBodyRequest<Request>,
-        @Headers('stripe-signature') signature: string,
-    ): Promise<{ received: boolean }> {
-        if (!signature) {
-            throw new BadRequestException('Missing stripe-signature header');
-        }
-
-        const payload = request.rawBody;
-
-        if (!payload) {
-            throw new BadRequestException('Missing request body');
-        }
-
-        const event = this.stripeService.constructEventFromPayload(
-            signature,
-            payload,
-        );
-
-        switch (event.type) {
-            case 'payment_intent.succeeded':
-                await this.stripeService.handlePaymentIntentSucceeded(
-                    event.data.object as any,
-                );
-                break;
-            case 'payment_intent.payment_failed':
-                await this.stripeService.handlePaymentIntentFailed(
-                    event.data.object as any,
-                );
-                break;
-            default:
-                this.logger.log(`Unhandled event type: ${event.type}`);
-        }
-
-        return { received: true };
     }
 }

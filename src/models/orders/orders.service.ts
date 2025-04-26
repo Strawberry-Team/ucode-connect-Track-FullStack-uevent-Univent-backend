@@ -183,10 +183,9 @@ export class OrdersService {
     ): Promise<Order> {
         if (
             !order.paymentIntentId ||
-            order.paymentStatus === PaymentStatus.PAID ||
             order.paymentStatus === PaymentStatus.REFUNDED
         ) {
-            return order; // Пропускаем, если нет paymentIntentId или статус уже финальный
+            return order;
         }
 
         try {
@@ -216,6 +215,7 @@ export class OrdersService {
                     case 'succeeded':
                         newStatus = PaymentStatus.PAID;
                         break;
+                    case 'processing':
                     case 'requires_payment_method':
                     case 'requires_confirmation':
                     case 'requires_action':
@@ -229,7 +229,6 @@ export class OrdersService {
                 }
             }
 
-            // Обновление, если статус или ошибка изменились
             if (newStatus !== order.paymentStatus) {
                 const updatedOrder = await this.db.$transaction(
                     async (txClient) => {
@@ -242,7 +241,6 @@ export class OrdersService {
                             prismaClient,
                         );
 
-                        // Обновление статуса билетов
                         if (order.items && order.items.length > 0) {
                             const ticketIds = order.items.map(item => item.ticketId);
                             if (newStatus === PaymentStatus.PAID) {

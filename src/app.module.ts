@@ -23,6 +23,7 @@ import { EventAttendeesModule } from './models/events/event-attendees/event-atte
 import { NotificationsModule } from './models/notifications/notifications.module';
 import { OrdersModule } from './models/orders/orders.module';
 import { SubscriptionsModule } from './models/subscriptions/subscriptions.module';
+import { StripeModule } from './payment/stripe/stripe.module';
 
 @Module({
     imports: [
@@ -52,6 +53,7 @@ import { SubscriptionsModule } from './models/subscriptions/subscriptions.module
         EventAttendeesModule,
         SubscriptionsModule,
         NotificationsModule,
+        StripeModule,
     ],
     controllers: [],
     providers: [],

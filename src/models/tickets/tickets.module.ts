@@ -15,6 +15,6 @@ import {EventsModule} from "../events/events.module";
     ],
     controllers: [TicketsController],
     providers: [TicketsService, TicketsRepository, TicketsController],
-    exports: [TicketsService],
+    exports: [TicketsService, TicketsRepository],
 })
 export class TicketsModule {}

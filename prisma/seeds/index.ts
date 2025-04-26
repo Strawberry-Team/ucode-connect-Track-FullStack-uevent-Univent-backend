@@ -241,6 +241,8 @@ async function start() {
                 ),
                 promoCodesService,
                 dbService,
+                configService,
+                ticketsRepository
             ),
             subscriptionsRepository,
             notificationsRepository,

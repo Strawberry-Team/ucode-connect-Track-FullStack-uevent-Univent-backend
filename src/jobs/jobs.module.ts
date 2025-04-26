@@ -5,14 +5,12 @@ import { JwtCleanSchedulerService } from './jwt-clean-scheduler.service';
 import { RefreshTokenNoncesModule } from 'src/models/refresh-token-nonces/refresh-token-nonces.module';
 import { UsersModule } from 'src/models/users/users.module';
 import { SchedulerConfig } from 'src/config/scheduler.config';
-import { OrderCleanupSchedulerService } from './order-cleanup-scheduler.service';
 
 @Module({
     imports: [RefreshTokenNoncesModule, UsersModule],
     providers: [
         UserNotificationSchedulerService,
         JwtCleanSchedulerService,
-        OrderCleanupSchedulerService,
         SchedulerConfig,
     ],
 })
