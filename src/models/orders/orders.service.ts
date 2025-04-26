@@ -3,7 +3,6 @@ import {
     Injectable,
     NotFoundException,
     BadRequestException, InternalServerErrorException,
-    UnprocessableEntityException,
 } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { OrderItemsRepository } from './order-items/order-items.repository';
@@ -13,21 +12,42 @@ import { Order } from './entities/order.entity';
 import { TicketsService } from '../tickets/tickets.service';
 import { plainToInstance } from 'class-transformer';
 import { SERIALIZATION_GROUPS } from './entities/order.entity';
-import { Prisma, TicketStatus } from '@prisma/client';
+import {PaymentStatus, Prisma, TicketStatus} from '@prisma/client';
 import {Ticket} from "../tickets/entities/ticket.entity";
 import {DatabaseService} from "../../db/database.service";
 import {convertDecimalsToNumbers} from "../../common/utils/convert-decimal-to-number.utils";
 import {PromoCodesService} from "../promo-codes/promo-codes.service";
+import Stripe from 'stripe';
+import {ConfigService} from "@nestjs/config";
+import {TicketsRepository} from "../tickets/tickets.repository";
+
+interface PaymentIntentWithRefunds extends Stripe.PaymentIntent {
+    refunds: {
+        object: 'list';
+        data: Stripe.Refund[];
+        has_more: boolean;
+        url: string;
+    } | null;
+}
 
 @Injectable()
 export class OrdersService {
+    private readonly stripe: Stripe;
+
     constructor(
         private readonly ordersRepository: OrdersRepository,
         private readonly orderItemsRepository: OrderItemsRepository,
         private readonly ticketsService: TicketsService,
         private readonly promoCodesService: PromoCodesService,
         private readonly db: DatabaseService,
-    ) {}
+        private readonly configService: ConfigService,
+        private readonly ticketRepository: TicketsRepository,
+    ) {
+        const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+        this.stripe = new Stripe(String(apiKey), {
+            apiVersion: String(this.configService.get<string>('payment.stripe.apiVersion')) as Stripe.LatestApiVersion,
+        });
+    }
 
     async create(dto: CreateOrderDto, userId: number): Promise<Order> {
         const { eventId, promoCode, paymentMethod, items } = dto;
@@ -145,7 +165,7 @@ export class OrdersService {
                 groups: SERIALIZATION_GROUPS.BASIC,
             });
         } catch (error) {
-            if (error instanceof BadRequestException || 
+            if (error instanceof BadRequestException ||
                 error instanceof NotFoundException ||
                 error instanceof UnprocessableEntityException) {
                 throw error;
@@ -157,23 +177,134 @@ export class OrdersService {
         }
     }
 
+    private async updateOrderPaymentStatus(
+        order: Order,
+        tx?: Prisma.TransactionClient,
+    ): Promise<Order> {
+        if (
+            !order.paymentIntentId ||
+            order.paymentStatus === PaymentStatus.PAID ||
+            order.paymentStatus === PaymentStatus.REFUNDED
+        ) {
+            return order; // Пропускаем, если нет paymentIntentId или статус уже финальный
+        }
+
+        try {
+            const paymentIntentResponse = await this.stripe.paymentIntents.retrieve(
+                order.paymentIntentId
+            );
+
+            const refundsResponse = await this.stripe.refunds.list({
+                payment_intent: order.paymentIntentId
+            });
+
+            const paymentIntent: PaymentIntentWithRefunds = {
+                ...paymentIntentResponse,
+                refunds: refundsResponse.object === 'list' ? refundsResponse : null
+            };
+
+            let newStatus: PaymentStatus;
+
+            const hasFullRefund = paymentIntent.refunds?.data.some(
+                refund => refund.status === 'succeeded' && refund.amount === paymentIntent.amount,
+            );
+
+            if (hasFullRefund) {
+                newStatus = PaymentStatus.REFUNDED;
+            } else {
+                switch (paymentIntent.status) {
+                    case 'succeeded':
+                        newStatus = PaymentStatus.PAID;
+                        break;
+                    case 'requires_payment_method':
+                    case 'requires_confirmation':
+                    case 'requires_action':
+                        newStatus = PaymentStatus.PENDING;
+                        break;
+                    case 'canceled':
+                        newStatus = PaymentStatus.FAILED;
+                        break;
+                    default:
+                        newStatus = PaymentStatus.FAILED;
+                }
+            }
+
+            // Обновление, если статус или ошибка изменились
+            if (newStatus !== order.paymentStatus) {
+                const updatedOrder = await this.db.$transaction(
+                    async (txClient) => {
+                        const prismaClient = tx || txClient;
+                        const updatedOrder = await this.ordersRepository.update(
+                            order.id,
+                            {
+                                paymentStatus: newStatus,
+                            },
+                            prismaClient,
+                        );
+
+                        // Обновление статуса билетов
+                        if (order.items && order.items.length > 0) {
+                            const ticketIds = order.items.map(item => item.ticketId);
+                            if (newStatus === PaymentStatus.PAID) {
+                                await this.ticketRepository.updateTicketStatus(
+                                    ticketIds,
+                                    TicketStatus.SOLD,
+                                    TicketStatus.RESERVED,
+                                    prismaClient,
+                                );
+                            } else if (newStatus === PaymentStatus.FAILED || newStatus === PaymentStatus.REFUNDED) {
+                                await this.ticketRepository.updateTicketStatus(
+                                    ticketIds,
+                                    TicketStatus.AVAILABLE,
+                                    TicketStatus.RESERVED,
+                                    prismaClient,
+                                );
+                            }
+                        }
+
+                        return updatedOrder;
+                    },
+                    {
+                        maxWait: 5000,
+                        timeout: 10000,
+                    },
+                );
+
+                return convertDecimalsToNumbers(updatedOrder);
+            }
+
+            return order;
+        } catch (error) {
+            console.error(`Failed to retrieve PaymentIntent ${order.paymentIntentId}: ${error.message}`);
+            return order;
+        }
+    }
+
 
     async getOrder(orderId: number, userId: number): Promise<Order> {
         const foundOrder = await this.ordersRepository.findById(orderId);
 
-        if(!foundOrder){
+        if (!foundOrder) {
             throw new NotFoundException(`Order with id ${orderId} not found`);
         }
 
-        return convertDecimalsToNumbers(foundOrder);
+        if (foundOrder.userId !== userId) {
+            throw new ForbiddenException(`Order with id ${orderId} does not belong to user ${userId}`);
+        }
+
+        const updatedOrder = await this.updateOrderPaymentStatus(convertDecimalsToNumbers(foundOrder));
+
+        return convertDecimalsToNumbers(updatedOrder);
     }
 
     async findOrdersWithDetailsByUserId(userId: number): Promise<Order[]> {
-        const result: Order[] = convertDecimalsToNumbers(
-            await this.ordersRepository.findAllWithDetailsByUserId(userId)
+        const orders = await this.ordersRepository.findAllWithDetailsByUserId(userId);
+
+        // Параллельная актуализация заказов
+        const updatedOrders = await Promise.all(
+            orders.map(order => this.updateOrderPaymentStatus(convertDecimalsToNumbers(order))),
         );
 
-        return result;
-
+        return updatedOrders.map(convertDecimalsToNumbers);
     }
 }

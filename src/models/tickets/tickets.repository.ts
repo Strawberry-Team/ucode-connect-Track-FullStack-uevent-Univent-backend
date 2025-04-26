@@ -139,18 +139,19 @@ export class TicketsRepository {
         ticketIds: number[],
         status: TicketStatus,
         currentStatus?: TicketStatus, // Опциональная проверка текущего статуса
-        tx: Prisma.TransactionClient,
+        tx?: Prisma.TransactionClient,
     ): Promise<Prisma.BatchPayload> {
         const whereClause: Prisma.TicketWhereInput = {
             id: { in: ticketIds },
         };
 
-        // Добавляем проверку текущего статуса, если передан
         if (currentStatus) {
             whereClause.status = currentStatus;
         }
 
-        return tx.ticket.updateMany({
+        const prismaClient = tx || this.db;
+
+        return prismaClient.ticket.updateMany({
             where: whereClause,
             data: {
                 status,
