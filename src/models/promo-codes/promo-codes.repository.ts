@@ -32,10 +32,12 @@ export class PromoCodesRepository {
 
     private buildCreateInput(
         data: CreatePromoCodeDto & { eventId: number }
-    ): Prisma.PromoCodeCreateInput {
+    ): Prisma.PromoCodeUncheckedCreateInput {
+        const { eventId, ...rest } = data;
         return {
-            ...data,
-            event: { connect: { id: data.eventId } },
+            ...rest,
+            eventId,
+            discountPercent: new Prisma.Decimal(data.discountPercent),
         };
     }
 
