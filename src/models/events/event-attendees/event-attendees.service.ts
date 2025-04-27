@@ -99,29 +99,44 @@ export class EventAttendeesService {
         if (!event) {
             throw new NotFoundException('Event not found');
         }
+
+        let attendees: EventAttendee[] = [];
+        
+        if (currentUserId) {
+            const currentUserAttendee = await this.findByEventIdAndUserId(eventId, currentUserId);
+            if (currentUserAttendee) {
+                attendees.push(plainToInstance(EventAttendee, currentUserAttendee, {
+                    groups: SERIALIZATION_GROUPS.BASIC,
+                }));
+            }
+        }
       
         switch (event.attendeeVisibility) {
             case EventAttendeeVisibility.EVERYONE:
-                return this.getVisibleAttendees(eventId);
+                const visibleAttendees = await this.getVisibleAttendees(eventId);
+                attendees = attendees.concat(
+                    visibleAttendees.filter(a => !currentUserId || a.userId !== currentUserId)
+                );
+                break;
       
             case EventAttendeeVisibility.ATTENDEES_ONLY:
-                if (!currentUserId) {
-                    return [];
+                if (currentUserId) {
+                    const isAttendee = await this.findByEventIdAndUserId(eventId, currentUserId);
+                    if (isAttendee) {
+                        const visibleAttendees = await this.getVisibleAttendees(eventId);
+                        attendees = attendees.concat(
+                            visibleAttendees.filter(a => a.userId !== currentUserId)
+                        );
+                    }
                 }
-      
-                const attendee = await this.findByEventIdAndUserId(eventId, currentUserId);
-                if (!attendee) {
-                    return [];
-                }
-      
-                return this.getVisibleAttendees(eventId);
+                break;
       
             case EventAttendeeVisibility.NOBODY:
-                return [];
-      
             default:
-                return [];
+                break;
         }
+      
+        return attendees;
     }
 
     async findById(id: number): Promise<EventAttendee | null> {
