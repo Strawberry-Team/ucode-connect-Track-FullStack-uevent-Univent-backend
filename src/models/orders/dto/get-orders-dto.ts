@@ -26,6 +26,12 @@ class EventDto {
     endedAt: string;
 
     @ApiProperty({
+        description: 'Venue of the event',
+        example: `Ukraine, Kyiv, Architect's house`,
+    })
+    venue: string;
+
+    @ApiProperty({
         description: 'Name of the event poster image',
         example: 'default-poster.png',
     })

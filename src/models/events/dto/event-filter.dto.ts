@@ -60,7 +60,7 @@ export class EventFilterDto {
         nullable: true,
         example: '2025-05-20T00:00:00.000Z'
     })
-    endAt?: Date;
+    endedAt?: Date;
 
     @IsOptional()
     @IsEnumArray(EventStatus)

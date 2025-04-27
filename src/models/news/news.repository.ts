@@ -5,131 +5,150 @@ import { News } from './entities/news.entity';
 import { DatabaseService } from '../../db/database.service';
 import { NewsIncludeOptions } from './interfaces/news-include-options.interface';
 
+type BaseNewsInclude = {
+    author?: boolean;
+    company?: boolean;
+    event?: boolean;
+};
+
+const DEFAULT_ORDERING = {
+    createdAt: 'desc' as const,
+} satisfies Prisma.NewsOrderByWithRelationInput;
+
 @Injectable()
 export class NewsRepository {
-    constructor(private readonly db: DatabaseService) {}
-
-    private readonly DEFAULT_INCLUDE: NewsIncludeOptions = {
+    private readonly DEFAULT_INCLUDE = {
         author: false,
         company: false,
         event: false,
-    };
+    } as const satisfies BaseNewsInclude;
 
-    private async findNews(
-        where: Prisma.NewsWhereInput | null,
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
-    ): Promise<News[]> {
-        const include: Prisma.NewsInclude = {
-            author: includeOptions.author ?? false,
-            company: includeOptions.company ?? false,
-            event: includeOptions.event ?? false,
+    constructor(private readonly db: DatabaseService) {}
+
+    private buildIncludeOptions(options?: Partial<NewsIncludeOptions>): BaseNewsInclude {
+        return {
+            author: options?.author ?? this.DEFAULT_INCLUDE.author,
+            company: options?.company ?? this.DEFAULT_INCLUDE.company,
+            event: options?.event ?? this.DEFAULT_INCLUDE.event,
         };
-        type NewsWithIncludes = Prisma.NewsGetPayload<{
-            include: typeof include;
-        }>;
+    }
 
+    private transformNewsData<T>(news: T | null): News | null {
+        if (!news) return null;
+
+        const transformed = {
+            ...news,
+            company: news['company'] || undefined,
+            event: news['event'] || undefined,
+            author: news['author'] || undefined,
+        };
+
+        return transformed as unknown as News;
+    }
+
+    private async executeNewsQuery(
+        where: Prisma.NewsWhereInput | undefined,
+        include: BaseNewsInclude,
+        orderBy: Prisma.NewsOrderByWithRelationInput = DEFAULT_ORDERING,
+    ): Promise<News[]> {
         const news = await this.db.news.findMany({
-            where: where ?? undefined,
-            include,
-            orderBy: { id: 'desc' },
+            where,
+            include: include as Prisma.NewsInclude,
+            orderBy,
         });
 
-        return news as NewsWithIncludes[] as News[];
+        return news.map(item => this.transformNewsData(item)).filter((item): item is News => item !== null);
+    }
+
+    private async executeNewsSingleQuery(
+        where: Prisma.NewsWhereUniqueInput,
+        include: BaseNewsInclude,
+    ): Promise<News | null> {
+        const news = await this.db.news.findUnique({
+            where,
+            include: include as Prisma.NewsInclude,
+        });
+
+        return this.transformNewsData(news);
     }
 
     async create(
-        data: Partial<News>,
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
+        data: Prisma.NewsUncheckedCreateInput,
+        includeOptions?: Partial<NewsIncludeOptions>,
     ): Promise<News> {
-        const include: Prisma.NewsInclude = includeOptions;
-        type NewsWithIncludes = Prisma.NewsGetPayload<{
-            include: typeof include;
-        }>;
+        const include = this.buildIncludeOptions(includeOptions);
 
         const news = await this.db.news.create({
-            data: data as Prisma.NewsCreateInput,
-            include,
+            data,
+            include: include as Prisma.NewsInclude,
         });
 
-        return news as NewsWithIncludes as News;
+        const transformed = this.transformNewsData(news);
+        if (!transformed) {
+            throw new Error('Failed to create news');
+        }
+        return transformed;
     }
 
     async findAll(): Promise<News[]> {
-        type NewsWithIncludes = Prisma.NewsGetPayload<{
-            include: {
-                author: false;
-                company: true;
-                event: true;
-            };
-        }>;
+        const include = {
+            company: true,
+            event: true,
+        } as const;
 
-        const news = await this.db.news.findMany({
-            orderBy: { createdAt: 'desc' },
-            include: { company: true, event: true },
-        });
-
-        return news as NewsWithIncludes[] as News[];
+        return this.executeNewsQuery(undefined, include);
     }
 
     async findById(
         id: number,
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
+        includeOptions?: Partial<NewsIncludeOptions>,
     ): Promise<News | null> {
-        const include: Prisma.NewsInclude = includeOptions;
-        type NewsWithIncludes = Prisma.NewsGetPayload<{
-            include: typeof include;
-        }>;
-
-        const news = await this.db.news.findUnique({
-            where: { id },
-            include,
-        });
-
-        if (!news) {
-            return null;
-        }
-
-        return news as NewsWithIncludes as News;
+        const include = this.buildIncludeOptions(includeOptions);
+        return this.executeNewsSingleQuery({ id }, include);
     }
 
     async findByAuthorId(
         authorId: number,
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
+        includeOptions?: Partial<NewsIncludeOptions>,
     ): Promise<News[]> {
-        return this.findNews({ authorId }, includeOptions);
+        const include = this.buildIncludeOptions(includeOptions);
+        return this.executeNewsQuery({ authorId }, include);
     }
 
     async findByCompanyId(
         companyId: number,
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
+        includeOptions?: Partial<NewsIncludeOptions>,
     ): Promise<News[]> {
-        return this.findNews({ companyId }, includeOptions);
+        const include = this.buildIncludeOptions(includeOptions);
+        return this.executeNewsQuery({ companyId }, include);
     }
 
     async findByEventId(
         eventId: number,
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
+        includeOptions?: Partial<NewsIncludeOptions>,
     ): Promise<News[]> {
-        return this.findNews({ eventId }, includeOptions);
+        const include = this.buildIncludeOptions(includeOptions);
+        return this.executeNewsQuery({ eventId }, include);
     }
 
     async update(
         id: number,
-        updateData: Partial<News>,
-        includeOptions: NewsIncludeOptions = this.DEFAULT_INCLUDE,
+        data: Prisma.NewsUncheckedUpdateInput,
+        includeOptions?: Partial<NewsIncludeOptions>,
     ): Promise<News> {
-        const include: Prisma.NewsInclude = includeOptions;
-        type NewsWithIncludes = Prisma.NewsGetPayload<{
-            include: typeof include;
-        }>;
+        const include = this.buildIncludeOptions(includeOptions);
 
         const news = await this.db.news.update({
             where: { id },
-            data: updateData as Prisma.NewsUpdateInput,
-            include,
+            data,
+            include: include as Prisma.NewsInclude,
         });
 
-        return news as NewsWithIncludes as News;
+        const transformed = this.transformNewsData(news);
+        if (!transformed) {
+            throw new Error('Failed to update news');
+        }
+        return transformed;
     }
 
     async delete(id: number): Promise<void> {

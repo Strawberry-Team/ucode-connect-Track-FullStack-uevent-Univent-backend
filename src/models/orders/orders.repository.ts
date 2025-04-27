@@ -31,6 +31,7 @@ const orderWithDetailsSelect = {
                             title: true,
                             startedAt: true,
                             endedAt: true,
+                            venue: true,
                             posterName: true,
                         },
                     },

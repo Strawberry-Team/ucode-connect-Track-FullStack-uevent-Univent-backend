@@ -7,15 +7,60 @@ import { EventWithRelations } from '../events/entities/event.entity';
 import { CompanyWithBasic } from '../companies/entities/company.entity';
 import { EventsRepository } from '../events/events.repository';
 
+type SubscriptionWithEvent = Subscription & {
+    event: EventWithRelations | null;
+};
+
+type SubscriptionWithCompany = Subscription & {
+    company: CompanyWithBasic | null;
+};
+
+const EVENT_INCLUDE = {
+    event: {
+        include: {
+            themesRelation: {
+                include: { theme: true },
+            },
+            company: {
+                select: {
+                    id: true,
+                    title: true,
+                    logoName: true,
+                },
+            },
+            format: {
+                select: {
+                    id: true,
+                    title: true,
+                },
+            },
+        },
+    },
+} as const;
+
+const COMPANY_INCLUDE = {
+    company: {
+        select: {
+            id: true,
+            ownerId: true,
+            email: true,
+            title: true,
+            description: true,
+            logoName: true,
+            createdAt: true,
+        },
+    },
+} as const;
+
 @Injectable()
 export class SubscriptionsRepository {
     constructor(private readonly db: DatabaseService) {}
 
-    async create(
+    private buildCreateInput(
         userId: number,
         entityId: number,
-        entityType: EntityType,
-    ): Promise<Subscription> {
+        entityType: EntityType
+    ): Prisma.SubscriptionCreateInput {
         const data: Prisma.SubscriptionCreateInput = {
             user: { connect: { id: userId } },
         };
@@ -29,38 +74,63 @@ export class SubscriptionsRepository {
                 break;
         }
 
+        return data;
+    }
+
+    private buildWhereCondition(
+        entityId: number,
+        entityType: EntityType,
+        userId?: number
+    ): Prisma.SubscriptionWhereInput {
+        if (userId) {
+            switch (entityType) {
+                case EntityType.EVENT:
+                    return { eventId: entityId, userId };
+                case EntityType.COMPANY:
+                    return { companyId: entityId, userId };
+                default:
+                    return {};
+            }
+        }
+
+        switch (entityType) {
+            case EntityType.EVENT:
+                return { eventId: entityId };
+            case EntityType.COMPANY:
+                return { companyId: entityId };
+            default:
+                return {};
+        }
+    }
+
+    private buildUniqueWhereCondition(
+        entityId: number,
+        entityType: EntityType,
+        userId: number
+    ): Prisma.SubscriptionWhereUniqueInput {
+        switch (entityType) {
+            case EntityType.EVENT:
+                return { eventId_userId: { eventId: entityId, userId } };
+            case EntityType.COMPANY:
+                return { companyId_userId: { companyId: entityId, userId } };
+            default:
+                throw new Error('Invalid entity type');
+        }
+    }
+
+    async create(
+        userId: number,
+        entityId: number,
+        entityType: EntityType,
+    ): Promise<Subscription> {
+        const data = this.buildCreateInput(userId, entityId, entityType);
         return this.db.subscription.create({ data });
     }
 
-    async findAllByUserIdForEvents(userId: number): Promise<
-        (Subscription & {
-            event: EventWithRelations | null;
-        })[]
-    > {
+    async findAllByUserIdForEvents(userId: number): Promise<SubscriptionWithEvent[]> {
         const subscriptions = await this.db.subscription.findMany({
             where: { userId, eventId: { not: null } },
-            include: {
-                event: {
-                    include: {
-                        themesRelation: {
-                            include: { theme: true },
-                        },
-                        company: {
-                            select: {
-                                id: true,
-                                title: true,
-                                logoName: true,
-                            },
-                        },
-                        format: {
-                            select: {
-                                id: true,
-                                title: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: EVENT_INCLUDE,
         });
 
         return subscriptions.map((sub) => ({
@@ -69,26 +139,10 @@ export class SubscriptionsRepository {
         }));
     }
 
-    async findAllByUserIdForCompanies(userId: number): Promise<
-        (Subscription & {
-            company: CompanyWithBasic | null;
-        })[]
-    > {
+    async findAllByUserIdForCompanies(userId: number): Promise<SubscriptionWithCompany[]> {
         return this.db.subscription.findMany({
             where: { userId, companyId: { not: null } },
-            include: {
-                company: {
-                    select: {
-                        id: true,
-                        ownerId: true,
-                        email: true,
-                        title: true,
-                        description: true,
-                        logoName: true,
-                        createdAt: true,
-                    },
-                },
-            },
+            include: COMPANY_INCLUDE,
         });
     }
 
@@ -96,19 +150,8 @@ export class SubscriptionsRepository {
         entityId: number,
         entityType: EntityType
     ): Promise<number[]> {
-        const whereCondition: Record<string, any> = {};
-
-        switch (entityType) {
-            case EntityType.EVENT:
-                whereCondition.eventId = entityId;
-                break;
-            case EntityType.COMPANY:
-                whereCondition.companyId = entityId;
-                break;
-        }
-
         const subscriptions = await this.db.subscription.findMany({
-            where: whereCondition,
+            where: this.buildWhereCondition(entityId, entityType),
             select: { userId: true },
         });
 
@@ -124,22 +167,9 @@ export class SubscriptionsRepository {
         entityId: number,
         entityType: EntityType
     ): Promise<Subscription | null> {
-        let whereCondition;
-
-        switch (entityType) {
-            case EntityType.EVENT:
-                whereCondition = {
-                    eventId_userId: { eventId: entityId, userId }
-                };
-                break;
-            case EntityType.COMPANY:
-                whereCondition = {
-                    companyId_userId: { companyId: entityId, userId }
-                };
-                break;
-        }
-
-        return this.db.subscription.findUnique({ where: whereCondition });
+        return this.db.subscription.findUnique({
+            where: this.buildUniqueWhereCondition(entityId, entityType, userId),
+        });
     }
 
     async delete(id: number): Promise<Subscription> {
@@ -147,17 +177,8 @@ export class SubscriptionsRepository {
     }
 
     async countByEntityId(entityId: number, entityType: EntityType): Promise<number> {
-        const whereCondition: Record<string, any> = {};
-
-        switch (entityType) {
-            case EntityType.EVENT:
-                whereCondition.eventId = entityId;
-                break;
-            case EntityType.COMPANY:
-                whereCondition.companyId = entityId;
-                break;
-        }
-
-        return this.db.subscription.count({ where: whereCondition });
+        return this.db.subscription.count({
+            where: this.buildWhereCondition(entityId, entityType),
+        });
     }
 }

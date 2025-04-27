@@ -6,76 +6,97 @@ import { Prisma, TicketStatus } from '@prisma/client';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 
+interface TicketSearchParams {
+    eventId?: number;
+    title?: string;
+    status?: TicketStatus;
+    limit?: number;
+}
+
+interface TicketTypeSearchParams {
+    eventId?: number;
+}
+
+type PrismaClientOrTx = DatabaseService | Prisma.TransactionClient;
+
+const DEFAULT_TICKET_INCLUDE = {
+    event: false,
+} as const;
+
+const TICKET_ORDER_BY = {
+    price: 'asc' as const,
+} satisfies Prisma.TicketOrderByWithRelationInput;
+
 @Injectable()
 export class TicketsRepository {
-    constructor(private db: DatabaseService) {}
+    constructor(private readonly db: DatabaseService) {}
 
-    async create(createTicketDto: CreateTicketDto & { number: string, eventId}): Promise<Ticket> {
+    private buildWhereClause(params?: TicketSearchParams): Prisma.TicketWhereInput {
+        const { eventId, title, status } = params || {};
+        return {
+            ...(eventId && { eventId }),
+            ...(status && { status }),
+            ...(title && { title }),
+        };
+    }
+
+    private transformTicketData<T extends { price: Prisma.Decimal }>(ticket: T): Omit<T, 'price'> & { price: number } {
+        const { price, ...rest } = ticket;
+        return {
+            ...rest,
+            price: Number(price),
+        };
+    }
+
+    private getPrismaClient(tx?: PrismaClientOrTx): PrismaClientOrTx {
+        return tx || this.db;
+    }
+
+    async create(createTicketDto: CreateTicketDto & { number: string; eventId: number }): Promise<Ticket> {
         const result = await this.db.ticket.create({
             data: {
                 eventId: createTicketDto.eventId,
                 title: createTicketDto.title,
                 number: createTicketDto.number,
-                price: createTicketDto.price,
+                price: new Prisma.Decimal(createTicketDto.price),
                 status: createTicketDto.status,
             },
+            include: DEFAULT_TICKET_INCLUDE,
         });
 
-        const { price, ...ticketWithoutPrice } = result;
-        return { ...ticketWithoutPrice, price: Number(price) };
+        return this.transformTicketData(result);
     }
 
-    async findAll(params?: {
-                      eventId?: number;
-                      title?: string;
-                      status?: TicketStatus;
-                      limit?: number;
-                  },
-                  tx?: Prisma.TransactionClient
-    ): Promise<Ticket[]> {
-        const {eventId, title, status} = params || {};
-        const prismaClient = tx || this.db;
+    async findAll(params?: TicketSearchParams, tx?: PrismaClientOrTx): Promise<Ticket[]> {
+        const prismaClient = this.getPrismaClient(tx);
+        const where = this.buildWhereClause(params);
 
         const result = await prismaClient.ticket.findMany({
-            where: {
-                ...(eventId && { eventId }),
-                ...(status && { status }),
-                ...(title && { title }),
-            },
+            where,
             take: params?.limit,
+            include: DEFAULT_TICKET_INCLUDE,
+            orderBy: TICKET_ORDER_BY,
         });
 
-        const finalResult: Ticket[] = [];
-
-        result.forEach((ticket) => {
-            const { price, ...ticketWithoutPrice } = ticket;
-            const result = { ...ticketWithoutPrice, price: Number(price) };
-            finalResult.push(result);
-        });
-
-        return finalResult;
+        return result.map(ticket => this.transformTicketData(ticket));
     }
 
-    async findAllTicketTypes(params?: {
-                      eventId?: number;
-                  },
-                  tx?: Prisma.TransactionClient
+    async findAllTicketTypes(
+        params?: TicketTypeSearchParams,
+        tx?: PrismaClientOrTx
     ): Promise<{ items: { title: string; price: number; count: number }[]; total: number }> {
-        const {eventId} = params || {};
-        const prismaClient = tx || this.db;
+        const prismaClient = this.getPrismaClient(tx);
 
         const groupedTickets = await prismaClient.ticket.groupBy({
             by: ['title', 'price'],
             where: {
-                ...(eventId && { eventId }),
+                ...(params?.eventId && { eventId: params.eventId }),
                 status: TicketStatus.AVAILABLE,
             },
             _count: {
                 _all: true,
             },
-            orderBy: {
-                price: 'asc'
-            }
+            orderBy: TICKET_ORDER_BY,
         });
 
         const items = groupedTickets.map(group => ({
@@ -90,14 +111,11 @@ export class TicketsRepository {
         };
     }
 
-    async reserveTickets(
-        ticketIds: number[],
-        tx: Prisma.TransactionClient, // Обов'язковий tx
-    ): Promise<Prisma.BatchPayload> {
+    async reserveTickets(ticketIds: number[], tx: Prisma.TransactionClient): Promise<Prisma.BatchPayload> {
         return tx.ticket.updateMany({
             where: {
                 id: { in: ticketIds },
-                status: TicketStatus.AVAILABLE, // Перевіряємо, що вони все ще доступні
+                status: TicketStatus.AVAILABLE,
             },
             data: {
                 status: TicketStatus.RESERVED,
@@ -105,14 +123,11 @@ export class TicketsRepository {
         });
     }
 
-    async releaseTickets(
-        ticketIds: number[],
-        tx: Prisma.TransactionClient, // Обов'язковий tx
-    ): Promise<Prisma.BatchPayload> {
+    async releaseTickets(ticketIds: number[], tx: Prisma.TransactionClient): Promise<Prisma.BatchPayload> {
         return tx.ticket.updateMany({
             where: {
                 id: { in: ticketIds },
-                // Можна додати перевірку status: TicketStatus.RESERVED
+                status: TicketStatus.RESERVED,
             },
             data: {
                 status: TicketStatus.AVAILABLE,
@@ -120,56 +135,40 @@ export class TicketsRepository {
         });
     }
 
-    async findById(id: number): Promise<Ticket | null> {
-        const ticket = await this.db.ticket.findUnique({
+    async findById(id: number, tx?: PrismaClientOrTx): Promise<Ticket | null> {
+        const prismaClient = this.getPrismaClient(tx);
+        const ticket = await prismaClient.ticket.findUnique({
             where: { id },
+            include: DEFAULT_TICKET_INCLUDE,
         });
 
-        if (!ticket) {
-            return null;
-        }
-
-        const { price, ...ticketWithoutPrice } = ticket;
-        return { ...ticketWithoutPrice, price: Number(price) };
+        return ticket ? this.transformTicketData(ticket) : null;
     }
 
-    async findByNumber(number: string): Promise<Ticket | null> {
-        const ticket = await this.db.ticket.findUnique({
+    async findByNumber(number: string, tx?: PrismaClientOrTx): Promise<Ticket | null> {
+        const prismaClient = this.getPrismaClient(tx);
+        const ticket = await prismaClient.ticket.findUnique({
             where: { number },
+            include: DEFAULT_TICKET_INCLUDE,
         });
 
-        if (!ticket) {
-            return null;
-        }
-
-        const { price, ...ticketWithoutPrice } = ticket;
-        return { ...ticketWithoutPrice, price: Number(price) };
+        return ticket ? this.transformTicketData(ticket) : null;
     }
 
-    async count(params?: {
-                    eventId?: number;
-                    title?: string;
-                    status?: TicketStatus;
-                },
-                tx?: Prisma.TransactionClient): Promise<number> {
-        const { eventId, title, status } = params || {};
-        const prismaClient = tx || this.db;
+    async count(params?: TicketSearchParams, tx?: PrismaClientOrTx): Promise<number> {
+        const prismaClient = this.getPrismaClient(tx);
+        const where = this.buildWhereClause(params);
 
-        return prismaClient.ticket.count({
-            where: {
-                ...(eventId && { eventId }),
-                ...(title && { title }),
-                ...(status && { status }),
-            },
-        });
+        return prismaClient.ticket.count({ where });
     }
 
     async update(
         id: number,
         updateTicketDto: UpdateTicketDto,
-        tx?: Prisma.TransactionClient,
+        tx?: PrismaClientOrTx,
     ): Promise<Ticket> {
-        const prismaClient = tx || this.db;
+        const prismaClient = this.getPrismaClient(tx);
+        
         const ticket = await prismaClient.ticket.update({
             where: { id },
             data: {
@@ -178,14 +177,15 @@ export class TicketsRepository {
                     ? new Prisma.Decimal(updateTicketDto.price)
                     : undefined,
             },
+            include: DEFAULT_TICKET_INCLUDE,
         });
 
-        const { price, ...ticketWithoutPrice } = ticket;
-        return { ...ticketWithoutPrice, price: Number(price) };
+        return this.transformTicketData(ticket);
     }
 
-    async delete(id: number): Promise<void> {
-        this.db.ticket.delete({
+    async delete(id: number, tx?: PrismaClientOrTx): Promise<void> {
+        const prismaClient = this.getPrismaClient(tx);
+        await prismaClient.ticket.delete({
             where: { id },
         });
     }
