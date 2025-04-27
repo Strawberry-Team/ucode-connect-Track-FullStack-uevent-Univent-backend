@@ -5,24 +5,18 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { Event, EventWithRelations } from './entities/event.entity';
 import { Prisma, TicketStatus } from '@prisma/client';
 import { GetEventsDto } from './dto/get-events.dto';
+import { EventSortField, SortOrder, EventAggregationDto } from './dto/event-aggregation.dto';
+import { EventAggregateResult, AppliedFilter } from './types/event-aggregate-result.type';
 
-type EventAggregateResult = {
-    items: EventWithRelations[];
-    count: number;
-    total: number;
-    minPrice: number | null;
-    maxPrice: number | null;
+const DEFAULT_SORT = {
+    field: EventSortField.POPULARITY,
+    order: SortOrder.DESC,
 };
 
-const DEFAULT_EVENT_ORDERING = {
-    startedAt: 'asc' as const,
-    endedAt: 'asc' as const,
-    title: 'asc' as const,
-} satisfies Prisma.EventOrderByWithRelationInput;
-
-const SIMPLE_EVENT_ORDERING = {
-    startedAt: 'asc' as const,
-} satisfies Prisma.EventOrderByWithRelationInput;
+const DEFAULT_EVENT_ORDERING = [
+    { startedAt: 'asc' as const },
+    { title: 'asc' as const },
+] satisfies Prisma.EventOrderByWithRelationInput[];
 
 const BASE_EVENT_INCLUDE: Prisma.EventInclude = {
     themesRelation: {
@@ -53,12 +47,10 @@ const TICKETS_INCLUDE: Prisma.EventInclude = {
         },
         select: {
             id: true,
-            eventId: true,
             title: true,
             price: true,
-            status: true,
         },
-        distinct: ['title'] as const,
+        distinct: ['title', 'price'],
         orderBy: {
             price: 'asc',
         },
@@ -137,6 +129,69 @@ const buildPriceAggregation = (where: Prisma.EventWhereInput): Prisma.TicketAggr
     }
 });
 
+const buildOrderByClause = (sort: { field: EventSortField; order: SortOrder }): Prisma.EventOrderByWithRelationInput[] => {
+    const order = sort.order.toLowerCase() as Prisma.SortOrder;
+
+    switch (sort.field) {
+        case EventSortField.POPULARITY:
+            return [{
+                tickets: {
+                    _count: order
+                }
+            }];
+        case EventSortField.TITLE:
+            return [{ title: order }];
+        case EventSortField.STARTED_AT:
+            return [{ startedAt: order }];
+        case EventSortField.MIN_PRICE:
+            return DEFAULT_EVENT_ORDERING;
+        default:
+            return DEFAULT_EVENT_ORDERING;
+    }
+};
+
+const extractAppliedFilters = (query?: GetEventsDto): AppliedFilter[] => {
+    if (!query) return [];
+
+    const filters: AppliedFilter[] = [];
+
+    if (query.title) {
+        filters.push({ field: 'title', value: query.title });
+    }
+    if (query.description) {
+        filters.push({ field: 'description', value: query.description });
+    }
+    if (query.venue) {
+        filters.push({ field: 'venue', value: query.venue });
+    }
+    if (query.startedAt) {
+        filters.push({ field: 'startedAt', value: new Date(query.startedAt) });
+    }
+    if (query.endedAt) {
+        filters.push({ field: 'endedAt', value: new Date(query.endedAt) });
+    }
+    if (query.status) {
+        filters.push({ field: 'status', value: query.status });
+    }
+    if (query.companyId) {
+        filters.push({ field: 'companyId', value: Number(query.companyId) });
+    }
+    if (query.formats) {
+        filters.push({ field: 'formats', value: query.formats.map(Number) });
+    }
+    if (query.themes) {
+        filters.push({ field: 'themes', value: query.themes.map(Number) });
+    }
+    if (query.minPrice) {
+        filters.push({ field: 'minPrice', value: Number(query.minPrice) });
+    }
+    if (query.maxPrice) {
+        filters.push({ field: 'maxPrice', value: Number(query.maxPrice) });
+    }
+
+    return filters;
+};
+
 @Injectable()
 export class EventsRepository {
     constructor(private readonly db: DatabaseService) {}
@@ -144,54 +199,183 @@ export class EventsRepository {
     private async executeEventQuery(
         where: Prisma.EventWhereInput,
         include: Prisma.EventInclude,
-        orderBy: Prisma.EventOrderByWithRelationInput,
-        skip?: number,
-        take?: number
+        query?: GetEventsDto,
     ): Promise<EventAggregateResult> {
-        const [items, total, priceStats] = await Promise.all([
-            this.db.event.findMany({
-                where,
-                include,
-                orderBy,
-                skip,
-                take,
-            }),
+        // Handle popularity sorting
+        if (query?.sortBy === EventSortField.POPULARITY) {
+            // Get events with sold tickets count
+            const eventsWithCount = await this.db.event.findMany({
+                where: {
+                    ...where,
+                    tickets: {
+                        some: {
+                            status: TicketStatus.SOLD,
+                        },
+                    },
+                },
+                include: {
+                    ...include,
+                    _count: {
+                        select: {
+                            tickets: {
+                                where: {
+                                    status: TicketStatus.SOLD
+                                }
+                            }
+                        }
+                    }
+                },
+            });
+
+            // Sort by sold tickets count
+            const sortedEvents = eventsWithCount.sort((a, b) => {
+                const aCount = a._count?.tickets || 0;
+                const bCount = b._count?.tickets || 0;
+                return query.sortOrder === SortOrder.ASC ? aCount - bCount : bCount - aCount;
+            });
+
+            // Apply pagination after sorting
+            const paginatedEvents = sortedEvents.slice(query.skip || 0, (query.skip || 0) + (query.take || sortedEvents.length));
+
+            const [total, priceStats] = await Promise.all([
+                this.db.event.count({ where }),
+                this.db.ticket.aggregate(buildPriceAggregation(where))
+            ]);
+
+            return {
+                items: paginatedEvents.map(EventsRepository.transformEventData),
+                filteredBy: extractAppliedFilters(query),
+                count: paginatedEvents.length,
+                total,
+                minPrice: priceStats._min?.price ? Number(priceStats._min.price) : null,
+                maxPrice: priceStats._max?.price ? Number(priceStats._max.price) : null,
+                sortedBy: {
+                    field: query.sortBy || EventSortField.STARTED_AT,
+                    order: query.sortOrder || SortOrder.ASC
+                }
+            };
+        }
+
+        // Handle price sorting
+        if (query?.sortBy === EventSortField.MIN_PRICE) {
+            const events = await this.db.event.findMany({
+                where: {
+                    ...where,
+                    tickets: {
+                        some: {
+                            status: TicketStatus.AVAILABLE
+                        }
+                    }
+                },
+                include: {
+                    ...include,
+                    tickets: {
+                        where: {
+                            status: TicketStatus.AVAILABLE
+                        },
+                        select: {
+                            id: true,
+                            title: true,
+                            price: true,
+                        },
+                        distinct: ['title', 'price'],
+                        orderBy: {
+                            price: 'asc'
+                        }
+                    }
+                }
+            });
+
+            // Sort by price
+            const sortedEvents = events.sort((a, b) => {
+                const aTickets = a.tickets || [];
+                const bTickets = b.tickets || [];
+
+                if (aTickets.length === 0) return 1;
+                if (bTickets.length === 0) return -1;
+
+                const aPrices = aTickets.map(t => Number(t.price));
+                const bPrices = bTickets.map(t => Number(t.price));
+
+                const aPrice = Math.min(...aPrices);
+                const bPrice = Math.min(...bPrices);
+
+                return query.sortOrder === SortOrder.ASC ? aPrice - bPrice : bPrice - aPrice;
+            });
+
+            // Apply pagination after sorting
+            const paginatedEvents = sortedEvents.slice(query.skip || 0, (query.skip || 0) + (query.take || sortedEvents.length));
+
+            const [total, priceStats] = await Promise.all([
+                this.db.event.count({ where }),
+                this.db.ticket.aggregate(buildPriceAggregation(where))
+            ]);
+
+            return {
+                items: paginatedEvents.map(EventsRepository.transformEventData),
+                filteredBy: extractAppliedFilters(query),
+                count: paginatedEvents.length,
+                total,
+                minPrice: priceStats._min?.price ? Number(priceStats._min.price) : null,
+                maxPrice: priceStats._max?.price ? Number(priceStats._max.price) : null,
+                sortedBy: {
+                    field: query.sortBy || EventSortField.STARTED_AT,
+                    order: query.sortOrder || SortOrder.ASC
+                }
+            };
+        }
+
+        // Handle other sorting fields
+        const orderBy = query?.sortBy && query?.sortOrder
+            ? buildOrderByClause({ field: query.sortBy, order: query.sortOrder })
+            : DEFAULT_EVENT_ORDERING;
+
+        const events = await this.db.event.findMany({
+            where,
+            include,
+            orderBy,
+            skip: query?.skip,
+            take: query?.take,
+        });
+
+        const [total, priceStats] = await Promise.all([
             this.db.event.count({ where }),
             this.db.ticket.aggregate(buildPriceAggregation(where))
         ]);
 
         return {
-            items: items.map(EventsRepository.transformEventData),
-            count: items.length,
+            items: events.map(EventsRepository.transformEventData),
+            filteredBy: extractAppliedFilters(query),
+            count: events.length,
             total,
             minPrice: priceStats._min?.price ? Number(priceStats._min.price) : null,
             maxPrice: priceStats._max?.price ? Number(priceStats._max.price) : null,
+            sortedBy: query?.sortBy && query?.sortOrder ? {
+                field: query.sortBy,
+                order: query.sortOrder
+            } : DEFAULT_SORT,
         };
     }
 
     async findAll(query?: GetEventsDto): Promise<EventAggregateResult> {
-        const { skip, take } = query || {};
-        const where = buildEventWhereClause(query);
+        const { skip, take, ...filterQuery } = query || {};
+        const where = buildEventWhereClause(filterQuery);
 
         return this.executeEventQuery(
             where,
             BASE_EVENT_INCLUDE,
-            DEFAULT_EVENT_ORDERING,
-            skip,
-            take
+            query
         );
     }
 
     async findAllWithTicketPrices(query?: GetEventsDto): Promise<EventAggregateResult> {
-        const { skip, take } = query || {};
-        const where = buildEventWhereClause(query);
+        const { skip, take, ...filterQuery } = query || {};
+        const where = buildEventWhereClause(filterQuery);
 
         return this.executeEventQuery(
             where,
             TICKETS_INCLUDE,
-            SIMPLE_EVENT_ORDERING,
-            skip,
-            take
+            query
         );
     }
 
@@ -275,12 +459,10 @@ export class EventsRepository {
                     },
                     select: {
                         id: true,
-                        eventId: true,
                         title: true,
                         price: true,
-                        status: true,
                     },
-                    distinct: ['title'],
+                    distinct: ['title', 'price'],
                     orderBy: {
                         price: 'asc',
                     },
@@ -344,8 +526,9 @@ export class EventsRepository {
                     })) || [],
             themesRelation: undefined,
             tickets: event.tickets?.map(ticket => ({
-                ...ticket,
-                price: ticket.price ? Number(ticket.price) : null
+                id: ticket.id,
+                title: ticket.title,
+                price: ticket.price ? Number(ticket.price) : null,
             })) || undefined,
         };
     }

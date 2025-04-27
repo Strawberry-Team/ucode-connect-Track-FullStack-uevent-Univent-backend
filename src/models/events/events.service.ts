@@ -17,6 +17,9 @@ import { CreateEventThemesDto } from './dto/create-event-themes.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GetEventsDto } from './dto/get-events.dto';
 import { CompaniesRepository } from '../companies/companies.repository';
+import { EventAggregateResult } from './types/event-aggregate-result.type';
+import { EventAggregationDto } from './dto/event-aggregation.dto';
+
 @Injectable()
 export class EventsService {
     constructor(
@@ -57,17 +60,24 @@ export class EventsService {
         });
     }
 
-    async findAll(query?: GetEventsDto): 
-    Promise<{ items: Event[]; count: number; total: number; minPrice: number | null; maxPrice: number | null; }> {
-        const events = await this.eventsRepository.findAllWithTicketPrices(query);
-        
-        events.items = events.items.map((event) =>  
-            plainToInstance(Event, event, {
+    async findAll(query?: GetEventsDto): Promise<EventAggregateResult> {
+        const result = await this.eventsRepository.findAll(query);
+        return {
+            ...result,
+            items: plainToInstance(Event, result.items, {
+                groups: SERIALIZATION_GROUPS.BASIC,
+            }),
+        };
+    }
+
+    async findAllWithTicketPrices(query?: GetEventsDto): Promise<EventAggregateResult> {
+        const result = await this.eventsRepository.findAllWithTicketPrices(query);
+        return {
+            ...result,
+            items: plainToInstance(Event, result.items, {
                 groups: SERIALIZATION_GROUPS.BASIC_WITH_TICKETS,
             }),
-        );
-        
-        return events;
+        };
     }
 
     async findById(id: number): Promise<EventWithRelations> {
@@ -78,7 +88,7 @@ export class EventsService {
         }
 
         return plainToInstance(Event, event, {
-            groups: SERIALIZATION_GROUPS.BASIC,
+            groups: SERIALIZATION_GROUPS.BASIC_WITH_TICKETS,
         });
     }
 

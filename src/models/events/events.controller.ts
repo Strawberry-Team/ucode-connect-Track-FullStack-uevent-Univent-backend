@@ -12,12 +12,13 @@ import {
     UseInterceptors,
     UploadedFile,
     BadRequestException,
+    SerializeOptions,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { TicketsService } from '../tickets/tickets.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Event } from './entities/event.entity';
+import { Event, SERIALIZATION_GROUPS } from './entities/event.entity';
 import { Public } from '../../common/decorators/public.decorator';
 import {
     ApiBody,
@@ -54,6 +55,8 @@ import { EntityType } from '../subscriptions/dto/create-subscription.dto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TicketTypeDto } from '../tickets/dto/ticket-type.dto';
 import { GetEventsDto } from './dto/get-events.dto';
+import { EventSortField, SortOrder } from './dto/event-aggregation.dto';
+import { EventAggregateResult } from './types/event-aggregate-result.type';
 
 @Controller('events')
 @ApiTags('Events')
@@ -395,15 +398,47 @@ export class EventsController {
         required: false,
         description: 'Query parameters for filtering events',
     })
+    @ApiQuery({
+        name: 'sortBy',
+        required: false,
+        enum: EventSortField,
+        description: 'Sorting parameters',
+        example: EventSortField.POPULARITY
+    })
+    @ApiQuery({
+        name: 'sortOrder',
+        required: false,
+        enum: SortOrder,
+        description: 'Sort direction',
+        example: SortOrder.DESC
+    })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Successfully retrieved events sorted by start date',
+        description: 'Successfully retrieved events',
         schema: {
             type: 'object',
             properties: {
                 items: {
                     type: 'array',
                     items: { $ref: getSchemaPath(Event) }
+                },
+                filteredBy: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            field: {
+                                type: 'string',
+                                description: 'Filter field name',
+                                example: 'startedAt'
+                            },
+                            value: {
+                                type: 'string',
+                                description: 'Filter value',
+                                example: '2025-05-01T00:00:00.000Z'
+                            }
+                        }
+                    }
                 },
                 count: {
                     type: 'number',
@@ -425,39 +460,61 @@ export class EventsController {
                     description: 'Maximum ticket price of filtered events',
                     example: 4890.00
                 },
+                sortedBy: {
+                    type: 'object',
+                    description: 'Applied sorting parameters',
+                    properties: {
+                        field: {
+                            type: 'string',
+                            enum: Object.values(EventSortField),
+                            description: 'Field used for sorting',
+                            example: EventSortField.POPULARITY
+                        },
+                        order: {
+                            type: 'string',
+                            enum: Object.values(SortOrder),
+                            description: 'Applied sort order',
+                            example: SortOrder.DESC
+                        }
+                    }
+                },
             }
         }
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: 'Event not found',
+        description: 'Invalid request parameters',
         schema: {
             type: 'object',
             properties: {
                 message: {
                     type: 'array',
-                    description: 'Error message',
+                    description: 'Error messages',
                     items: {
                         type: 'string',
-                        example: 'each value in status must be one of the following values: DRAFT, PUBLISHED, SALES_STARTED, ONGOING, FINISHED, CANCELLED',
-                    },
+                        example: [
+                            'each value in status must be one of the following values: DRAFT, PUBLISHED, SALES_STARTED, ONGOING, FINISHED, CANCELLED',
+                            'sortBy must be one of the following values: id, title, description, venue, startedAt, endedAt, publishedAt, ticketsAvailableFrom, status, createdAt, companyId, formatId, popularity'
+                        ]
+                    }
                 },
                 error: {
                     type: 'string',
-                    description: 'Error message',
-                    example: 'Bad Request',
+                    description: 'Error type',
+                    example: 'Bad Request'
                 },
                 statusCode: {
                     type: 'number',
                     description: 'Error code',
-                    example: 400,
-                },
-            },
-        },
+                    example: 400
+                }
+            }
+        }
     })
-    async findAll(@Query() query: GetEventsDto):
-    Promise<{ items: Event[]; count: number; total: number; minPrice: number | null; maxPrice: number | null; }> {
-        return await this.eventsService.findAll(query);
+    async findAll(
+        @Query() query: GetEventsDto,
+    ): Promise<EventAggregateResult> {
+        return await this.eventsService.findAllWithTicketPrices(query);
     }
 
     @Get(':id/news')

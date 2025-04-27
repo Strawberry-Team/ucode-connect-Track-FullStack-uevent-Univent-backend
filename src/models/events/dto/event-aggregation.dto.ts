@@ -1,6 +1,6 @@
 // src/models/events/dto/get-events.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNumber, IsOptional, IsPositive, Min } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsPositive, Min, ValidateNested } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { EventStatus } from '@prisma/client';
 import { IsName } from 'src/common/validators/name.validator';
@@ -9,7 +9,19 @@ import { IsISO8601Date } from 'src/common/validators/date.validator';
 import { IsId } from 'src/common/validators/id.validator';
 import { IsEnumArray } from 'src/common/validators/enum-array.validator';
 
-export class EventFilterDto {
+export enum SortOrder {
+    ASC = 'asc',
+    DESC = 'desc'
+}
+
+export enum EventSortField {
+    TITLE = 'title',
+    STARTED_AT = 'startedAt',
+    MIN_PRICE = 'minPrice',
+    POPULARITY = 'popularity',
+}
+
+export class EventAggregationDto {
     @IsName(true)
     @ApiProperty({
         required: false,
@@ -154,4 +166,26 @@ export class EventFilterDto {
         example: 499.99,
     })
     maxPrice?: number;
+
+    @IsOptional()
+    @IsEnum(EventSortField)
+    @ApiProperty({
+        required: false,
+        description: 'Sort field',
+        enum: EventSortField,
+        example: EventSortField.POPULARITY,
+        default: EventSortField.POPULARITY
+    })
+    sortBy?: EventSortField;
+
+    @IsOptional()
+    @IsEnum(SortOrder)
+    @ApiProperty({
+        required: false,
+        description: 'Sort direction',
+        enum: SortOrder,
+        example: SortOrder.DESC,
+        default: SortOrder.DESC
+    })
+    sortOrder?: SortOrder;
 }

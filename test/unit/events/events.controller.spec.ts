@@ -27,6 +27,8 @@ import { PromoCode } from '../../../src/models/promo-codes/entities/promo-code.e
 import { FindAllTicketsQueryDto } from '../../../src/models/tickets/dto/find-all-tickets-query.dto';
 import { TicketStatus } from '@prisma/client';
 import { generateFakeCreateNewsDto } from 'test/fake-data/fake-news';
+import { EventSortField } from 'src/models/events/dto/event-aggregation.dto';
+import { SortOrder } from 'src/models/events/dto/event-aggregation.dto';
 
 class MockJwtAuthGuard {
     canActivate() {
@@ -101,7 +103,24 @@ describe('EventsController', () => {
                             count: 1,
                             total: 1,
                             minPrice: 100,
-                            maxPrice: 500
+                            maxPrice: 500,
+                            filteredBy: [],
+                            sortedBy: {
+                                field: EventSortField.POPULARITY,
+                                order: SortOrder.DESC
+                            }
+                        }),
+                        findAllWithTicketPrices: jest.fn().mockResolvedValue({
+                            items: [transformedEventWithRelations],
+                            count: 1,
+                            total: 1,
+                            minPrice: 100,
+                            maxPrice: 500,
+                            filteredBy: [],
+                            sortedBy: {
+                                field: EventSortField.POPULARITY,
+                                order: SortOrder.DESC
+                            }
                         }),
                         update: jest.fn().mockImplementation((id) => {
                             if (id === -1) throw new NotFoundException('Event not found');
@@ -320,31 +339,41 @@ describe('EventsController', () => {
         it('should return all events', async () => {
             const expectedResponse = {
                 items: [transformedEventWithRelations],
+                filteredBy: [],
                 count: 1,
                 total: 1,
                 minPrice: 100,
-                maxPrice: 500
+                maxPrice: 500,
+                sortedBy: {
+                    field: EventSortField.POPULARITY,
+                    order: SortOrder.DESC
+                }
             };
-            jest.spyOn(eventsService, 'findAll').mockResolvedValue(expectedResponse);
+            jest.spyOn(eventsService, 'findAllWithTicketPrices').mockResolvedValue(expectedResponse);
 
             const result = await controller.findAll({});
             expect(result).toEqual(expectedResponse);
-            expect(eventsService.findAll).toHaveBeenCalledWith({});
+            expect(eventsService.findAllWithTicketPrices).toHaveBeenCalledWith({});
         });
 
         it('should return empty array when no events exist', async () => {
             const expectedResponse = {
                 items: [],
+                filteredBy: [],
                 count: 0,
                 total: 0,
                 minPrice: null,
-                maxPrice: null
+                maxPrice: null,
+                sortedBy: {
+                    field: EventSortField.POPULARITY,
+                    order: SortOrder.DESC
+                }
             };
-            jest.spyOn(eventsService, 'findAll').mockResolvedValue(expectedResponse);
+            jest.spyOn(eventsService, 'findAllWithTicketPrices').mockResolvedValue(expectedResponse);
 
             const result = await controller.findAll({});
             expect(result).toEqual(expectedResponse);
-            expect(eventsService.findAll).toHaveBeenCalledWith({});
+            expect(eventsService.findAllWithTicketPrices).toHaveBeenCalledWith({});
         });
     });
 

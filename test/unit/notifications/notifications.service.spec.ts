@@ -102,69 +102,83 @@ describe('NotificationsService', () => {
     });
   });
 
-  describe('create', () => {
-    it('should create a notification', async () => {
-      const result = await service.create({
-        userId: 1,
-        title: 'Test notification',
-        content: 'This is a test notification',
-      });
-      expect(result).toEqual(mockNotification);
-      expect(repository.create).toHaveBeenCalledWith({
-        userId: 1,
-        title: 'Test notification',
-        content: 'This is a test notification',
-      });
-    });
-  });
-
   describe('createEventStatusNotification', () => {
     it('should create notifications for all subscribers', async () => {
-      const createSpy = jest.spyOn(service, 'create');
-      
-      await service.createEventStatusNotification(mockEventStatusChangedEvent as EventStatusChangedEvent);
+      const result = await service.createEventStatusNotification(mockEventStatusChangedEvent as EventStatusChangedEvent);
       
       expect(subscriptionsService.findAllUserIdsByEventId).toHaveBeenCalledWith(1);
-      expect(createSpy).toHaveBeenCalledTimes(2); // по одному для кожного підписника
+      expect(repository.create).toHaveBeenCalledTimes(2); // по одному для кожного підписника
+      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: expect.any(Number),
+        title: 'Event status updated',
+        content: expect.any(String),
+        eventId: mockEventStatusChangedEvent.eventId,
+        companyId: null
+      }));
     });
 
     it('should not create notifications when there are no subscribers', async () => {
       jest.spyOn(subscriptionsService, 'findAllUserIdsByEventId').mockResolvedValue([]);
-      const createSpy = jest.spyOn(service, 'create');
       
       await service.createEventStatusNotification(mockEventStatusChangedEvent as EventStatusChangedEvent);
       
-      expect(createSpy).not.toHaveBeenCalled();
+      expect(repository.create).not.toHaveBeenCalled();
     });
   });
 
   describe('createNewsNotification', () => {
     it('should create notifications for event subscribers', async () => {
-      const createSpy = jest.spyOn(service, 'create');
-      
-      await service.createNewsNotification(mockNewsCreatedEvent);
+      await service.createNewsNotification({
+        ...mockNewsCreatedEvent,
+        eventTitle: 'Test Event',
+        companyTitle: undefined
+      });
       
       expect(subscriptionsService.findAllUserIdsByEntityId).toHaveBeenCalledWith(1, EntityType.EVENT);
-      expect(createSpy).toHaveBeenCalledTimes(2); // по одному для кожного підписника
+      expect(repository.create).toHaveBeenCalledTimes(2); // по одному для кожного підписника
+      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: expect.any(Number),
+        title: 'Event news published',
+        content: expect.stringContaining('Test Event'),
+        eventId: mockNewsCreatedEvent.eventId,
+        companyId: null
+      }));
     });
 
     it('should create notifications for company subscribers', async () => {
-      const companyNews = { ...mockNewsCreatedEvent, eventId: undefined, companyId: 1 };
-      const createSpy = jest.spyOn(service, 'create');
+      const companyNews = { 
+        ...mockNewsCreatedEvent, 
+        eventId: undefined, 
+        companyId: 1,
+        eventTitle: undefined,
+        companyTitle: 'Test Company'
+      };
       
       await service.createNewsNotification(companyNews);
       
       expect(subscriptionsService.findAllUserIdsByEntityId).toHaveBeenCalledWith(1, EntityType.COMPANY);
-      expect(createSpy).toHaveBeenCalledTimes(2); // по одному для кожного підписника
+      expect(repository.create).toHaveBeenCalledTimes(2); // по одному для кожного підписника
+      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: expect.any(Number),
+        title: 'Company news published',
+        content: expect.stringContaining('Test Company'),
+        eventId: null,
+        companyId: companyNews.companyId
+      }));
     });
 
     it('should not create notifications when source is not specified', async () => {
-      const invalidNews = { ...mockNewsCreatedEvent, eventId: undefined, companyId: undefined };
-      const createSpy = jest.spyOn(service, 'create');
+      const invalidNews = { 
+        ...mockNewsCreatedEvent, 
+        eventId: undefined, 
+        companyId: undefined,
+        eventTitle: undefined,
+        companyTitle: undefined
+      };
       
       await service.createNewsNotification(invalidNews);
       
-      expect(createSpy).not.toHaveBeenCalled();
+      expect(repository.create).not.toHaveBeenCalled();
     });
   });
 

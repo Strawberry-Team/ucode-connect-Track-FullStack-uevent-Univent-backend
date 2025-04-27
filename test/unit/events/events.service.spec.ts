@@ -9,6 +9,7 @@ import { AttendeeVisibility, EventStatus } from '@prisma/client';
 import { generateFakeBasicEvent, generateFakeEventWithRelations, generateFakeCreateEventDto } from '../../fake-data/fake-events';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CompaniesRepository } from '../../../src/models/companies/companies.repository';
+import { EventSortField, SortOrder } from 'src/models/events/dto/event-aggregation.dto';
 
 // TODO: Додати тести для перевірки бізнес-логіки, наприклад:
 // - Перевірка зміни статусу події при різних умовах
@@ -56,10 +57,15 @@ describe('EventsService', () => {
                         findAll: jest.fn().mockResolvedValue([mockRepositoryEventWithRelations]),
                         findAllWithTicketPrices: jest.fn().mockResolvedValue({
                             items: [mockRepositoryEventWithRelations],
+                            filteredBy: [],
                             count: 1,
                             total: 1,
                             minPrice: 100,
-                            maxPrice: 500
+                            maxPrice: 500,
+                            sortedBy: {
+                                field: EventSortField.POPULARITY,
+                                order: SortOrder.DESC
+                            }
                         }),
                     },
                 },
@@ -196,11 +202,16 @@ describe('EventsService', () => {
                 count: 1,
                 total: 1,
                 minPrice: 100,
-                maxPrice: 500
+                maxPrice: 500,
+                filteredBy: [],
+                sortedBy: {
+                    field: EventSortField.POPULARITY,
+                    order: SortOrder.DESC
+                }
             };
             jest.spyOn(repository, 'findAllWithTicketPrices').mockResolvedValue(mockResponse);
 
-            const result = await service.findAll();
+            const result = await service.findAllWithTicketPrices();
 
             expect(result.items).toHaveLength(1);
             const event = result.items[0];
@@ -230,14 +241,19 @@ describe('EventsService', () => {
         it('should return empty array when no events exist', async () => {
             const mockResponse = {
                 items: [],
+                filteredBy: [],
                 count: 0,
                 total: 0,
                 minPrice: null,
-                maxPrice: null
+                maxPrice: null,
+                sortedBy: {
+                    field: EventSortField.POPULARITY,
+                    order: SortOrder.DESC
+                }
             };
             jest.spyOn(repository, 'findAllWithTicketPrices').mockResolvedValue(mockResponse);
 
-            const result = await service.findAll();
+            const result = await service.findAllWithTicketPrices();
             expect(result.items).toHaveLength(0);
             expect(result.count).toBe(0);
             expect(result.total).toBe(0);
