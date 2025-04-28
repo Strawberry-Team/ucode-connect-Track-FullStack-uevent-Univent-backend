@@ -38,14 +38,13 @@ export class TicketGenerationService {
     ): Promise<{ ticketFileKey: string; filePath: string }> {
         const { orderItem } = data;
         const event = orderItem.ticket.event;
-        const order = orderItem.order;
+        const orderId = orderItem.orderId;
         const ticket = orderItem.ticket;
-        const user = order.user;
 
         const ticketFileKey = uuidv4();
         const fileName = `item_${orderItem.id}_${ticketFileKey}.pdf`;
         const eventDir = `event_${event.id}`;
-        const orderDir = `order_${order.id}`;
+        const orderDir = `order_${orderId}`;
         const relativePath = path.join(eventDir, orderDir, fileName);
         const fullPath = path.join(this.storagePath, relativePath);
         const directoryPath = path.dirname(fullPath);
@@ -108,8 +107,7 @@ export class TicketGenerationService {
         const { orderItem } = data;
         const event = orderItem.ticket.event;
         const ticket = orderItem.ticket;
-        const order = orderItem.order;
-        const user = order.user;
+        const user = orderItem.user;
 
         return `
             <!DOCTYPE html>

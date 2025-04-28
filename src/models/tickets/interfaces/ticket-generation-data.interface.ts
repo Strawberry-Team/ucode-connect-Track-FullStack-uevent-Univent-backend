@@ -20,15 +20,10 @@ export interface TicketGenerationData {
                 venue: string;
             }
         };
-        order: {
-            id: number;
-            createdAt: Date;
-            user: {
-                id: number;
-                firstName: string;
-                lastName?: string;
-                email: string;
-            }
+        user: {
+            firstName: string,
+            lastName: string | null,
+            email: string,
         }
     }
 }

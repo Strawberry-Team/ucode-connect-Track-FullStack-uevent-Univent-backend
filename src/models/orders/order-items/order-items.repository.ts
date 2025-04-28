@@ -31,11 +31,24 @@ export class OrderItemsRepository {
         });
     }
 
-    /*async findByOrderId(
+    async findByOrderId(
         orderId: number
     ): Promise<Prisma.OrderItemGetPayload<{}>[]> {
         return this.db.orderItem.findMany({
             where: { orderId },
+        });
+    }
+
+    async findByTicketFileKey(
+        ticketFileKey: string
+    ): Promise<Prisma.OrderItemGetPayload<{include: {
+            order: true,
+        }}> | null> {
+        return this.db.orderItem.findUnique({
+            where: { ticketFileKey },
+            include: {
+                order: true,
+            },
         });
     }
 
@@ -55,5 +68,5 @@ export class OrderItemsRepository {
             where: { orderId },
             select: { ticketId: true },
         });
-    }*/
+    }
 }

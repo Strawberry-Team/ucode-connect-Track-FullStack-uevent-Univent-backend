@@ -23,6 +23,7 @@ import { TicketsRepository } from '../tickets/tickets.repository';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import {EmailService} from "../../email/email.service";
+import {TicketGenerationService} from "../tickets/ticket-generation.service";
 
 
 interface PaymentIntentWithRefunds extends Stripe.PaymentIntent {
@@ -48,6 +49,7 @@ export class OrdersService {
         private readonly ticketRepository: TicketsRepository,
         private readonly userService: UsersService,
         private readonly emailService: EmailService,
+        private readonly ticketGenerationService: TicketGenerationService
     ) {
         const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY');
         this.stripe = new Stripe(String(apiKey), {
@@ -320,8 +322,8 @@ export class OrdersService {
                                         continue;
                                     }
 
-                                    const generationData = { orderItem: item };
-                                    const { ticketFileKey, filePath } = await this.ticketGenerationService.generateTicket(generationData);
+                                    const generationData = { orderItem: {...item, user: user} };
+                                    const { ticketFileKey, filePath } = await this.ticketGenerationService.generateTicket(convertDecimalsToNumbers(generationData));
 
                                     await this.orderItemsRepository.update(item.id, { ticketFileKey: ticketFileKey }, tx)
                                     generatedTicketsInfo.push({ itemId: item.id, key: ticketFileKey, path: filePath });

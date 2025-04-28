@@ -20,6 +20,7 @@ const orderWithDetailsSelect = {
         select: {
             id: true,
             finalPrice: true,
+            ticketFileKey: true,
             ticket: {
                 select: {
                     id: true,

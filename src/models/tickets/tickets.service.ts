@@ -2,23 +2,25 @@
 import {
     BadRequestException,
     ConflictException,
-    Injectable,
-    NotFoundException,
+    Injectable, InternalServerErrorException,
+    NotFoundException, UnprocessableEntityException,
 } from '@nestjs/common';
 import { TicketsRepository } from './tickets.repository';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { SERIALIZATION_GROUPS, Ticket } from './entities/ticket.entity';
-import {Prisma, TicketStatus} from '@prisma/client';
+import {PaymentStatus, Prisma, TicketStatus} from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import {EventsRepository} from "../events/events.repository";
 import { randomBytes } from 'crypto';
 import { TicketTypeDto } from './dto/ticket-type.dto';
+import {OrderItemsRepository} from "../orders/order-items/order-items.repository";
 
 @Injectable()
 export class TicketsService {
     constructor(private readonly ticketsRepository: TicketsRepository,
-                private readonly eventsRepository: EventsRepository ) {}
+                private readonly eventsRepository: EventsRepository,
+                private readonly orderItemsRepository: OrderItemsRepository,) {}
 
     async createTicket(
         createTicketDto: CreateTicketDto,
@@ -189,5 +191,21 @@ export class TicketsService {
             ticketIdsToReserve,
             tx
         );
+    }
+
+    async checkInTicket(ticketFileKey: string): Promise<Ticket> {
+        const orderItem = await this.orderItemsRepository.findByTicketFileKey(ticketFileKey);
+
+        if (!orderItem) {
+            throw new NotFoundException(`Ticket with key ${ticketFileKey} not found.`);
+        }
+
+        if (orderItem.order.paymentStatus !== PaymentStatus.PAID) {
+            throw new UnprocessableEntityException(
+                `Cannot check in ticket: Associated order #${orderItem.orderId} is not completed (Status: ${orderItem.order.paymentStatus}).`
+            );
+        }
+
+        return this.findOneTicket(orderItem.ticketId);
     }
 }
