@@ -1,17 +1,17 @@
 import {
-    Injectable,
-    NotFoundException,
     BadRequestException,
-    InternalServerErrorException, UnprocessableEntityException, ForbiddenException,
-
+    ForbiddenException,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+    UnprocessableEntityException,
 } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { OrderItemsRepository } from './order-items/order-items.repository';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { Order } from './entities/order.entity';
+import { Order, SERIALIZATION_GROUPS } from './entities/order.entity';
 import { TicketsService } from '../tickets/tickets.service';
 import { plainToInstance } from 'class-transformer';
-import { SERIALIZATION_GROUPS } from './entities/order.entity';
 import { PaymentStatus, Prisma, TicketStatus } from '@prisma/client';
 import { Ticket } from '../tickets/entities/ticket.entity';
 import { DatabaseService } from '../../db/database.service';
@@ -22,8 +22,8 @@ import { ConfigService } from '@nestjs/config';
 import { TicketsRepository } from '../tickets/tickets.repository';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
-import {EmailService} from "../../email/email.service";
-import {TicketGenerationService} from "../tickets/ticket-generation.service";
+import { EmailService } from '../../email/email.service';
+import { TicketGenerationService } from '../tickets/ticket-generation.service';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
@@ -272,8 +272,9 @@ export class OrdersService {
                                     customerId = newCustomer.id;
                                 }
 
-                                const invoice = await this.stripe.invoices.create({
+                                const invoice = await this.stripe.invoices.create({ // TODO: создавать это в другом месте
                                     customer: customerId,
+                                    days_until_due: 30,
                                     collection_method: 'send_invoice',
                                     auto_advance: false,
                                     description: `Invoice for order #${order.id}`,
@@ -324,7 +325,7 @@ export class OrdersService {
                                         continue;
                                     }
 
-                                    const generationData = { orderItem: {...item, user: user} };
+                                    const generationData = { orderItem: {...item, orderId: order.id, user: user} };
                                     const { ticketFileKey, filePath } = await this.ticketGenerationService.generateTicket(convertDecimalsToNumbers(generationData));
 
                                     await this.orderItemsRepository.update(item.id, { ticketFileKey: ticketFileKey }, tx)
@@ -337,7 +338,7 @@ export class OrdersService {
                                     link: info.path,
                                 }));
 
-                                await this.emailService.sendTicketConfirmationEmail(
+                                this.emailService.sendTicketConfirmationEmail(
                                     user.email,
                                     fullOrderDetails,
                                     ticketLinks,
@@ -399,9 +400,7 @@ export class OrdersService {
             throw new ForbiddenException(`Order with id ${orderId} does not belong to user ${userId}`);
         }
 
-        const updatedOrder = await this.updateOrderPaymentStatus(convertDecimalsToNumbers(foundOrder));
-
-        return updatedOrder;
+        return await this.updateOrderPaymentStatus(convertDecimalsToNumbers(foundOrder));
     }
 
     async findOrdersWithDetailsByUserId(userId: number): Promise<Order[]> {

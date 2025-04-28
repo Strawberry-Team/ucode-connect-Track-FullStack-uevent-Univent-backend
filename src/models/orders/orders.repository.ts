@@ -8,6 +8,7 @@ const orderWithDetailsSelect = {
     id: true,
     userId: true,
     totalAmount: true,
+    paymentIntentId: true,
     paymentStatus: true,
     paymentMethod: true,
     createdAt: true,
