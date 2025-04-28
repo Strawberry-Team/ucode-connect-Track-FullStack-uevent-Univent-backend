@@ -45,7 +45,6 @@ export class Ticket implements TicketWithNumberPrice{
         nullable: false,
         type: 'string',
         example: 'TICKET-1-1744358896023',
-
     })
     @Expose({ groups: ['basic'] })
     number: string;

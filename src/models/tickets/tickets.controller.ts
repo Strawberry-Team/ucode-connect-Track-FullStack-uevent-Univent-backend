@@ -1,28 +1,27 @@
 import {
-    Controller,
-    Patch,
-    Delete,
-    Param,
     Body,
+    Controller,
+    Delete,
     HttpCode,
     HttpStatus,
+    Param,
+    Patch,
     Post,
-    NotFoundException,
-    BadRequestException,
-    UnprocessableEntityException, ConflictException, InternalServerErrorException,
 } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { Ticket } from './entities/ticket.entity';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UserId } from '../../common/decorators/user.decorator';
 import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiExcludeEndpoint,
     ApiOperation,
     ApiParam,
-    ApiBody,
     ApiResponse,
-    ApiTags, ApiBearerAuth,
+    ApiTags,
 } from '@nestjs/swagger';
-import {ApiExcludeEndpoint} from "@nestjs/swagger";
+import { VerifyTicketDto } from './dto/verify-ticket.dto';
 
 @ApiTags('Tickets')
 @Controller('tickets')
@@ -62,7 +61,6 @@ export class TicketsController {
         return await this.ticketsService.updateTicket(id, dto);
     }
 
-
     @Delete(':id')
     @ApiExcludeEndpoint()
     // @UseGuards(EventCreatorGuard)
@@ -79,43 +77,36 @@ export class TicketsController {
         status: HttpStatus.NO_CONTENT,
         description: 'Ticket successfully deleted',
     })
-    async remove(
-        @Param('id') id: number,
-    ): Promise<void> {
+    async remove(@Param('id') id: number): Promise<void> {
         return await this.ticketsService.deleteTicket(id);
     }
 
-    @Post('check-in')
-    // @UseGuards(StaffGuard) // <--- !!! ВАЖНО: Защитить этот эндпоинт Guard'ом для персонала/API ключей !!!
+    @Post('verify')
+    // @UseGuards(StaffGuard) // TODO: Protect this endpoint with Guard for personnel/API keys
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Check-in a ticket using its unique number (file key)' })
-    @ApiParam({ name: 'ticketNumber', description: 'The unique UUID (ticketFileKey) of the ticket to check in', type: String, format: 'uuid' })
-    @ApiResponse({ status: 200, description: 'Ticket checked in successfully. Returns ticket details.', type: Ticket })
+    @ApiOperation({
+        summary: 'Verify a ticket using its unique number',
+    })
+    @ApiParam({
+        name: 'ticketNumber',
+        type: String,
+        format: 'uuid',
+        description: 'Ticket number in a specific format',
+        example: 'TICKET-1-1744358896023',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Ticket verified successfully. Returns ticket details.',
+        type: Ticket,
+    })
     @ApiResponse({ status: 404, description: 'Ticket not found.' })
-    @ApiResponse({ status: 422, description: 'Cannot check in ticket (e.g., order not completed).' })
-    @ApiResponse({ status: 409, description: 'Ticket already checked in.' })
-    @ApiResponse({ status: 401, description: 'Unauthorized (Missing or invalid staff credentials/token).' })
-    @ApiResponse({ status: 500, description: 'Internal server error during check-in.' })
-    async checkInTicket(
-        @Body('ticketNumber') ticketNumber: string,
+    @ApiResponse({
+        status: 422,
+        description: 'Cannot check in ticket (e.g., order not completed).',
+    })
+    async verifyTicket(
+        @Body() verifyTicketDto: VerifyTicketDto,
     ): Promise<Ticket> {
-        if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(ticketNumber)) {
-            throw new BadRequestException('Invalid ticket number format.');
-        }
-
-        try {
-            const checkedInTicket = await this.ticketsService.checkInTicket(ticketNumber);
-            return checkedInTicket;
-        } catch (error) {
-            if (
-                error instanceof NotFoundException ||
-                error instanceof UnprocessableEntityException ||
-                error instanceof ConflictException ||
-                error instanceof BadRequestException
-            ) {
-                throw error;
-            }
-            throw new InternalServerErrorException('An unexpected error occurred during check-in.');
-        }
+        return await this.ticketsService.verifyTicket(verifyTicketDto);
     }
 }

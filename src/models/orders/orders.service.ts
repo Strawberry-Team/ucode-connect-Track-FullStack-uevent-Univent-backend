@@ -24,6 +24,8 @@ import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import {EmailService} from "../../email/email.service";
 import {TicketGenerationService} from "../tickets/ticket-generation.service";
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 
 
 interface PaymentIntentWithRefunds extends Stripe.PaymentIntent {
@@ -47,9 +49,9 @@ export class OrdersService {
         private readonly db: DatabaseService,
         private readonly configService: ConfigService,
         private readonly ticketRepository: TicketsRepository,
+        private readonly ticketGenerationService: TicketGenerationService,
         private readonly userService: UsersService,
         private readonly emailService: EmailService,
-        private readonly ticketGenerationService: TicketGenerationService
     ) {
         const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY');
         this.stripe = new Stripe(String(apiKey), {
@@ -393,7 +395,7 @@ export class OrdersService {
             throw new NotFoundException(`Order with id ${orderId} not found`);
         }
 
-        if (foundOrder.userId !== userId) {
+        if (foundOrder.userId !== userId) { //TODO: in guards
             throw new ForbiddenException(`Order with id ${orderId} does not belong to user ${userId}`);
         }
 
@@ -410,5 +412,47 @@ export class OrdersService {
         );
 
         return updatedOrders;
+    }
+
+
+    async getTicketFileStream(orderId: number, itemId: number): Promise<{ fileStream: fs.ReadStream, downloadFileName: string }> {
+        const order = await this.ordersRepository.findById(orderId);
+
+        if (!order) {
+            throw new NotFoundException(`Order with ID ${orderId} not found.`);
+        }
+
+        const orderItem = order.orderItems?.find(item => item.id === itemId);
+        if (!orderItem) {
+            throw new NotFoundException(`Order Item with ID ${itemId} not found in Order ${orderId}.`);
+        }
+
+        if (order.paymentStatus !== PaymentStatus.PAID) {
+            throw new ForbiddenException('Ticket cannot be viewed until the payment is completed.');
+        }
+
+        if (!orderItem.ticketFileKey) {
+            throw new NotFoundException('Ticket PDF has not been generated for this item yet.');
+        }
+
+        const ticket = orderItem.ticket;
+        const eventId = ticket.event.id;
+        const eventTitle = ticket.event.title;
+
+        const storagePath = String(
+            this.configService.get<string>('storage.paths.tickets'),
+        );
+        const fileName = `item_${itemId}_${orderItem.ticketFileKey}.pdf`;
+        const relativePath = path.join(`event_${eventId}`, `order_${orderId}`, fileName);
+        const filePath = path.join(storagePath, relativePath);
+
+        if (!fs.existsSync(filePath)) {
+            throw new InternalServerErrorException('Ticket file cannot be retrieved at the moment. Please contact support.');
+        }
+
+        const fileStream = fs.createReadStream(filePath);
+        const downloadFileName = `Ticket_${eventTitle.replace(/\s+/g, '_')}_${orderItem.ticketFileKey.substring(0, 8)}.pdf`;
+
+        return { fileStream, downloadFileName };
     }
 }

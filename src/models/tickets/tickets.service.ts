@@ -15,6 +15,7 @@ import {EventsRepository} from "../events/events.repository";
 import { randomBytes } from 'crypto';
 import { TicketTypeDto } from './dto/ticket-type.dto';
 import {OrderItemsRepository} from "../orders/order-items/order-items.repository";
+import { VerifyTicketDto } from './dto/verify-ticket.dto';
 
 @Injectable()
 export class TicketsService {
@@ -193,11 +194,11 @@ export class TicketsService {
         );
     }
 
-    async checkInTicket(ticketFileKey: string): Promise<Ticket> {
-        const orderItem = await this.orderItemsRepository.findByTicketFileKey(ticketFileKey);
+    async verifyTicket(verifyTicketDto: VerifyTicketDto): Promise<Ticket> {
+        const orderItem = await this.orderItemsRepository.findByTicketFileKey(verifyTicketDto.ticketNumber);
 
         if (!orderItem) {
-            throw new NotFoundException(`Ticket with key ${ticketFileKey} not found.`);
+            throw new NotFoundException(`Ticket with key ${verifyTicketDto.ticketNumber} not found.`);
         }
 
         if (orderItem.order.paymentStatus !== PaymentStatus.PAID) {
