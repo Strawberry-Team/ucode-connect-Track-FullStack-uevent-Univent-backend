@@ -6,13 +6,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `notifications` MODIFY `content` VARCHAR(100) NOT NULL;
-
--- AlterTable
 ALTER TABLE `order_items` ADD COLUMN `ticket_file_key` VARCHAR(36) NULL;
-
--- AlterTable
-ALTER TABLE `orders` ADD COLUMN `invoice_id` VARCHAR(255) NULL;
 
 -- CreateIndex
 CREATE UNIQUE INDEX `order_items_ticket_file_key_key` ON `order_items`(`ticket_file_key`);

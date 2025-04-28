@@ -41,6 +41,8 @@ import { createInitialNotifications } from './notifications';
 import {EmailService} from "../../src/email/email.service";
 import {GoogleOAuthService} from "../../src/google/google-oauth.service";
 import {TicketGenerationService} from "../../src/models/tickets/ticket-generation.service";
+import storageConfig from '../../src/config/storage.config';
+import appConfig from '../../src/config/app.config';
 
 
 class MockCompaniesService {
@@ -194,7 +196,12 @@ async function start() {
     try {
         console.log('Seeding started 🌱');
         const dbService = new DatabaseService();
-        const configService = new ConfigService();
+        const configService = new ConfigService(
+            {
+                ...storageConfig(),
+                ...appConfig(),
+            }
+        );
         const hashingService = new HashingService(configService);
         const passwordService = new HashingPasswordsService(hashingService);
         const hashingPromoCodesService = new HashingPromoCodesService(

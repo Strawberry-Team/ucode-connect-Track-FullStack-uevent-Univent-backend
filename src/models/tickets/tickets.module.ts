@@ -8,16 +8,19 @@ import { CompaniesModule } from '../companies/companies.module';
 import { EventsModule } from '../events/events.module';
 import { ConfigModule } from '@nestjs/config';
 import storageConfig from '../../config/storage.config';
+import { OrderItemsModule } from '../orders/order-items/order-items.module';
+import { TicketGenerationService } from './ticket-generation.service';
 
 @Module({
     imports: [
         forwardRef(() => UsersModule),
         forwardRef(() => CompaniesModule),
         forwardRef(() => EventsModule),
+        forwardRef(() => OrderItemsModule),
         ConfigModule.forFeature(storageConfig),
     ],
     controllers: [TicketsController],
-    providers: [TicketsService, TicketsRepository, TicketsController],
-    exports: [TicketsService, TicketsRepository],
+    providers: [TicketsService, TicketsRepository, TicketsController, TicketGenerationService],
+    exports: [TicketsService, TicketsRepository, TicketGenerationService],
 })
 export class TicketsModule {}
