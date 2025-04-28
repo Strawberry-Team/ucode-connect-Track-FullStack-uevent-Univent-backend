@@ -38,6 +38,9 @@ import {PromoCodesService} from "../../src/models/promo-codes/promo-codes.servic
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { NotificationsRepository } from '../../src/models/notifications/notifications.repository';
 import { createInitialNotifications } from './notifications';
+import {EmailService} from "../../src/email/email.service";
+import {GoogleOAuthService} from "../../src/google/google-oauth.service";
+import {TicketGenerationService} from "../../src/models/tickets/ticket-generation.service";
 
 
 class MockCompaniesService {
@@ -220,6 +223,9 @@ async function start() {
             mockCompaniesService as any,
             passwordService,
             new OrdersRepository(dbService),);
+        const googleOAuthService = new GoogleOAuthService(configService);
+        const emailService = new EmailService(configService, googleOAuthService);
+        const ticketGenerationService = new TicketGenerationService(configService)
 
         const seeder = new Seeder(
             dbService,
@@ -240,12 +246,15 @@ async function start() {
                 new TicketsService(
                     new TicketsRepository(dbService),
                     new EventsRepository(dbService),
+                    orderItemsRepository
                 ),
                 promoCodesService,
                 dbService,
                 configService,
                 ticketsRepository,
-                userService
+                userService,
+                emailService,
+                ticketGenerationService,
             ),
             subscriptionsRepository,
             notificationsRepository,
