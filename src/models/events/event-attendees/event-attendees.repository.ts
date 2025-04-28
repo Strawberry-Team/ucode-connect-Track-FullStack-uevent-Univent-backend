@@ -20,6 +20,16 @@ export class EventAttendeesRepository {
                     eventId,
                     userId,
                 },
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        profilePictureName: true
+                    },
+                },
             }
         });
     }
