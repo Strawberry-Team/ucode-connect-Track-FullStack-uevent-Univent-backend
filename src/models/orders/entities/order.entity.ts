@@ -55,7 +55,7 @@ export class Order implements OrderWithNumberTotalAmount {
     })
     paymentIntentId: string | null;
 
-
+    @Expose({ groups: ['payment'] })
     invoiceId: string | null;
 
     @Expose({ groups: ['basic'] })

@@ -185,13 +185,14 @@ model Order {
 }
 
 model OrderItem {
-  id           Int      @id @default(autoincrement())
-  orderId      Int      @map("order_id")
-  ticketId     Int      @map("ticket_id")
-  initialPrice Decimal  @map("initial_price") @db.Decimal(10, 2)
-  finalPrice   Decimal  @map("final_price") @db.Decimal(10, 2)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  id            Int      @id @default(autoincrement())
+  orderId       Int      @map("order_id")
+  ticketId      Int      @map("ticket_id")
+  ticketFileKey String?  @unique @map("ticket_file_key") @db.VarChar(36)
+  initialPrice  Decimal  @map("initial_price") @db.Decimal(10, 2)
+  finalPrice    Decimal  @map("final_price") @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "order_items_order_id_fk")
   ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict, map: "order_items_ticket_id_fk")
@@ -202,7 +203,6 @@ model OrderItem {
   @@map("order_items")
 }
 
-//
 // Promo Codes model
 model PromoCode {
   id              Int      @id @default(autoincrement())
@@ -260,16 +260,16 @@ model Subscription {
 
 // Notifications model
 model Notification {
-  id         Int        @id @default(autoincrement())
-  userId     Int        @map("user_id")
-  title      String     @db.VarChar(100)
-  content    String     @db.VarChar(100)
-  eventId    Int?       @map("event_id")
-  companyId  Int?       @map("company_id")
-  readAt     DateTime?  @map("read_at")
-  hiddenAt   DateTime?  @map("hidden_at")
-  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  title     String    @db.VarChar(100)
+  content   String    @db.VarChar(100)
+  eventId   Int?      @map("event_id")
+  companyId Int?      @map("company_id")
+  readAt    DateTime? @map("read_at")
+  hiddenAt  DateTime? @map("hidden_at")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "notifications_user_id_fk")

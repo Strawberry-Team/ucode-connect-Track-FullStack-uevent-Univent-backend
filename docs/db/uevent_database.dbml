@@ -107,6 +107,7 @@ Table order_items {
   "id" INT [pk, increment]
   "order_id" INT [not null]
   "ticket_id" INT [not null]
+  "ticket_file_key" VARCHAR(36)
   "initial_price" DECIMAL(10, 2) [not null]
   "final_price" DECIMAL(10, 2) [not null]
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
@@ -116,6 +117,7 @@ Table order_items {
     order_id [name: "order_items_order_id_fk"]
     ticket_id [name: "order_items_ticket_id_fk"]
     (order_id, ticket_id) [unique, name: "order_items_order_id_ticket_id_uq"]
+    (ticket_file_key) [unique, name: "order_items_ticket_file_key_uq"]
   }
 }
 

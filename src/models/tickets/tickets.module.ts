@@ -4,14 +4,17 @@ import { TicketsService } from './tickets.service';
 import { TicketsRepository } from './tickets.repository';
 import { TicketsController } from './tickets.controller';
 import { UsersModule } from '../users/users.module';
-import { CompaniesModule } from "../companies/companies.module";
-import {EventsModule} from "../events/events.module";
+import { CompaniesModule } from '../companies/companies.module';
+import { EventsModule } from '../events/events.module';
+import { ConfigModule } from '@nestjs/config';
+import storageConfig from '../../config/storage.config';
 
 @Module({
     imports: [
         forwardRef(() => UsersModule),
         forwardRef(() => CompaniesModule),
         forwardRef(() => EventsModule),
+        ConfigModule.forFeature(storageConfig),
     ],
     controllers: [TicketsController],
     providers: [TicketsService, TicketsRepository, TicketsController],
