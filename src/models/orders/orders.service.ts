@@ -1,25 +1,27 @@
-// src/models/orders/orders.service.ts
 import {
     Injectable,
     NotFoundException,
-    BadRequestException, InternalServerErrorException,
+    BadRequestException,
+    InternalServerErrorException, UnprocessableEntityException, ForbiddenException,
+
 } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { OrderItemsRepository } from './order-items/order-items.repository';
 import { CreateOrderDto } from './dto/create-order.dto';
-// import { FindAllOrdersQueryDto } from './dto/find-all-orders-query.dto';
 import { Order } from './entities/order.entity';
 import { TicketsService } from '../tickets/tickets.service';
 import { plainToInstance } from 'class-transformer';
 import { SERIALIZATION_GROUPS } from './entities/order.entity';
-import {PaymentStatus, Prisma, TicketStatus} from '@prisma/client';
-import {Ticket} from "../tickets/entities/ticket.entity";
-import {DatabaseService} from "../../db/database.service";
-import {convertDecimalsToNumbers} from "../../common/utils/convert-decimal-to-number.utils";
-import {PromoCodesService} from "../promo-codes/promo-codes.service";
+import { PaymentStatus, Prisma, TicketStatus } from '@prisma/client';
+import { Ticket } from '../tickets/entities/ticket.entity';
+import { DatabaseService } from '../../db/database.service';
+import { convertDecimalsToNumbers } from '../../common/utils/convert-decimal-to-number.utils';
+import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import Stripe from 'stripe';
-import {ConfigService} from "@nestjs/config";
-import {TicketsRepository} from "../tickets/tickets.repository";
+import { ConfigService } from '@nestjs/config';
+import { TicketsRepository } from '../tickets/tickets.repository';
+import { UsersService } from '../users/users.service';
+import { User } from '../users/entities/user.entity';
 
 interface PaymentIntentWithRefunds extends Stripe.PaymentIntent {
     refunds: {
@@ -42,6 +44,7 @@ export class OrdersService {
         private readonly db: DatabaseService,
         private readonly configService: ConfigService,
         private readonly ticketRepository: TicketsRepository,
+        private readonly userService: UsersService,
     ) {
         const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY');
         this.stripe = new Stripe(String(apiKey), {
@@ -98,15 +101,15 @@ export class OrdersService {
                         );
                     }
 
-                    if(promoCode) {
-                        foundPromoCode = await this.promoCodesService.validatePromoCode({eventId, code: promoCode}, true)
+                    if (promoCode) {
+                        foundPromoCode = await this.promoCodesService.validatePromoCode({ eventId, code: promoCode }, true);
 
                         const promoCodeDiscountPercent: number = foundPromoCode.promoCode.discountPercent;
 
-                         discountMultiplier = new Prisma.Decimal(1).minus(
+                        discountMultiplier = new Prisma.Decimal(1).minus(
                             new Prisma.Decimal(promoCodeDiscountPercent)
                         );
-                         promoCodeId = foundPromoCode.promoCode.id;
+                        promoCodeId = foundPromoCode.promoCode.id;
                     }
 
                     const orderItemsData: Array<{
@@ -114,7 +117,6 @@ export class OrdersService {
                         initialPrice: Prisma.Decimal;
                         finalPrice: Prisma.Decimal;
                     }> = [];
-
 
                     selectedTickets.forEach((ticket) => {
                         const initialPrice: Prisma.Decimal = new Prisma.Decimal(ticket.price);
@@ -125,7 +127,7 @@ export class OrdersService {
                             ticketId: ticket.id,
                             initialPrice: initialPrice,
                             finalPrice: finalPrice,
-                        })
+                        });
                     });
 
                     const orderData = {
@@ -147,9 +149,11 @@ export class OrdersService {
 
                     await this.orderItemsRepository.createMany(orderItemsInputData, tx);
 
-                    const finalOrder = await this.ordersRepository.findById(createdOrder.id, tx)
+                    const finalOrder = await this.ordersRepository.findById(createdOrder.id, tx);
 
-                    if(!finalOrder){throw new NotFoundException()}
+                    if (!finalOrder) {
+                        throw new NotFoundException();
+                    }
 
                     const transformedOrder = convertDecimalsToNumbers(finalOrder);
 
@@ -194,12 +198,12 @@ export class OrdersService {
             );
 
             const refundsResponse = await this.stripe.refunds.list({
-                payment_intent: order.paymentIntentId
+                payment_intent: order.paymentIntentId,
             });
 
             const paymentIntent: PaymentIntentWithRefunds = {
                 ...paymentIntentResponse,
-                refunds: refundsResponse.object === 'list' ? refundsResponse : null
+                refunds: refundsResponse.object === 'list' ? refundsResponse : null,
             };
 
             let newStatus: PaymentStatus;
@@ -230,10 +234,10 @@ export class OrdersService {
             }
 
             if (newStatus !== order.paymentStatus) {
-                const updatedOrder = await this.db.$transaction(
+                let updatedOrder = await this.db.$transaction(
                     async (txClient) => {
                         const prismaClient = tx || txClient;
-                        const updatedOrder = await this.ordersRepository.update(
+                        let updatedOrder = await this.ordersRepository.update(
                             order.id,
                             {
                                 paymentStatus: newStatus,
@@ -241,6 +245,71 @@ export class OrdersService {
                             prismaClient,
                         );
 
+                        // Создание инвойса при успешной оплате
+                        // if (newStatus === PaymentStatus.PAID && !order.invoiceId) {
+                            if (newStatus === PaymentStatus.PAID) {
+                            try {
+                                const user: User = await this.userService.findUserById(order.userId);
+
+                                // Получаем или создаем клиента в Stripe
+                                const customers = await this.stripe.customers.list({
+                                    email: user.email,
+                                    limit: 1,
+                                });
+
+                                let customerId: string;
+                                if (customers.data.length > 0) {
+                                    customerId = customers.data[0].id;
+                                } else {
+                                    const newCustomer = await this.stripe.customers.create({
+                                        email: user.email,
+                                        name: user.firstName,
+                                    });
+                                    customerId = newCustomer.id;
+                                }
+
+                                const invoice = await this.stripe.invoices.create({
+                                    customer: customerId,
+                                    collection_method: 'send_invoice',
+                                    auto_advance: false,
+                                    description: `Invoice for order #${order.id}`,
+                                    metadata: { orderId: order.id.toString() },
+                                });
+
+                                const foundOrderWithDetails = await this.ordersRepository.findById(order.id);
+
+                                if(!foundOrderWithDetails){
+                                    throw new NotFoundException(`Order with ${order.id} not found`);
+                                }
+
+                                if (order.items) {
+                                    for (const item of foundOrderWithDetails.orderItems) {
+                                        await this.stripe.invoiceItems.create({
+                                            invoice: invoice.id,
+                                            customer: customerId,
+                                            amount: Math.round(Number(item.finalPrice) * 100),
+                                            currency: 'usd',
+                                            description: item.ticket.title,
+                                            metadata: { ticketId: item.ticket.id.toString() },
+                                        });
+                                    }
+                                }
+
+                                const finalizedInvoice = await this.stripe.invoices.finalizeInvoice(String(invoice.id));
+
+                                updatedOrder = await this.ordersRepository.update(
+                                    order.id,
+                                    { invoiceId: finalizedInvoice.id },
+                                    prismaClient,
+                                );
+
+                                await this.stripe.invoices.sendInvoice(String(finalizedInvoice.id));
+                            } catch (invoiceError) {
+                                console.error(`Failed to create invoice for order ${order.id}: ${invoiceError.message}`);
+                            }
+                        }
+
+                        // Обновление статуса билетов
                         if (order.items && order.items.length > 0) {
                             const ticketIds = order.items.map(item => item.ticketId);
                             if (newStatus === PaymentStatus.PAID) {
@@ -278,7 +347,6 @@ export class OrdersService {
         }
     }
 
-
     async getOrder(orderId: number, userId: number): Promise<Order> {
         const foundOrder = await this.ordersRepository.findById(orderId);
 
@@ -292,17 +360,16 @@ export class OrdersService {
 
         const updatedOrder = await this.updateOrderPaymentStatus(convertDecimalsToNumbers(foundOrder));
 
-        return convertDecimalsToNumbers(updatedOrder);
+        return updatedOrder;
     }
 
     async findOrdersWithDetailsByUserId(userId: number): Promise<Order[]> {
         const orders = await this.ordersRepository.findAllWithDetailsByUserId(userId);
 
-        // Параллельная актуализация заказов
         const updatedOrders = await Promise.all(
             orders.map(order => this.updateOrderPaymentStatus(convertDecimalsToNumbers(order))),
         );
 
-        return updatedOrders.map(convertDecimalsToNumbers);
+        return updatedOrders;
     }
 }

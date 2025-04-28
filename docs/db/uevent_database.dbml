@@ -93,6 +93,7 @@ Table orders {
   "payment_status" ENUM('pending', 'failed', 'paid', 'refunded') [not null, default: 'pending']
   "payment_method" ENUM('stripe') [not null]
   "total_amount" DECIMAL(10, 2) [not null]
+  "invoiceId" INT
   "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
   "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
 

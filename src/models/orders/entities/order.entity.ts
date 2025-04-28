@@ -55,6 +55,9 @@ export class Order implements OrderWithNumberTotalAmount {
     })
     paymentIntentId: string | null;
 
+
+    invoiceId: string | null;
+
     @Expose({ groups: ['basic'] })
     @ApiProperty({
         description: 'Payment status of the orders',

@@ -210,18 +210,20 @@ async function start() {
         const promoCodesService = new PromoCodesService(promoCodesRepository, hashingPromoCodesService, eventsService);
         const ordersRepository = new OrdersRepository(dbService);
         const orderItemsRepository = new OrderItemsRepository(dbService);
-        const eventAttendeesRepository = new EventAttendeesRepository(dbService);
+        const eventAttendeesRepository = new EventAttendeesRepository(
+            dbService,
+        );
         const subscriptionsRepository = new SubscriptionsRepository(dbService);
         const notificationsRepository = new NotificationsRepository(dbService);
+        const userService = new UsersService(
+            new UsersRepository(dbService),
+            mockCompaniesService as any,
+            passwordService,
+            new OrdersRepository(dbService),);
 
         const seeder = new Seeder(
             dbService,
-            new UsersService(
-                new UsersRepository(dbService),
-                mockCompaniesService as any,
-                passwordService,
-                new OrdersRepository(dbService),
-            ),
+            userService,
             new EventFormatsService(new EventFormatsRepository(dbService)),
             new EventThemesService(new EventThemesRepository(dbService)),
             companiesRepository,
@@ -242,7 +244,8 @@ async function start() {
                 promoCodesService,
                 dbService,
                 configService,
-                ticketsRepository
+                ticketsRepository,
+                userService
             ),
             subscriptionsRepository,
             notificationsRepository,

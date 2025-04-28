@@ -168,6 +168,7 @@ model Order {
   userId          Int           @map("user_id")
   promoCodeId     Int?          @map("promo_code_id")
   paymentIntentId String?       @map("payment_intent_id") @db.VarChar(255)
+  invoiceId       String?       @map("invoice_id") @db.VarChar(255)
   paymentStatus   PaymentStatus @default(PENDING) @map("payment_status")
   paymentMethod   PaymentMethod @map("payment_method")
   totalAmount     Decimal       @map("total_amount") @db.Decimal(10, 2)

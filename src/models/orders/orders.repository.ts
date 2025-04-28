@@ -6,6 +6,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 
 const orderWithDetailsSelect = {
     id: true,
+    userId: true,
     totalAmount: true,
     paymentStatus: true,
     paymentMethod: true,
