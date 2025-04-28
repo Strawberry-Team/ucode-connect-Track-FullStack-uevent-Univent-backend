@@ -66,4 +66,5 @@ docs/db/generated/schema.dbml
 # Uploads
 public/uploads/user-avatars/*
 public/uploads/company-logos/*
+storage
 
