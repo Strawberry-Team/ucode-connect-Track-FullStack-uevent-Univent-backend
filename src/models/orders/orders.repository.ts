@@ -42,7 +42,7 @@ const orderWithDetailsSelect = {
     },
 } as const;
 
-type OrderWithDetails = Prisma.OrderGetPayload<{
+export type OrderWithDetails = Prisma.OrderGetPayload<{
     select: typeof orderWithDetailsSelect;
 }>;
 

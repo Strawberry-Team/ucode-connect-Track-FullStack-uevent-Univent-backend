@@ -22,6 +22,8 @@ import { ConfigService } from '@nestjs/config';
 import { TicketsRepository } from '../tickets/tickets.repository';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
+import {EmailService} from "../../email/email.service";
+
 
 interface PaymentIntentWithRefunds extends Stripe.PaymentIntent {
     refunds: {
@@ -45,6 +47,7 @@ export class OrdersService {
         private readonly configService: ConfigService,
         private readonly ticketRepository: TicketsRepository,
         private readonly userService: UsersService,
+        private readonly emailService: EmailService,
     ) {
         const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY');
         this.stripe = new Stripe(String(apiKey), {
@@ -245,13 +248,10 @@ export class OrdersService {
                             prismaClient,
                         );
 
-                        // Создание инвойса при успешной оплате
-                        // if (newStatus === PaymentStatus.PAID && !order.invoiceId) {
-                            if (newStatus === PaymentStatus.PAID) {
+                        if (newStatus === PaymentStatus.PAID && !order.invoiceId) {
                             try {
                                 const user: User = await this.userService.findUserById(order.userId);
 
-                                // Получаем или создаем клиента в Stripe
                                 const customers = await this.stripe.customers.list({
                                     email: user.email,
                                     limit: 1,
@@ -301,6 +301,43 @@ export class OrdersService {
                                     order.id,
                                     { invoiceId: finalizedInvoice.id },
                                     prismaClient,
+                                );
+
+
+
+                                const generatedTicketsInfo: { itemId: number; key: string; path: string }[] = [];
+                                const fullOrderDetails = await this.ordersRepository.findById(order.id, tx); // Нужен метод, возвращающий ВСЕ данные
+
+                                if (!fullOrderDetails || !fullOrderDetails.orderItems) {
+                                    throw new InternalServerErrorException(`Could not retrieve full order details for ${order.id}`);
+                                }
+
+                                for (const item of fullOrderDetails.orderItems) {
+                                    if (item.ticketFileKey) {
+                                        // Возможно, стоит добавить путь существующего файла, если нужно отправить email повторно
+                                        // const existingFilePath = this.constructTicketPath(item); // Нужна функция для сборки пути
+                                        // generatedTicketsInfo.push({ itemId: item.id, key: item.ticketFileKey, path: existingFilePath });
+                                        continue;
+                                    }
+
+                                    const generationData = { orderItem: item };
+                                    const { ticketFileKey, filePath } = await this.ticketGenerationService.generateTicket(generationData);
+
+                                    await this.orderItemsRepository.update(item.id, { ticketFileKey: ticketFileKey }, tx)
+                                    generatedTicketsInfo.push({ itemId: item.id, key: ticketFileKey, path: filePath });
+                                }
+
+                                const ticketLinks = generatedTicketsInfo.map(info => ({
+                                    itemId: info.itemId,
+                                    ticketTitle: fullOrderDetails.orderItems.find(item => item.id === info.itemId)?.ticket.title || 'Unknown Ticket',
+                                    link: info.path,
+                                }));
+
+                                await this.emailService.sendTicketConfirmationEmail(
+                                    user.email,
+                                    fullOrderDetails,
+                                    ticketLinks,
+                                    user.firstName || 'Customer',
                                 );
 
                                 await this.stripe.invoices.sendInvoice(String(finalizedInvoice.id));

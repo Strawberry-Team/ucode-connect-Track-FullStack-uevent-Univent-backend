@@ -9,6 +9,9 @@ import {
 import { GoogleOAuthService } from '../google/google-oauth.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getTicketConfirmationEmailTemplate } from './email.templates';
+import {Prisma} from "@prisma/client";
+import {OrderWithDetails} from "../models/orders/orders.repository";
 
 @Injectable()
 export class EmailService {
@@ -159,6 +162,25 @@ export class EmailService {
         await this.sendEmail(
             to,
             `Welcome to ${this.appName} – Start Selling Tickets Today! 🎉`,
+            html,
+        );
+    }
+
+    async sendTicketConfirmationEmail(
+        to: string,
+        order: OrderWithDetails,
+        ticketLinks: { itemId: number; ticketTitle: string; link: string }[],
+        fullName: string,
+    ): Promise<void> {
+        const html = getTicketConfirmationEmailTemplate(
+            order,
+            ticketLinks,
+            this.appName,
+            fullName,
+        );
+        await this.sendEmail(
+            to,
+            `[${this.appName}] Your Tickets for Order #${order.id}`,
             html,
         );
     }

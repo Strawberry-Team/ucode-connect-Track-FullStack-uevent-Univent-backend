@@ -17,7 +17,21 @@ export class OrderItemsRepository {
         });
     }
 
-    async findByOrderId(
+    async update(
+        id: number,
+        data: Prisma.OrderItemUpdateInput,
+        tx?: Prisma.TransactionClient,
+    ): Promise<Prisma.OrderItemGetPayload<{ include: { ticket: { include: { event: true } } } }>> {
+        const prismaClient = tx || this.db;
+
+        return prismaClient.orderItem.update({
+            where: { id },
+            data,
+            include: { ticket: { include: { event: true } } },
+        });
+    }
+
+    /*async findByOrderId(
         orderId: number
     ): Promise<Prisma.OrderItemGetPayload<{}>[]> {
         return this.db.orderItem.findMany({
@@ -41,5 +55,5 @@ export class OrderItemsRepository {
             where: { orderId },
             select: { ticketId: true },
         });
-    }
+    }*/
 }
