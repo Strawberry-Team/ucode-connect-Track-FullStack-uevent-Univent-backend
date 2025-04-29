@@ -233,9 +233,6 @@ export class EventsRepository {
                     : bCount - aCount;
             });
 
-            sortedEvents.forEach(event => {
-                console.log(event.id, event._count?.tickets);
-            });
             /* Apply pagination after sorting */
             const paginatedEvents = sortedEvents.slice(
                 query?.skip || 0,

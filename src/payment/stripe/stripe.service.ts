@@ -45,8 +45,6 @@ export class StripeService implements OnModuleInit {
         }
 
         if (order.paymentIntentId) {
-            console.log(`Using existing PaymentIntent ID: ${order.paymentIntentId} for order ${order.id}`);
-
             try {
                 const existingIntent = await this.stripe.paymentIntents.retrieve(order.paymentIntentId);
 
@@ -115,8 +113,6 @@ export class StripeService implements OnModuleInit {
                     enabled: true,
                 },
             });
-
-            console.log(`Created new PaymentIntent ID: ${paymentIntent.id} for order ${createPaymentIntentDto.orderId}`);
 
             await this.ordersRepository.update(createPaymentIntentDto.orderId, {
                 paymentIntentId: paymentIntent.id,

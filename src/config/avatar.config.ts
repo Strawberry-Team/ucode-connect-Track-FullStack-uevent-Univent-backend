@@ -8,11 +8,11 @@ dotenv.config({ path: '.env.development' });
 @Injectable()
 export class AvatarConfig {
     get allowedTypes(): string {
-        return validateEnv('APP_AVATAR_ALLOWED_TYPES');
+        return 'jpg|jpeg|png';
     }
 
     get allowedTypesForInterceptor(): RegExp {
-        return this.createRegExp(validateEnv('APP_AVATAR_ALLOWED_TYPES'));
+        return this.createRegExp(this.allowedTypes);
     }
 
     private createRegExp(types: string): RegExp {

@@ -13,17 +13,17 @@ export default () => ({
             resetPassword: validateEnv('JWT_RESET_PASSWORD_SECRET'),
         },
         expiresIn: {
-            access: validateEnv('JWT_ACCESS_EXPIRES_IN'),
-            refresh: validateEnv('JWT_REFRESH_EXPIRES_IN'),
-            confirmEmail: validateEnv('JWT_CONFIRM_EMAIL_EXPIRES_IN'),
-            resetPassword: validateEnv('JWT_RESET_PASSWORD_EXPIRES_IN'),
+            access: '15m',
+            refresh: '7d',
+            confirmEmail: '24h',
+            resetPassword: '1h',
         },
         issuer: {
-            auth: validateEnv('JWT_ISSUER'),
+            auth: '/api/auth',
         },
         audience: {
-            auth: validateEnv('JWT_AUDIENCE'),
+            auth: '/api',
         },
-        algorithm: validateEnv('JWT_ALGORITHM'),
+        algorithm: 'HS256',
     },
 });

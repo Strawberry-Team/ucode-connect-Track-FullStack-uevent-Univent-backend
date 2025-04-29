@@ -15,11 +15,9 @@ export default () => {
             supportEmail: String(validateEnv('APP_SUPPORT_EMAIL')),
             port: parseInt(String(validateEnv('APP_PORT')), 10),
             host: String(validateEnv('APP_HOST')),
-            globalPrefix: String(validateEnv('APP_GLOBAL_PREFIX')),
+            globalPrefix: 'api',
             protocol: String(validateEnv('APP_PROTOCOL')),
-            passwordSaltRounds: parseInt(
-                String(validateEnv('APP_PASSWORD_BCRYPT_SALT_ROUNDS')),
-            ),
+            passwordSaltRounds: 10,
             promoCodeSaltRounds: 10,
             frontendProtocol,
             frontendHost,
@@ -27,25 +25,22 @@ export default () => {
             frontendLink: `${frontendProtocol}://${frontendHost}:${frontendPort}/`,
             nodeEnv: String(validateEnv('APP_NODE_ENV')),
             logo: {
-                path: String(validateEnv('APP_LOGO_PATH')),
+                path: './public/project',
                 filename: Number(validateEnv('APP_THEME_ID')) == 1 ? "1-logo.png" : "2-logo.png",
             },
             cors: {
-                methods: String(validateEnv('APP_CORS_METHODS')).split(','),
-                allowedHeaders: String(
-                    validateEnv('APP_CORS_ALLOWED_HEADERS'),
-                ).split(','),
-                credentials: Boolean(validateEnv('APP_CORS_CREDENTIALS')),
+                methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+                allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-TOKEN'],
+                credentials: true,
             },
             csrf: {
                 cookie: {
-                    key: String(validateEnv('APP_CSRF_COOKIE_KEY')),
-                    httpOnly: Boolean(validateEnv('APP_CSRF_COOKIE_HTTP_ONLY')),
-                    sameSite: String(validateEnv('APP_CSRF_COOKIE_SAME_SITE')),
+                    key: 'X-CSRF-TOKEN',
+                    httpOnly: false,
+                    sameSite: 'strict',
                 },
-                ignoreMethods: String(
-                    validateEnv('APP_CSRF_IGNORE_METHODS'),
-                ).split(','),
+                ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],
+
             },
             theme:{
                 id: Number(validateEnv('APP_THEME_ID')),

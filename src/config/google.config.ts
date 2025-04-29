@@ -19,29 +19,11 @@ export default () => {
                 ),
             },
             redirectUri: appConfiguration.app.frontendLink,
-            playgroundRedirectUri: String(
-                validateEnv('GOOGLE_PLAYGROUND_REDIRECT_URI'),
-            ),
-            calendarApi: {
-                refreshToken: String(
-                    validateEnv('GOOGLE_CALENDAR_API_REFRESH_TOKEN'),
-                ),
-                maxResults: parseInt(
-                    String(validateEnv('GOOGLE_CALENDAR_API_MAX_RESULTS')),
-                    10,
-                ),
-                dataFile: {
-                    path: String(
-                        validateEnv(
-                            'GOOGLE_CALENDAR_API_HOLIDAY_CALENDARS_DATA_FILE_PATH',
-                        ),
-                    ),
-                },
-            },
+            playgroundRedirectUri: 'http://localhost:8080/api/auth/google/playground',
         },
         ethereal: {
-            host: String(validateEnv('ETHEREAL_HOST')),
-            port: String(validateEnv('ETHEREAL_PORT')),
+            host: 'smtp.ethereal.email',
+            port: '587',
             user: String(validateEnv('ETHEREAL_USER')),
             password: String(validateEnv('ETHEREAL_PASS')),
         },

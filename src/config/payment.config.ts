@@ -10,7 +10,6 @@ export default () => {
             stripe: {
                 secretKey: String(validateEnv('STRIPE_SECRET_KEY')),
                 publishableKey: String(validateEnv('STRIPE_PUBLISHABLE_KEY')),
-                // webhookSecret: String(validateEnv('STRIPE_WEBHOOK_SECRET')),
                 apiVersion: '2025-03-31.basil',
             },
         },

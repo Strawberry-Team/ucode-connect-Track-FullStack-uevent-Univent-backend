@@ -24,8 +24,6 @@ export class CompanyOwnerGuard implements CanActivate {
         }
 
         if (company.ownerId !== userId) {
-            console.log('company.ownerId', company.ownerId);
-            console.log('userId', userId);
             throw new ForbiddenException(
                 'Only the company owner has access to it',
             );

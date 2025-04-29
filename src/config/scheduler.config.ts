@@ -9,14 +9,10 @@ dotenv.config({ path: '.env.development' });
 @Injectable()
 export class SchedulerConfig {
     get unactivatedAccountNotification(): string {
-        return CronExpression[
-            validateEnv('SCHEDULER_UNACTIVATED_ACCOUNT_NOTIFICATION')
-        ];
+        return CronExpression.EVERY_30_MINUTES;
     }
 
     get cleanRefreshTokensFromDb(): string {
-        return CronExpression[
-            validateEnv('SCHEDULER_CLEAN_REFRESH_TOKENS_FROM_DB_TIME')
-        ];
+        return CronExpression.EVERY_DAY_AT_10AM;
     }
 }

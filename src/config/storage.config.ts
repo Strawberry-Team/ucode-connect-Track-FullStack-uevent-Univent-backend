@@ -5,7 +5,7 @@ import * as path from 'path';
 dotenv.config({ path: '.env.development' });
 
 export default () => {
-    const baseStoragePath = process.env.STORAGE_BASE_PATH || 'storage';
+    const baseStoragePath = 'storage';
 
     return {
         storage: {

@@ -43,7 +43,7 @@ export class TicketGenerationService {
     }
 
     private async loadTemplates() {
-        const themeId = Number(this.configService.get<string>('app.theme.id') || 1);
+        const themeId = Number(this.configService.get<string>('app.theme.id'));
 
         try {
             if (!themeModules[themeId]) {
