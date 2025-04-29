@@ -14,8 +14,8 @@ import { TicketGenerationData } from './interfaces/ticket-generation-data.interf
 import { TicketTemplateInterface } from './templates/ticket-template.interface';
 
 const themeModules = {
-    '1': () => import('./templates/1-ticket-templates'),
-    '2': () => import('./templates/2-ticket-templates'),
+    1: () => import('./templates/1-ticket-templates'),
+    2: () => import('./templates/2-ticket-templates'),
 };
 
 @Injectable()
@@ -43,12 +43,12 @@ export class TicketGenerationService {
     }
 
     private async loadTemplates() {
-        const themeId = this.configService.get<string>('app.theme.id') || '1';
+        const themeId = Number(this.configService.get<string>('app.theme.id') || 1);
 
         try {
             if (!themeModules[themeId]) {
                 this.logger.warn(`Template for theme ID ${themeId} not found, using default theme 1`);
-                this.templates = (await themeModules['1']()).default;
+                this.templates = (await themeModules[1]()).default;
             } else {
                 const module = await themeModules[themeId]();
                 this.templates = module.default || module;
