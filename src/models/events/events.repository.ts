@@ -5,7 +5,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { Event, EventWithRelations } from './entities/event.entity';
 import { Prisma, TicketStatus } from '@prisma/client';
 import { GetEventsDto } from './dto/get-events.dto';
-import { EventSortField, SortOrder, EventAggregationDto } from './dto/event-aggregation.dto';
+import { EventSortField, SortOrder } from './dto/event-aggregation.dto';
 import { EventAggregateResult, AppliedFilter } from './types/event-aggregate-result.type';
 
 const DEFAULT_SORT = {
@@ -133,17 +133,12 @@ const buildOrderByClause = (sort: { field: EventSortField; order: SortOrder }): 
     const order = sort.order.toLowerCase() as Prisma.SortOrder;
 
     switch (sort.field) {
-        case EventSortField.POPULARITY:
-            return [{
-                tickets: {
-                    _count: order
-                }
-            }];
         case EventSortField.TITLE:
             return [{ title: order }];
         case EventSortField.STARTED_AT:
             return [{ startedAt: order }];
         case EventSortField.MIN_PRICE:
+        case EventSortField.POPULARITY:
             return DEFAULT_EVENT_ORDERING;
         default:
             return DEFAULT_EVENT_ORDERING;
@@ -201,18 +196,14 @@ export class EventsRepository {
         include: Prisma.EventInclude,
         query?: GetEventsDto,
     ): Promise<EventAggregateResult> {
-        // Handle popularity sorting
-        if (query?.sortBy === EventSortField.POPULARITY) {
-            // Get events with sold tickets count
+        const sortBy = query?.sortBy || DEFAULT_SORT.field;
+        const sortOrder = query?.sortOrder || DEFAULT_SORT.order;
+
+        /* Handle popularity sorting */
+        if (sortBy === EventSortField.POPULARITY) {
+            /* Get events with sold tickets count */
             const eventsWithCount = await this.db.event.findMany({
-                where: {
-                    ...where,
-                    tickets: {
-                        some: {
-                            status: TicketStatus.SOLD,
-                        },
-                    },
-                },
+                where,
                 include: {
                     ...include,
                     _count: {
@@ -227,15 +218,29 @@ export class EventsRepository {
                 },
             });
 
-            // Sort by sold tickets count
+            /* Sort by sold tickets count and then by id if counts are equal */
             const sortedEvents = eventsWithCount.sort((a, b) => {
                 const aCount = a._count?.tickets || 0;
                 const bCount = b._count?.tickets || 0;
-                return query.sortOrder === SortOrder.ASC ? aCount - bCount : bCount - aCount;
+
+                /* If the number of tickets is the same, sort by id ascending */
+                if (aCount === bCount) {
+                    return a.id - b.id;
+                }
+
+                return sortOrder === SortOrder.ASC
+                    ? aCount - bCount
+                    : bCount - aCount;
             });
 
-            // Apply pagination after sorting
-            const paginatedEvents = sortedEvents.slice(query.skip || 0, (query.skip || 0) + (query.take || sortedEvents.length));
+            sortedEvents.forEach(event => {
+                console.log(event.id, event._count?.tickets);
+            });
+            /* Apply pagination after sorting */
+            const paginatedEvents = sortedEvents.slice(
+                query?.skip || 0,
+                (query?.skip || 0) + (query?.take || sortedEvents.length)
+            );
 
             const [total, priceStats] = await Promise.all([
                 this.db.event.count({ where }),
@@ -250,23 +255,16 @@ export class EventsRepository {
                 minPrice: priceStats._min?.price ? Number(priceStats._min.price) : null,
                 maxPrice: priceStats._max?.price ? Number(priceStats._max.price) : null,
                 sortedBy: {
-                    field: query.sortBy || EventSortField.STARTED_AT,
-                    order: query.sortOrder || SortOrder.ASC
+                    field: sortBy,
+                    order: sortOrder
                 }
             };
         }
 
-        // Handle price sorting
-        if (query?.sortBy === EventSortField.MIN_PRICE) {
+        /* Handle price sorting */
+        if (sortBy === EventSortField.MIN_PRICE) {
             const events = await this.db.event.findMany({
-                where: {
-                    ...where,
-                    tickets: {
-                        some: {
-                            status: TicketStatus.AVAILABLE
-                        }
-                    }
-                },
+                where,
                 include: {
                     ...include,
                     tickets: {
@@ -286,25 +284,32 @@ export class EventsRepository {
                 }
             });
 
-            // Sort by price
+            /* Sort by minimum ticket price */
             const sortedEvents = events.sort((a, b) => {
                 const aTickets = a.tickets || [];
                 const bTickets = b.tickets || [];
 
+                /* If the event has no tickets, put it at the end of the list */
                 if (aTickets.length === 0) return 1;
                 if (bTickets.length === 0) return -1;
 
-                const aPrices = aTickets.map(t => Number(t.price));
-                const bPrices = bTickets.map(t => Number(t.price));
+                /* Take the minimum price (the first ticket is already sorted by price asc) */
+                const aPrice = aTickets.length > 0 ? Number(aTickets[0].price) : Infinity;
+                const bPrice = bTickets.length > 0 ? Number(bTickets[0].price) : Infinity;
 
-                const aPrice = Math.min(...aPrices);
-                const bPrice = Math.min(...bPrices);
+                if (aPrice === bPrice) {
+                    /* If the prices are the same, sort by id ascending */
+                    return a.id - b.id;
+                }
 
-                return query.sortOrder === SortOrder.ASC ? aPrice - bPrice : bPrice - aPrice;
+                return sortOrder === SortOrder.ASC ? aPrice - bPrice : bPrice - aPrice;
             });
 
-            // Apply pagination after sorting
-            const paginatedEvents = sortedEvents.slice(query.skip || 0, (query.skip || 0) + (query.take || sortedEvents.length));
+            /* Apply pagination after sorting */
+            const paginatedEvents = sortedEvents.slice(
+                query?.skip || 0,
+                (query?.skip || 0) + (query?.take || sortedEvents.length)
+            );
 
             const [total, priceStats] = await Promise.all([
                 this.db.event.count({ where }),
@@ -319,16 +324,14 @@ export class EventsRepository {
                 minPrice: priceStats._min?.price ? Number(priceStats._min.price) : null,
                 maxPrice: priceStats._max?.price ? Number(priceStats._max.price) : null,
                 sortedBy: {
-                    field: query.sortBy || EventSortField.STARTED_AT,
-                    order: query.sortOrder || SortOrder.ASC
+                    field: sortBy,
+                    order: sortOrder
                 }
             };
         }
 
-        // Handle other sorting fields
-        const orderBy = query?.sortBy && query?.sortOrder
-            ? buildOrderByClause({ field: query.sortBy, order: query.sortOrder })
-            : DEFAULT_EVENT_ORDERING;
+        /* Handle other sorting fields */
+        const orderBy = buildOrderByClause({ field: sortBy, order: sortOrder });
 
         const events = await this.db.event.findMany({
             where,
@@ -350,10 +353,10 @@ export class EventsRepository {
             total,
             minPrice: priceStats._min?.price ? Number(priceStats._min.price) : null,
             maxPrice: priceStats._max?.price ? Number(priceStats._max.price) : null,
-            sortedBy: query?.sortBy && query?.sortOrder ? {
-                field: query.sortBy,
-                order: query.sortOrder
-            } : DEFAULT_SORT,
+            sortedBy: {
+                field: sortBy,
+                order: sortOrder
+            }
         };
     }
 
@@ -375,7 +378,7 @@ export class EventsRepository {
         return this.executeEventQuery(
             where,
             TICKETS_INCLUDE,
-            query
+            query,
         );
     }
 

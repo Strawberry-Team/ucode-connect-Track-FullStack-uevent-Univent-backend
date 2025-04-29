@@ -53,7 +53,7 @@ import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import { SubscriptionInfoDto } from '../subscriptions/dto/subscription-info.dto';
 import { EntityType } from '../subscriptions/dto/create-subscription.dto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
-import { TicketTypeDto } from '../tickets/dto/ticket-type.dto';
+import { TicketTypesResponseDto } from '../tickets/dto/ticket-types-response.dto';
 import { GetEventsDto } from './dto/get-events.dto';
 import { EventSortField, SortOrder } from './dto/event-aggregation.dto';
 import { EventAggregateResult } from './types/event-aggregate-result.type';
@@ -614,55 +614,24 @@ export class EventsController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Tickets types sorted by price ascending retrieved successfully',
-        content: {
-            'application/json': {
-                schema: {
-                    type: 'object',
-                    properties: {
-                        items: {
-                            type: 'array',
-                            items: {
-                                $ref: '#/components/schemas/TicketTypeDto'
-                            },
-                            description: 'List of ticket types'
-                        },
-                        total: {
-                            type: 'number',
-                            description: 'Total number of ticket types',
-                            example: 3
-                        }
-                    }
+        type: TicketTypesResponseDto,
+        examples: {
+            'Multiple ticket types': {
+                value: {
+                    items: [
+                        { title: 'Standard', price: 49.99, count: 50 },
+                        { title: 'VIP', price: 99.99, count: 100 },
+                        { title: 'Premium', price: 149.99, count: 75 }
+                    ],
+                    total: 3
                 },
-                examples: {
-                    'Multiple ticket types': {
-                        value: {
-                            items: [
-                                {
-                                    title: 'Standard',
-                                    price: 49.99,
-                                    count: 50
-                                },
-                                {
-                                    title: 'VIP',
-                                    price: 99.99,
-                                    count: 100
-                                },
-                                {
-                                    title: 'Premium',
-                                    price: 149.99,
-                                    count: 75
-                                }
-                            ],
-                            total: 3
-                        }
-                    }
-                }
+                summary: 'Multiple ticket types'
             }
         }
     })
     async findAllTicketTypes(
         @Param('id') id: number,
-    ): Promise<{ items: TicketTypeDto[]; total: number }> {
+    ): Promise<TicketTypesResponseDto> {
         return await this.ticketsService.findAllTicketTypes({ eventId: id });
     }
 

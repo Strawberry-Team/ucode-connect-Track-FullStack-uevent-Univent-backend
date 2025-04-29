@@ -100,7 +100,20 @@ export class PromoCodesController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Promo code validated successfully',
-        type: PromoCodeWithBasic,
+        schema: {
+            type: 'object',
+            properties: {
+                promoCode: {
+                    type: 'object',
+                    properties: {
+                        discountPercent: {
+                            type: 'number',
+                            example: 0.15,
+                        },
+                    },
+                },
+            },
+        },
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,

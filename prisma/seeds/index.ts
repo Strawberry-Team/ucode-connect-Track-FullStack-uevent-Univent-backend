@@ -43,6 +43,7 @@ import {GoogleOAuthService} from "../../src/google/google-oauth.service";
 import {TicketGenerationService} from "../../src/models/tickets/ticket-generation.service";
 import storageConfig from '../../src/config/storage.config';
 import appConfig from '../../src/config/app.config';
+import { SEEDS } from './seed-constants';
 
 
 class MockCompaniesService {
@@ -155,6 +156,7 @@ class Seeder {
                 code: await this.hashingPromoCodesService.hash(promoCode.code),
             });
         }
+        console.log(`Promo codes: ${SEEDS.PROMO_CODES.CODES.map((code) => `${code}_EVENT{eventId}`).join(', ')}`);
     }
 
     async seedEventAttendees() {

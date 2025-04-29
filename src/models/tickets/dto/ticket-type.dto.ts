@@ -1,13 +1,24 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
-import { Ticket } from '../entities/ticket.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class TicketTypeDto extends PickType(Ticket, ['title', 'price']) {
+export class TicketTypeDto {
+    @ApiProperty({
+        description: 'Title of the ticket type',
+        example: 'VIP',
+        type: String
+    })
+    title: string;
+
+    @ApiProperty({
+        description: 'Price of the ticket',
+        example: 99.99,
+        type: Number
+    })
+    price: number;
+
     @ApiProperty({
         description: 'Number of available tickets of this type',
-        nullable: false,
-        type: 'number',
         example: 100,
-        minimum: 0
+        type: Number
     })
     count: number;
-} 
+}
