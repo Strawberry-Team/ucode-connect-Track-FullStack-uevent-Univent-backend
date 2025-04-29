@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { TicketGenerationData } from '../interfaces/ticket-generation-data.interface';
 import { TicketTemplateInterface } from './ticket-template.interface';
 
-
 class Theme1TicketTemplates implements TicketTemplateInterface {
     getTicketTemplate(
         data: TicketGenerationData,
@@ -320,5 +319,4 @@ class Theme1TicketTemplates implements TicketTemplateInterface {
     }
 }
 
-// Export the default theme implementation
 export default new Theme1TicketTemplates();
