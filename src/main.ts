@@ -31,6 +31,7 @@ async function bootstrap() {
     const csrfConfig = configService.get('app.csrf');
     const corsConfig = configService.get('app.cors');
     const nodeEnv = String(configService.get('app.nodeEnv'));
+    const logoFileName = String(configService.get('app.logo.filename'))
     // const enableCsrfProtection = nodeEnv === 'production';
 
     app.useGlobalFilters(new CsrfExceptionFilter());
@@ -126,7 +127,7 @@ async function bootstrap() {
             displayRequestDuration: true,
         },
         customSiteTitle: 'Uevent API',
-        customfavIcon: './project/logo.png',
+        customfavIcon: `./project/${logoFileName}`,
     });
 
     app.use(

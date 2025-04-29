@@ -28,7 +28,7 @@ export default () => {
             nodeEnv: String(validateEnv('APP_NODE_ENV')),
             logo: {
                 path: String(validateEnv('APP_LOGO_PATH')),
-                filename: String(validateEnv('APP_LOGO_FILENAME')),
+                filename: Number(validateEnv('APP_THEME_ID')) == 1 ? "1-logo.png" : "2-logo.png",
             },
             cors: {
                 methods: String(validateEnv('APP_CORS_METHODS')).split(','),
@@ -48,7 +48,7 @@ export default () => {
                 ).split(','),
             },
             theme:{
-                id: String(validateEnv('APP_THEME_ID')),
+                id: Number(validateEnv('APP_THEME_ID')),
             }
         },
     };
