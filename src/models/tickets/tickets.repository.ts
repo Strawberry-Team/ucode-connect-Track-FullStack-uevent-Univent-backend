@@ -58,7 +58,7 @@ export class TicketsRepository {
                 eventId: createTicketDto.eventId,
                 title: createTicketDto.title,
                 number: createTicketDto.number,
-                price: new Prisma.Decimal(createTicketDto.price),
+                price: createTicketDto.price,
                 status: createTicketDto.status,
             },
             include: DEFAULT_TICKET_INCLUDE,
@@ -105,9 +105,9 @@ export class TicketsRepository {
             count: group._count._all
         }));
 
-        return { 
+        return {
             items,
-            total: items.length 
+            total: items.length
         };
     }
 
@@ -131,6 +131,30 @@ export class TicketsRepository {
             },
             data: {
                 status: TicketStatus.AVAILABLE,
+            },
+        });
+    }
+
+    async updateTicketStatus(
+        ticketIds: number[],
+        status: TicketStatus,
+        currentStatus?: TicketStatus, // Опциональная проверка текущего статуса
+        tx?: Prisma.TransactionClient,
+    ): Promise<Prisma.BatchPayload> {
+        const whereClause: Prisma.TicketWhereInput = {
+            id: { in: ticketIds },
+        };
+
+        if (currentStatus) {
+            whereClause.status = currentStatus;
+        }
+
+        const prismaClient = tx || this.db;
+
+        return prismaClient.ticket.updateMany({
+            where: whereClause,
+            data: {
+                status,
             },
         });
     }
@@ -168,7 +192,7 @@ export class TicketsRepository {
         tx?: PrismaClientOrTx,
     ): Promise<Ticket> {
         const prismaClient = this.getPrismaClient(tx);
-        
+
         const ticket = await prismaClient.ticket.update({
             where: { id },
             data: {

@@ -1,17 +1,19 @@
+// src/models/orders/entities/order.entity.ts
 import {
-    PaymentStatus,
+    Order as PrismaOrder,
     PaymentMethod,
-    Order as PrismaOrder
+    PaymentStatus,
 } from '@prisma/client';
-import {Expose, Type} from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OrderItem } from '../order-items/entities/order-item.entity';
-import {PromoCodeInfoDto} from "../dto/promo-code-info.dto";
+import { PromoCodeInfoDto } from '../dto/promo-code-info.dto';
 
 export const SERIALIZATION_GROUPS = {
     BASIC: ['basic'],
     PRIVATE: ['basic', 'confidential'],
     SYSTEMIC: ['basic', 'confidential', 'systemic'],
+    PAYMENT: ['basic', 'payment'],
 };
 
 type OrderWithNumberTotalAmount = Omit<PrismaOrder, 'totalAmount'> & {
@@ -43,6 +45,18 @@ export class Order implements OrderWithNumberTotalAmount {
         nullable: true,
     })
     promoCodeId: number | null;
+
+    @Expose({ groups: ['payment'] })
+    @ApiPropertyOptional({
+        description: 'Stripe Payment Intent ID for this order',
+        type: 'string',
+        example: 'pi_3NpuQkJHR94KeV8q1LQ6Qw0P',
+        nullable: true,
+    })
+    paymentIntentId: string | null;
+
+    @Expose({ groups: ['payment'] })
+    invoiceId: string | null;
 
     @Expose({ groups: ['basic'] })
     @ApiProperty({

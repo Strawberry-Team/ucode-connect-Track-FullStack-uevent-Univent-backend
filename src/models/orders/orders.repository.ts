@@ -6,7 +6,9 @@ import { CreateOrderDto } from './dto/create-order.dto';
 
 const orderWithDetailsSelect = {
     id: true,
+    userId: true,
     totalAmount: true,
+    paymentIntentId: true,
     paymentStatus: true,
     paymentMethod: true,
     createdAt: true,
@@ -19,6 +21,7 @@ const orderWithDetailsSelect = {
         select: {
             id: true,
             finalPrice: true,
+            ticketFileKey: true,
             ticket: {
                 select: {
                     id: true,
@@ -41,7 +44,7 @@ const orderWithDetailsSelect = {
     },
 } as const;
 
-type OrderWithDetails = Prisma.OrderGetPayload<{
+export type OrderWithDetails = Prisma.OrderGetPayload<{
     select: typeof orderWithDetailsSelect;
 }>;
 
@@ -114,8 +117,11 @@ export class OrdersRepository {
     async update(
         id: number,
         data: Prisma.OrderUpdateInput,
+        tx?: Prisma.TransactionClient,
     ): Promise<Prisma.OrderGetPayload<{ include: { orderItems: true } }>> {
-        return this.db.order.update({
+        const prismaClient = tx || this.db;
+
+        return prismaClient.order.update({
             where: { id },
             data,
             include: { orderItems: true },

@@ -1,6 +1,6 @@
 import { OrderItem as PrismaOrderItem } from '@prisma/client';
 import { Expose } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 type OrderWithNumberTotalAmount = Omit<PrismaOrderItem, 'initialPrice' | 'finalPrice'> & {
     initialPrice: number;
@@ -31,6 +31,16 @@ export class OrderItem implements OrderWithNumberTotalAmount {
         example: 1,
     })
     ticketId: number;
+
+    @Expose({ groups: ['basic'] })
+    @ApiPropertyOptional({
+        description: 'Unique key (UUID) identifying the generated ticket PDF file',
+        type: 'string',
+        format: 'uuid',
+        example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        nullable: true,
+    })
+    ticketFileKey: string | null;
 
     @Expose({ groups: ['basic'] })
     @ApiProperty({

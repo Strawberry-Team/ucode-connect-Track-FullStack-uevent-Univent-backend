@@ -12,6 +12,7 @@ export default () => {
     return {
         app: {
             name: String(validateEnv('APP_NAME')),
+            supportEmail: String(validateEnv('APP_SUPPORT_EMAIL')),
             port: parseInt(String(validateEnv('APP_PORT')), 10),
             host: String(validateEnv('APP_HOST')),
             globalPrefix: String(validateEnv('APP_GLOBAL_PREFIX')),
@@ -46,6 +47,9 @@ export default () => {
                     validateEnv('APP_CSRF_IGNORE_METHODS'),
                 ).split(','),
             },
+            theme:{
+                id: String(validateEnv('APP_THEME_ID')),
+            }
         },
     };
 };

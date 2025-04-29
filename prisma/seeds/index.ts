@@ -38,6 +38,11 @@ import {PromoCodesService} from "../../src/models/promo-codes/promo-codes.servic
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { NotificationsRepository } from '../../src/models/notifications/notifications.repository';
 import { createInitialNotifications } from './notifications';
+import {EmailService} from "../../src/email/email.service";
+import {GoogleOAuthService} from "../../src/google/google-oauth.service";
+import {TicketGenerationService} from "../../src/models/tickets/ticket-generation.service";
+import storageConfig from '../../src/config/storage.config';
+import appConfig from '../../src/config/app.config';
 
 
 class MockCompaniesService {
@@ -191,7 +196,12 @@ async function start() {
     try {
         console.log('Seeding started 🌱');
         const dbService = new DatabaseService();
-        const configService = new ConfigService();
+        const configService = new ConfigService(
+            {
+                ...storageConfig(),
+                ...appConfig(),
+            }
+        );
         const hashingService = new HashingService(configService);
         const passwordService = new HashingPasswordsService(hashingService);
         const hashingPromoCodesService = new HashingPromoCodesService(
@@ -210,18 +220,23 @@ async function start() {
         const promoCodesService = new PromoCodesService(promoCodesRepository, hashingPromoCodesService, eventsService);
         const ordersRepository = new OrdersRepository(dbService);
         const orderItemsRepository = new OrderItemsRepository(dbService);
-        const eventAttendeesRepository = new EventAttendeesRepository(dbService);
+        const eventAttendeesRepository = new EventAttendeesRepository(
+            dbService,
+        );
         const subscriptionsRepository = new SubscriptionsRepository(dbService);
         const notificationsRepository = new NotificationsRepository(dbService);
+        const userService = new UsersService(
+            new UsersRepository(dbService),
+            mockCompaniesService as any,
+            passwordService,
+            new OrdersRepository(dbService),);
+        const googleOAuthService = new GoogleOAuthService(configService);
+        const emailService = new EmailService(configService, googleOAuthService);
+        const ticketGenerationService = new TicketGenerationService(configService)
 
         const seeder = new Seeder(
             dbService,
-            new UsersService(
-                new UsersRepository(dbService),
-                mockCompaniesService as any,
-                passwordService,
-                new OrdersRepository(dbService),
-            ),
+            userService,
             new EventFormatsService(new EventFormatsRepository(dbService)),
             new EventThemesService(new EventThemesRepository(dbService)),
             companiesRepository,
@@ -238,9 +253,15 @@ async function start() {
                 new TicketsService(
                     new TicketsRepository(dbService),
                     new EventsRepository(dbService),
+                    orderItemsRepository
                 ),
                 promoCodesService,
                 dbService,
+                configService,
+                ticketsRepository,
+                ticketGenerationService,
+                userService,
+                emailService,
             ),
             subscriptionsRepository,
             notificationsRepository,

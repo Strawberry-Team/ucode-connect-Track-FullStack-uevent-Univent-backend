@@ -2,19 +2,23 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
-import {
-    getConfirmationEmailTemplate,
-    getResetPasswordEmailTemplate, getWelcomeCompanyEmailTemplate,
-} from './email.templates';
 import { GoogleOAuthService } from '../google/google-oauth.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { OrderWithDetails } from "../models/orders/orders.repository";
+import { EmailTemplateInterface } from './templates/email-template.interface';
+
+const themeModules = {
+    '1': () => import('./templates/1-email-templates'),
+    '2': () => import('./templates/2-email.templates'),
+};
 
 @Injectable()
 export class EmailService {
     private gmailUser: string;
     private appName: string;
     private logo: any;
+    private templates: EmailTemplateInterface;
 
     constructor(
         private readonly configService: ConfigService,
@@ -41,6 +45,26 @@ export class EmailService {
             this.configService.get<string>('app.logo.filename'),
         );
         this.logo = await this.readLogoFile(path.join(logoPath, logoFilename));
+
+        await this.loadTemplates();
+    }
+
+    private async loadTemplates() {
+        const themeId = this.configService.get<string>('APP_THEME_ID') || '1';
+
+        try {
+            if (!themeModules[themeId]) {
+                console.warn(`Template for theme ID ${themeId} not found, using default theme 1`);
+                this.templates = (await themeModules['1']()).default;
+            } else {
+                const module = await themeModules[themeId]();
+                this.templates = module.default || module;
+            }
+        } catch (error) {
+            console.error(`Error loading email templates for theme ${themeId}:`, error);
+            const defaultModule = await import('./templates/1-email-templates');
+            this.templates = defaultModule.default || defaultModule;
+        }
     }
 
     private async readLogoFile(filePath: string): Promise<Buffer> {
@@ -56,9 +80,9 @@ export class EmailService {
         console.log(
             `Using transport: ${nodeEnv === 'production' ? 'Gmail' : 'Ethereal'}`,
         );
-        if (nodeEnv === 'production') {
-            // if (nodeEnv === 'development') { // TODO: for presentation
-                const accessToken = await this.googleOAuthService.getAccessToken();
+
+        if (nodeEnv === 'development') { // TODO: for presentation
+            const accessToken = await this.googleOAuthService.getAccessToken();
             const oauthDetails = this.googleOAuthService.getOAuthCredentials();
 
             return nodemailer.createTransport({
@@ -89,13 +113,6 @@ export class EmailService {
         try {
             const transporter = await this.createTransport();
 
-            // transporter.on("token", (token) => {
-            //     console.log("A new access token was generated");
-            //     console.log("User: %s", token.users);
-            //     console.log("Access Token: %s", token.accessToken);
-            //     console.log("Expires: %s", new Date(token.expires));
-            // });
-
             const info = await transporter.sendMail({
                 from: this.gmailUser,
                 to,
@@ -123,7 +140,7 @@ export class EmailService {
         confirmationLink: string,
         fullName: string,
     ): Promise<void> {
-        const html = getConfirmationEmailTemplate(
+        const html = this.templates.getConfirmationEmailTemplate(
             confirmationLink,
             this.appName,
             fullName
@@ -136,7 +153,7 @@ export class EmailService {
     }
 
     async sendResetPasswordEmail(to: string, resetLink: string, fullName: string): Promise<void> {
-        const html = getResetPasswordEmailTemplate(resetLink, this.appName, fullName);
+        const html = this.templates.getResetPasswordEmailTemplate(resetLink, this.appName, fullName);
         await this.sendEmail(
             to,
             `[Action Required] Password Reset | ${this.appName}`,
@@ -150,7 +167,7 @@ export class EmailService {
         companyTitle: string,
         redirectLink: string,
     ): Promise<void> {
-        const html = getWelcomeCompanyEmailTemplate(
+        const html = this.templates.getWelcomeCompanyEmailTemplate(
             companyOwnerName,
             companyTitle,
             redirectLink,
@@ -159,6 +176,25 @@ export class EmailService {
         await this.sendEmail(
             to,
             `Welcome to ${this.appName} – Start Selling Tickets Today! 🎉`,
+            html,
+        );
+    }
+
+    async sendTicketConfirmationEmail(
+        to: string,
+        order: OrderWithDetails,
+        ticketLinks: { itemId: number; ticketTitle: string; link: string }[],
+        fullName: string,
+    ): Promise<void> {
+        const html = this.templates.getTicketConfirmationEmailTemplate(
+            order,
+            ticketLinks,
+            this.appName,
+            fullName,
+        );
+        await this.sendEmail(
+            to,
+            `[${this.appName}] Your Tickets for Order #${order.id}`,
             html,
         );
     }

@@ -1,9 +1,13 @@
-// src/email/email.templates.ts
-export const getConfirmationEmailTemplate = (
-    confirmationLink: string,
-    projectName: string,
-    fullName: string,
-) => `
+// src/email/1-email.templates.ts
+import { OrderWithDetails } from '../../models/orders/orders.repository';
+import { EmailTemplateInterface } from "./email-template.interface";
+
+export default {
+    getConfirmationEmailTemplate: (
+        confirmationLink: string,
+        projectName: string,
+        fullName: string,
+    ) => `
 <div style="margin:0; padding:0; background-color:#f4f4f4;">
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:20px; border:1px solid #ddd;">
     <div style="text-align:center; margin-bottom:20px;">
@@ -30,13 +34,13 @@ export const getConfirmationEmailTemplate = (
     </div>
   </div>
 </div>
-`;
+`,
 
-export const getResetPasswordEmailTemplate = (
-    resetLink: string,
-    projectName: string,
-    fullName: string,
-) => `
+    getResetPasswordEmailTemplate: (
+        resetLink: string,
+        projectName: string,
+        fullName: string,
+    ) => `
 <div style="margin:0; padding:0; background-color:#f4f4f4;">
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:20px; border:1px solid #ddd;">
     <div style="text-align:center; margin-bottom:20px;">
@@ -60,14 +64,14 @@ export const getResetPasswordEmailTemplate = (
     </div>
   </div>
 </div>
-`;
+`,
 
-export const getWelcomeCompanyEmailTemplate = (
-    companyOwnerName: string,
-    companyTitle: string,
-    redirectLink: string,
-    serviceName: string,
-) => `
+    getWelcomeCompanyEmailTemplate: (
+        companyOwnerName: string,
+        companyTitle: string,
+        redirectLink: string,
+        serviceName: string,
+    ) => `
 <div style="margin:0; padding:0; background-color:#f4f4f4;">
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:20px; border:1px solid #ddd;">
     <div style="text-align:center; margin-bottom:20px;">
@@ -103,7 +107,7 @@ export const getWelcomeCompanyEmailTemplate = (
           <li><b>User-Friendly Platform</b>: Easily manage events and ticket sales in one place.</li>
           <li><b>Secure Payments</b>: Offer your customers a safe and reliable payment experience.</li>
           <li><b>Dedicated Support</b>: Our team is here to help you every step of the way—reach out to us anytime at
-          <a>support@${serviceName.replace(" ", ".").toLowerCase()}.com</a>.</li>
+          <a>support@${serviceName.replace(' ', '.').toLowerCase()}.com</a>.</li>
       </ul>
       <p>We’re excited to see your events come to life on ${serviceName}! If you have any questions or need assistance, don’t hesitate to contact us. Let’s make your events a success together!</p>
       <p><b>Welcome aboard, and happy selling!</b></p>
@@ -112,4 +116,64 @@ export const getWelcomeCompanyEmailTemplate = (
     </div>
   </div>
 </div>
+`,
+
+    getTicketConfirmationEmailTemplate: (
+        order: OrderWithDetails,
+        ticketLinks: { itemId: number; ticketTitle: string; link: string }[],
+        projectName: string,
+        fullName: string,
+    ) => {
+        const orderItemsHtml = order.orderItems.map(item => `
+        <tr>
+            <td>${item.ticket.event.title}</td>
+            <td>${item.ticket.title}</td>
+            <td>$${item.finalPrice.toFixed(2)}</td>
+            <td>${ticketLinks.find(l => l.itemId === item.id)
+            ? `<a href="${ticketLinks.find(l => l.itemId === item.id)!.link}" target="_blank">Download Ticket</a>`
+            : 'Generation Pending'}
+            </td>
+        </tr>
+    `).join('');
+
+        return `
+<div style="margin:0; padding:0; background-color:#f4f4f4;">
+  <div style="max-width:600px; margin:40px auto; background:#fff; padding:20px; border:1px solid #ddd;">
+    <div style="text-align:center; margin-bottom:20px;">
+      <img src="cid:logo@project" alt="${projectName} Logo" style="max-width:150px;">
+    </div>
+    <div style="text-align:center; margin-bottom:20px;">
+      <h2 style="font-family: Arial, sans-serif;">Your Tickets are Ready!</h2>
+    </div>
+    <div style="font-family: Arial, sans-serif; font-size:14px; color:#333;">
+      <p>👋 Hi, ${fullName}!</p>
+      <p>🎉 Thank you for your purchase! Your order (ID: ${order.id}) is confirmed, and your tickets are generated.</p>
+      <p>You can download your tickets using the links below:</p>
+
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+          <tr style="background-color: #f0f0f0;">
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Event</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Ticket Type</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Price Paid</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${orderItemsHtml}
+        </tbody>
+      </table>
+
+      <p>Total Amount Paid: <strong>$${order.totalAmount.toFixed(2)}</strong></p>
+      ${order.promoCode?.discountPercent ? `<p><i>Discount applied.</i></p>` : ''}
+
+      <p>Please have your tickets ready (digital or printed) when you arrive at the event.</p>
+      <p>If you have any questions about your order, please contact our support team.</p>
+      <p>See you at the event!</p>
+      <p>© ${new Date().getFullYear()} <a href="${/* Добавь ссылку на твой сайт */''}">${projectName}</a>. All rights reserved.</p>
+    </div>
+  </div>
+</div>
 `;
+    },
+} as EmailTemplateInterface;
