@@ -1,4 +1,3 @@
-// src/email/email-templates-green.ts
 import {OrderWithDetails} from "../../models/orders/orders.repository";
 import { EmailTemplateInterface } from "./email-template.interface";
 
@@ -19,12 +18,10 @@ export default {
         fullName: string,
     ) => `
 <div style="margin:0; padding:0; background-color:${colors.background}">
-  {/* The border syntax '1px solid <color>' is correct CSS */}
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:30px; border:1px solid ${colors.border}; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.05)">
     <div style="text-align:center; margin-bottom:30px">
       <img src="cid:logo@project" alt="${projectName} Logo" style="max-width:150px">
     </div>
-    {/* The border-bottom syntax '2px solid <color>' is correct CSS */}
     <div style="text-align:center; margin-bottom:25px; border-bottom:2px solid ${colors.secondary}; padding-bottom:15px">
       <h2 style="font-family:'Segoe UI',Arial,sans-serif; color:${colors.text}; font-size:24px">
         Welcome to <span style="color:${colors.primary}">${projectName}</span>!
@@ -42,8 +39,7 @@ export default {
       </div>
       <p style="margin-bottom:10px; color:#666; font-size:14px">⏳ This confirmation link will expire in 7 days.</p>
       <p style="margin-bottom:10px; color:#666; font-size:14px">If you did not create this account, you can safely ignore this email.</p>
-      {/* The border-top syntax '1px solid <color>' is correct CSS */}
-      <div style="margin-top:40px; padding-top:20px; border-top:1px solid ${colors.border}; text-align:center; font-size:13px; color:#888">
+      <div style="margin-top:40px; padding-top:20px; border-top-width:1px; border-top-style:solid; border-top-color:${colors.border}; text-align:center; font-size:13px; color:#888">
         <p>© ${new Date().getFullYear()} <a href="#" style="color:${colors.primary}; text-decoration:none">${projectName}</a>. All rights reserved.</p>
       </div>
     </div>
@@ -57,12 +53,10 @@ export default {
         fullName: string,
     ) => `
 <div style="margin:0; padding:0; background-color:${colors.background}">
-  {/* The border syntax '1px solid <color>' is correct CSS */}
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:30px; border:1px solid ${colors.border}; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.05)">
     <div style="text-align:center; margin-bottom:30px">
       <img src="cid:logo@project" alt="${projectName} Logo" style="max-width:150px">
     </div>
-    {/* The border-bottom syntax '2px solid <color>' is correct CSS */}
     <div style="text-align:center; margin-bottom:25px; border-bottom:2px solid ${colors.secondary}; padding-bottom:15px">
       <h2 style="font-family:'Segoe UI',Arial,sans-serif; color:${colors.text}; font-size:24px">
         Reset Your <span style="color:${colors.primary}">${projectName}</span> Password
@@ -80,8 +74,7 @@ export default {
       </div>
       <p style="margin-bottom:10px; color:#666; font-size:14px">⏳ This reset link will expire in 24 hours.</p>
       <p style="margin-bottom:10px; color:#666; font-size:14px">If you did not request a password reset, please contact our support team immediately.</p>
-      {/* The border-top syntax '1px solid <color>' is correct CSS */}
-      <div style="margin-top:40px; padding-top:20px; border-top:1px solid ${colors.border}; text-align:center; font-size:13px; color:#888">
+      <div style="margin-top:40px; padding-top:20px; border-top-width:1px; border-top-style:solid; border-top-color:${colors.border}; text-align:center; font-size:13px; color:#888">
         <p>© ${new Date().getFullYear()} <a href="#" style="color:${colors.primary}; text-decoration:none">${projectName}</a>. All rights reserved.</p>
       </div>
     </div>
@@ -96,12 +89,10 @@ export default {
         serviceName: string,
     ) => `
 <div style="margin:0; padding:0; background-color:${colors.background}">
-  {/* The border syntax '1px solid <color>' is correct CSS */}
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:30px; border:1px solid ${colors.border}; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.05)">
     <div style="text-align:center; margin-bottom:30px">
       <img src="cid:logo@project" alt="${serviceName} Logo" style="max-width:150px">
     </div>
-    {/* The border-bottom syntax '2px solid <color>' is correct CSS */}
     <div style="text-align:center; margin-bottom:25px; border-bottom:2px solid ${colors.secondary}; padding-bottom:15px">
       <h2 style="font-family:'Segoe UI',Arial,sans-serif; color:${colors.text}; font-size:24px">
         Welcome to <span style="color:${colors.primary}">${serviceName}</span>, ${companyTitle}!
@@ -149,8 +140,7 @@ export default {
       <p style="margin-bottom:5px">Best regards,</p>
       <p style="margin-bottom:20px; font-weight:bold; color:${colors.primary}">${serviceName} Team</p>
 
-      {/* The border-top syntax '1px solid <color>' is correct CSS */}
-      <div style="margin-top:40px; padding-top:20px; border-top:1px solid ${colors.border}; text-align:center; font-size:13px; color:#888">
+      <div style="margin-top:40px; padding-top:20px; border-top-width:1px; border-top-style:solid; border-top-color:${colors.border}; text-align:center; font-size:13px; color:#888">
         <p>© ${new Date().getFullYear()} <a href="#" style="color:${colors.primary}; text-decoration:none">${serviceName}</a>. All rights reserved.</p>
       </div>
     </div>
@@ -166,13 +156,9 @@ export default {
     ) => {
         const orderItemsHtml = order.orderItems.map(item => `
         <tr>
-            {/* The border syntax '1px solid <color>' is correct CSS */}
             <td style="border:1px solid ${colors.border}; padding:12px; text-align:left">${item.ticket.event.title}</td>
-            {/* The border syntax '1px solid <color>' is correct CSS */}
             <td style="border:1px solid ${colors.border}; padding:12px; text-align:left">${item.ticket.title}</td>
-            {/* The border syntax '1px solid <color>' is correct CSS */}
             <td style="border:1px solid ${colors.border}; padding:12px; text-align:left">$${item.finalPrice.toFixed(2)}</td>
-            {/* The border syntax '1px solid <color>' is correct CSS */}
             <td style="border:1px solid ${colors.border}; padding:12px; text-align:center">
                 ${ticketLinks.find(l => l.itemId === item.id)
             ? `<a href="${ticketLinks.find(l => l.itemId === item.id)!.link}" target="_blank"
@@ -186,12 +172,10 @@ export default {
 
         return `
 <div style="margin:0; padding:0; background-color:${colors.background}">
-  {/* The border syntax '1px solid <color>' is correct CSS */}
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:30px; border:1px solid ${colors.border}; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.05)">
     <div style="text-align:center; margin-bottom:30px">
       <img src="cid:logo@project" alt="${projectName} Logo" style="max-width:150px">
     </div>
-    {/* The border-bottom syntax '2px solid <color>' is correct CSS */}
     <div style="text-align:center; margin-bottom:25px; border-bottom:2px solid ${colors.secondary}; padding-bottom:15px">
       <h2 style="font-family:'Segoe UI',Arial,sans-serif; color:${colors.text}; font-size:24px">
         Your <span style="color:${colors.primary}">Tickets</span> Are Ready!
@@ -208,13 +192,9 @@ export default {
           <table style="width:100%; border-collapse:collapse; margin:10px 0">
             <thead>
               <tr style="background-color:${colors.secondary}; color:white">
-                {/* The border syntax '1px solid <color>' is correct CSS */}
                 <th style="border:1px solid ${colors.border}; padding:12px; text-align:left; font-weight:600">Event</th>
-                {/* The border syntax '1px solid <color>' is correct CSS */}
                 <th style="border:1px solid ${colors.border}; padding:12px; text-align:left; font-weight:600">Ticket Type</th>
-                {/* The border syntax '1px solid <color>' is correct CSS */}
                 <th style="border:1px solid ${colors.border}; padding:12px; text-align:left; font-weight:600">Price Paid</th>
-                {/* The border syntax '1px solid <color>' is correct CSS */}
                 <th style="border:1px solid ${colors.border}; padding:12px; text-align:center; font-weight:600">Download</th>
               </tr>
             </thead>
@@ -224,7 +204,6 @@ export default {
           </table>
         </div>
 
-        {/* The border syntax '1px solid <color>' is correct CSS */}
         <div style="background-color:white; border:1px solid ${colors.border}; border-radius:4px; padding:15px; margin-top:20px">
           <p style="margin:0; font-size:16px">
             Total Amount Paid: <strong style="color:${colors.primary}">$${order.totalAmount.toFixed(2)}</strong>
@@ -243,8 +222,7 @@ export default {
 
       <p style="margin-bottom:20px; font-weight:bold; color:${colors.text}">See you at the event!</p>
 
-      {/* The border-top syntax '1px solid <color>' is correct CSS */}
-      <div style="margin-top:40px; padding-top:20px; border-top:1px solid ${colors.border}; text-align:center; font-size:13px; color:#888">
+      <div style="margin-top:40px; padding-top:20px; border-top-width:1px; border-top-style:solid; border-top-color:${colors.border}; text-align:center; font-size:13px; color:#888">
         <p>© ${new Date().getFullYear()} <a href="#" style="color:${colors.primary}; text-decoration:none">${projectName}</a>. All rights reserved.</p>
       </div>
     </div>
