@@ -1,6 +1,6 @@
 // src/email/email-templates-green.ts
 import {OrderWithDetails} from "../../models/orders/orders.repository";
-import { EmailTemplateInterface } from "../email-template.interface";
+import { EmailTemplateInterface } from "./email-template.interface";
 
 const colors = {
     primary: "#4CAF50",      // Main green

@@ -1,6 +1,6 @@
 // src/email/1-email.templates.ts
 import { OrderWithDetails } from '../../models/orders/orders.repository';
-import { EmailTemplateInterface } from "../email-template.interface";
+import { EmailTemplateInterface } from "./email-template.interface";
 
 export default {
     getConfirmationEmailTemplate: (

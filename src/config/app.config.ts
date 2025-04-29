@@ -47,6 +47,9 @@ export default () => {
                     validateEnv('APP_CSRF_IGNORE_METHODS'),
                 ).split(','),
             },
+            theme:{
+                id: String(validateEnv('APP_THEME_ID')),
+            }
         },
     };
 };
