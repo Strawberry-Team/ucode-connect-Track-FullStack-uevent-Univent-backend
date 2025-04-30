@@ -26,6 +26,7 @@ import { EmailService } from '../../email/email.service';
 import { TicketGenerationService } from '../tickets/ticket-generation.service';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 
 interface PaymentIntentWithRefunds extends Stripe.PaymentIntent {
@@ -52,6 +53,7 @@ export class OrdersService {
         private readonly ticketGenerationService: TicketGenerationService,
         private readonly userService: UsersService,
         private readonly emailService: EmailService,
+        private readonly eventEmitter: EventEmitter2,
     ) {
         const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY');
         this.stripe = new Stripe(String(apiKey), {
@@ -171,6 +173,13 @@ export class OrdersService {
                     timeout: 10000,
                 },
             );
+
+            this.eventEmitter.emit('order.created', {
+                orderId: createdOrderData.id,
+                userId: createdOrderData.userId,
+                // @ts-ignore
+                eventId: createdOrderData?.orderItems[0]?.ticket?.event?.id
+            });
 
             return plainToInstance(Order, createdOrderData, {
                 groups: SERIALIZATION_GROUPS.BASIC,

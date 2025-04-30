@@ -264,6 +264,7 @@ async function start() {
                 ticketGenerationService,
                 userService,
                 emailService,
+                new EventEmitter2(),
             ),
             subscriptionsRepository,
             notificationsRepository,

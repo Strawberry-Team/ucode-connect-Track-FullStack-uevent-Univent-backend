@@ -6,7 +6,7 @@ import { SubscriptionsRepository } from './subscriptions.repository';
 import { EventsModule } from '../events/events.module';
 import { CompaniesModule } from '../companies/companies.module';
 import { UsersModule } from '../users/users.module';
-
+import { SubscriptionsListener } from './subscriptions.listener';
 @Module({
     imports: [
         forwardRef(() => EventsModule),
@@ -14,7 +14,7 @@ import { UsersModule } from '../users/users.module';
         forwardRef(() => UsersModule),
     ],
     controllers: [SubscriptionsController],
-    providers: [SubscriptionsService, SubscriptionsRepository],
+    providers: [SubscriptionsService, SubscriptionsRepository, SubscriptionsListener],
     exports: [SubscriptionsService, SubscriptionsRepository],
 })
 export class SubscriptionsModule {}
