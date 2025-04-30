@@ -181,7 +181,11 @@ class Seeder {
             } else {
                 await this.eventsService.updatePoster(
                     createdEvent.id,
-                    SEEDS.EVENTS.POSTER_MASK.replace('*', createdEvent.id.toString())
+                    SEEDS.EVENTS.POSTER_MASK.replace('*', 
+                        createdEvent.id <= SEEDS.EVENTS.GENERATED_POSTERS_COUNT
+                        ? createdEvent.id.toString()
+                        : (createdEvent.id - SEEDS.EVENTS.GENERATED_POSTERS_COUNT).toString()
+                    )
                 );
             }
         }

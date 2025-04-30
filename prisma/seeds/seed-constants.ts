@@ -23,7 +23,7 @@ export const SEEDS = {
     COMPANIES: {
         TOTAL: 10,
         EMAIL_LOCAL: 'support',
-        DESCRIPTION_PHRASES: 7,
+        DESCRIPTION_PHRASES: 30,
         DEFAULT_LOGO: 'default-logo.png',
         LOGO_MASK: 'company-logo-*.png',
         LOGO_WIDTH: 2000,
@@ -41,9 +41,10 @@ export const SEEDS = {
         POSTER_QUERY_POSTFIX: 'abstract event poster creative',
         POSTER_ORIENTATION: 'portrait', // 'landscape' | 'portrait' | 'squarish'
         GENERATE_POSTERS: false,
+        GENERATED_POSTERS_COUNT: 25,
         MIN_THEMES_PER_EVENT: 1,
         MAX_THEMES_PER_EVENT: 3,
-        DESCRIPTION_PHRASES: 3,
+        DESCRIPTION_PHRASES: 20,
         START_DATE: {
             MIN_DAYS: 10,
             MAX_DAYS: 30,
