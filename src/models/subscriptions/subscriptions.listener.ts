@@ -16,7 +16,6 @@ export class SubscriptionsListener {
         payload: AttendeeCreatedEvent,
     ): Promise<void> {
         try {
-            console.log('eventAttendee.created', payload);
             await this.subscriptionsService.create({
                 entityId: payload.eventId,
                 entityType: EntityType.EVENT,
