@@ -1,4 +1,3 @@
-
 // prisma/seeds/seed-constants.ts
 export const SEEDS = {
     PRODUCT: {
@@ -14,7 +13,7 @@ export const SEEDS = {
         AVATAR_MASK: 'user-avatar-*.png',
         AVATAR_COUNT: 30,
         GENERATE_AVATARS: false,
-        PROFILE_PICTURE_QUERY_POSFIX: 'profile portrait person face',
+        PROFILE_PICTURE_QUERY_POSTFIX: 'profile portrait person face',
         PROFILE_PICTURE_MASK: '_-user-profile-picture-*.png',
         PROFILE_PICTURE_ORIENTATION: 'squarish', // 'landscape' | 'portrait' | 'squarish'
         PROFILE_PICTURE_WIDTH: 2000,
@@ -29,7 +28,7 @@ export const SEEDS = {
         LOGO_MASK: 'company-logo-*.png',
         LOGO_WIDTH: 2000,
         LOGO_HEIGHT: 2000,
-        LOGO_QUERY_POSFIX: 'logo branding abstract icon',
+        LOGO_QUERY_POSTFIX: 'logo branding abstract icon creative',
         LOGO_ORIENTATION: 'squarish', // 'landscape' | 'portrait' | 'squarish'
         GENERATE_LOGOS: false,
     },
@@ -39,7 +38,7 @@ export const SEEDS = {
         POSTER_MASK: 'event-poster-*.jpg',
         POSTER_WIDTH: 2000,
         POSTER_HEIGHT: 3000,
-        POSTER_QUERY_POSFIX: 'abstract event poster',
+        POSTER_QUERY_POSTFIX: 'abstract event poster creative',
         POSTER_ORIENTATION: 'portrait', // 'landscape' | 'portrait' | 'squarish'
         GENERATE_POSTERS: false,
         MIN_THEMES_PER_EVENT: 1,

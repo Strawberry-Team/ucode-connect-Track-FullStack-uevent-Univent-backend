@@ -18,7 +18,7 @@ import { EventsRepository } from '../../src/models/events/events.repository';
 import { getUnsplashImage, initialEvents } from './events';
 import { TicketsRepository } from '../../src/models/tickets/tickets.repository';
 import { initialTickets } from './tickets';
-import { Order, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { NewsRepository } from '../../src/models/news/news.repository';
 import { initialNews } from './news';
 import { HashingService } from '../../src/common/services/hashing.service';
@@ -44,8 +44,6 @@ import {TicketGenerationService} from "../../src/models/tickets/ticket-generatio
 import storageConfig from '../../src/config/storage.config';
 import appConfig from '../../src/config/app.config';
 import { SEEDS } from './seed-constants';
-import { Company } from '../../src/models/companies/entities/company.entity';
-import { el } from '@faker-js/faker/.';
 
 class MockCompaniesService {
     constructor(private readonly repository: CompaniesRepository) {}
