@@ -1,23 +1,47 @@
+
 // prisma/seeds/seed-constants.ts
 export const SEEDS = {
     PRODUCT: {
         DOMAIN: 'uevent.com',
+        THEME_ID: 2,
     },
     USERS: {
         TOTAL: 30,
         ADMINS: 1,
         PASSWORD: 'Password123!$',
-        PROFILE_PICTURE: 'default-avatar.png',
+        GENDER_PROBABILITY: 0.5,
+        DEFAULT_AVATAR_PICTURE: 'default-avatar.png',
+        AVATAR_MASK: 'user-avatar-*.png',
+        AVATAR_COUNT: 30,
+        GENERATE_AVATARS: false,
+        PROFILE_PICTURE_QUERY_POSFIX: 'profile portrait person face',
+        PROFILE_PICTURE_MASK: '_-user-profile-picture-*.png',
+        PROFILE_PICTURE_ORIENTATION: 'squarish', // 'landscape' | 'portrait' | 'squarish'
+        PROFILE_PICTURE_WIDTH: 2000,
+        PROFILE_PICTURE_HEIGHT: 2000,
+        PROFILE_PICTURE_COUNT: 5,
     },
     COMPANIES: {
         TOTAL: 10,
         EMAIL_LOCAL: 'support',
         DESCRIPTION_PHRASES: 7,
-        LOGO: 'default-logo.png'
+        DEFAULT_LOGO: 'default-logo.png',
+        LOGO_MASK: 'company-logo-*.png',
+        LOGO_WIDTH: 2000,
+        LOGO_HEIGHT: 2000,
+        LOGO_QUERY_POSFIX: 'logo branding abstract icon',
+        LOGO_ORIENTATION: 'squarish', // 'landscape' | 'portrait' | 'squarish'
+        GENERATE_LOGOS: false,
     },
     EVENTS: {
         TOTAL: 30,
-        POSTER: 'default-poster.png',
+        DEFAULT_POSTER: 'default-poster.png',
+        POSTER_MASK: 'event-poster-*.jpg',
+        POSTER_WIDTH: 2000,
+        POSTER_HEIGHT: 3000,
+        POSTER_QUERY_POSFIX: 'abstract event poster',
+        POSTER_ORIENTATION: 'portrait', // 'landscape' | 'portrait' | 'squarish'
+        GENERATE_POSTERS: false,
         MIN_THEMES_PER_EVENT: 1,
         MAX_THEMES_PER_EVENT: 3,
         DESCRIPTION_PHRASES: 3,
@@ -52,10 +76,10 @@ export const SEEDS = {
         },
     },
     FORMATS: {
-        TOTAL: 15,
+        TOTAL: 15, // max formats count = 80
     },
     THEMES: {
-        TOTAL: 50,
+        TOTAL: 50, // max themes count = 119
     },
     TICKETS: {
         NUMBER_PREFIX: 'TICKET',
@@ -105,10 +129,10 @@ export const SEEDS = {
         TITLE_PREFIX: 'Exclusive Promo for Event',
     },
     EVENT_ATTENDEES: {
-        MIN_PER_EVENT: 1,
-        MAX_PER_EVENT: 5,
+        MIN_PER_EVENT: 3,
+        MAX_PER_EVENT: 10,
         VISIBILITY: {
-            HIDDEN_THRESHOLD: 4,
+            HIDDEN_THRESHOLD: 8,
         },
     },
     ORDERS: {

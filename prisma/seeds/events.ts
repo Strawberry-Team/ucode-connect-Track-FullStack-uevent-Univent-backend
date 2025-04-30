@@ -2,6 +2,13 @@
 import { faker } from '@faker-js/faker';
 import { AttendeeVisibility, EventStatus } from '@prisma/client';
 import { SEEDS } from './seed-constants';
+// import * as dotenv from 'dotenv';
+import { createApi } from 'unsplash-js';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import axios from 'axios';
+
+// dotenv.config();
 
 function generateEventThemes(): number[] {
     const themesCount = faker.number.int({
@@ -75,6 +82,132 @@ function generateEventLocation(): { venue: string, locationCoordanates: string }
     return faker.helpers.arrayElement(EVENT_LOCATIONS);
 }
 
+// // prisma/seeds/images.ts
+// import axios from 'axios';
+// import * as fs from 'fs/promises';
+// import * as path from 'path';
+
+// export async function getUnsplashImage(id: number, query: string): Promise<string> {
+//   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
+//   if (!accessKey) {
+//     console.error('Unsplash Access Key is missing in .env file');
+//     return 'default-image.png';
+//   }
+
+//   const url = `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&client_id=${accessKey}`;
+//   const publicDir = path.join(process.cwd(), 'public', 'uploads', 'images');
+//   const fileName = `image-${id}-${Date.now()}.jpg`;
+//   const filePath = path.join(publicDir, fileName);
+
+//   try {
+//     // Fetch random photo metadata
+//     const response = await axios.get(url, { timeout: 5000 });
+//     const photo = response.data;
+
+//     // Fetch the actual image
+//     const imageResponse = await axios.get(photo.urls.regular, {
+//       responseType: 'arraybuffer',
+//       timeout: 5000,
+//     });
+//     const buffer = Buffer.from(imageResponse.data);
+
+//     // Create directory if it doesn’t exist
+//     await fs.mkdir(publicDir, { recursive: true });
+
+//     // Save image locally
+//     await fs.writeFile(filePath, buffer);
+
+//     // Trigger download tracking (required by Unsplash guidelines)
+//     await axios.get(`${photo.links.download_location}&client_id=${accessKey}`);
+
+//     console.log('Image saved:', { id, query, fileName });
+//     return fileName;
+//   } catch (error) {
+//     console.error('Error fetching or saving Unsplash image:', error);
+//     return 'default-image.png';
+//   }
+// }
+
+const unsplash = createApi({
+  accessKey: process.env.UNSPLASH_ACCESS_KEY || '',
+});
+
+// export async function getUnsplashImage(id: number, query: string): Promise<string> {
+//   const publicDir = path.join(process.cwd(), 'public', 'uploads', 'event-posters');
+//   const fileName = `event-poster-${id}.jpg`;
+//   const filePath = path.join(publicDir, fileName);
+
+//   try {
+//     // Search for a random photo
+//     const result = await unsplash.photos.getRandom({ query, count: 1 });
+//     if (result.errors || !result.response) {
+//       throw new Error(result.errors?.join(', ') || 'No photo found');
+//     }
+
+//     const photo = Array.isArray(result.response) ? result.response[0] : result.response;
+
+//     // Fetch and save image
+//     const imageResponse = await axios.get(photo.urls.regular, { responseType: 'arraybuffer' });
+//     const buffer = Buffer.from(imageResponse.data);
+
+//     await fs.mkdir(publicDir, { recursive: true });
+//     await fs.writeFile(filePath, buffer);
+
+//     // Trigger download tracking
+//     await unsplash.photos.trackDownload({ downloadLocation: photo.links.download_location });
+
+//     console.log('Image saved:', { id, query, fileName });
+//     return fileName;
+//   } catch (error) {
+//     console.error('Error fetching or saving Unsplash image:', error);
+//     return 'default-image.png';
+//   }
+// }
+
+export async function getUnsplashImage(
+    type: 'poster' | 'logo',
+    id: number,
+    query: string[],
+    queryPosfix: string = type === 'poster' ? SEEDS.EVENTS.POSTER_QUERY_POSFIX : SEEDS.COMPANIES.LOGO_QUERY_POSFIX,
+    width: number = type === 'poster' ? SEEDS.EVENTS.POSTER_WIDTH : SEEDS.COMPANIES.LOGO_WIDTH,
+    height: number = type === 'poster' ? SEEDS.EVENTS.POSTER_HEIGHT : SEEDS.COMPANIES.LOGO_HEIGHT,
+    orientation: 'landscape' | 'portrait' | 'squarish' = type === 'poster' ? SEEDS.EVENTS.POSTER_ORIENTATION : SEEDS.COMPANIES.LOGO_ORIENTATION
+): Promise<string> {
+    const publicDir = path.join(process.cwd(), 'public', 'uploads', type === 'poster' ? 'event-posters' : 'company-logos');
+    const fileName = type === 'poster' ? SEEDS.EVENTS.POSTER_MASK.replace('*', `${id}`) : SEEDS.COMPANIES.LOGO_MASK.replace('*', `${id}`);
+    const filePath = path.join(publicDir, fileName);
+
+    try {
+        query.push(queryPosfix);
+        const queryString = query.join(' ');
+
+        const result = await unsplash.photos.getRandom({
+            query: queryString,
+            count: 1,
+            orientation,
+        });
+
+        if (result.errors || !result.response) {
+            throw new Error(result.errors?.join(', ') || 'Image not found');
+        }
+
+        const photo = Array.isArray(result.response) ? result.response[0] : result.response;
+        const imageUrl = `${photo.urls.regular}&w=${width}&h=${height}&fit=crop&auto=format`;
+        const imageResponse = await axios.get(imageUrl, {
+            responseType: 'arraybuffer',
+            timeout: 5000,
+        });
+        const buffer = Buffer.from(imageResponse.data);
+        await fs.mkdir(publicDir, { recursive: true });
+        await fs.writeFile(filePath, buffer);
+        await unsplash.photos.trackDownload({ downloadLocation: photo.links.download_location });
+        return fileName;
+    } catch (error) {
+        console.error('Error fetching or saving Unsplash image:', error);
+        return SEEDS.EVENTS.DEFAULT_POSTER;
+    }
+}
+
 export const initialEvents = Array.from(
     { length: SEEDS.EVENTS.TOTAL },
     (_, index) => {
@@ -144,7 +277,7 @@ export const initialEvents = Array.from(
                 }),
                 refDate: startDate,
             }),
-            posterName: SEEDS.EVENTS.POSTER,
+            posterName: SEEDS.EVENTS.DEFAULT_POSTER,
             attendeeVisibility,
             status,
             themes: generateEventThemes(),

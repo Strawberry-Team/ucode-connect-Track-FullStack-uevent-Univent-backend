@@ -27,7 +27,7 @@ export const initialCompanies = (() => {
                     { length: SEEDS.COMPANIES.DESCRIPTION_PHRASES },
                     () => faker.company.catchPhrase(),
                 ).join('. ') + '.',
-            logoName: SEEDS.COMPANIES.LOGO,
+            logoName: SEEDS.COMPANIES.DEFAULT_LOGO,
         };
     });
 })();

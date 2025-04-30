@@ -8,14 +8,14 @@ import { UsersService } from '../../src/models/users/users.service';
 import { UsersRepository } from '../../src/models/users/users.repository';
 import { initialFormats } from './formats';
 import { initialThemes } from './themes';
-import { createInitialUsers } from './users';
+import { createInitialUsers, getRandomAvatar } from './users';
 import { CompaniesRepository } from '../../src/models/companies/companies.repository';
 import { HashingPasswordsService } from '../../src/models/users/hashing-passwords.service';
 import { ConfigService } from '@nestjs/config';
 import { initialCompanies } from './companies';
 import { EventsService } from '../../src/models/events/events.service';
 import { EventsRepository } from '../../src/models/events/events.repository';
-import { initialEvents } from './events';
+import { getUnsplashImage, initialEvents } from './events';
 import { TicketsRepository } from '../../src/models/tickets/tickets.repository';
 import { initialTickets } from './tickets';
 import { Order, UserRole } from '@prisma/client';
@@ -44,7 +44,8 @@ import {TicketGenerationService} from "../../src/models/tickets/ticket-generatio
 import storageConfig from '../../src/config/storage.config';
 import appConfig from '../../src/config/app.config';
 import { SEEDS } from './seed-constants';
-
+import { Company } from '../../src/models/companies/entities/company.entity';
+import { el } from '@faker-js/faker/.';
 
 class MockCompaniesService {
     constructor(private readonly repository: CompaniesRepository) {}
@@ -117,23 +118,69 @@ class Seeder {
 
     async seedUsers() {
         const users = await createInitialUsers();
+
+        // const userAvatars: string[] = [];
+        // for (let i = 1; i <= SEEDS.USERS.PROFILE_PICTURE_COUNT; i++) {
+        //     userAvatars.push(SEEDS.USERS.PROFILE_PICTURE_MASK.replace('*', i.toString()));
+        // }
+
         for (const user of users) {
-            await this.usersService.createUser(user);
+            const { gender, ...userData } = user;
+            const createdUser = await this.usersService.createUser(userData);
+
+            if (SEEDS.PRODUCT.THEME_ID === 2) {
+                continue;
+            }
+
+            if (SEEDS.USERS.GENERATE_AVATARS) {
+                await this.usersService.updateUserAvatar(
+                    createdUser.id,
+                    // faker.helpers.arrayElement(userAvatars),
+                    await getRandomAvatar(createdUser.id, gender)
+                );
+            } else {
+                await this.usersService.updateUserAvatar(
+                    createdUser.id,
+                    SEEDS.USERS.AVATAR_MASK.replace('*', createdUser.id.toString())
+                );
+            }
         }
-        const admin =
-            await this.usersService.findUserByEmail('admin@uevent.com');
+
+        const admin = await this.usersService.findUserByEmail(`admin@${SEEDS.PRODUCT.DOMAIN}`);
         await this.usersService.updateUserRole(admin.id, UserRole.ADMIN);
     }
 
     async seedCompanies() {
         for (const company of initialCompanies) {
-            await this.companiesRepository.create(company);
+            const createdCompany = await this.companiesRepository.create(company);
+
+            if (SEEDS.COMPANIES.GENERATE_LOGOS) {
+                const logoFileName = await getUnsplashImage('logo', createdCompany.id, [company.title]);
+                await this.companiesRepository.update(createdCompany.id, { logoName: logoFileName });
+            } else {
+                await this.companiesRepository.update(
+                    createdCompany.id,
+                    { logoName: SEEDS.COMPANIES.LOGO_MASK.replace('*', createdCompany.id.toString()) }
+                );
+            }
         }
     }
 
     async seedEvents() {
         for (const event of initialEvents) {
-            await this.eventsService.createWithThemes(event);
+            const createdEvent = await this.eventsService.createWithThemes(event);
+
+            if (SEEDS.EVENTS.GENERATE_POSTERS) {
+                const format = await this.formatsService.findById(createdEvent.formatId);
+                const query = [format?.title];
+
+                createdEvent?.themes?.forEach((theme) => {
+                    query.push(theme.title);
+                });
+
+                let posterName: string = await getUnsplashImage('poster', createdEvent.id, query);
+                await this.eventsService.updatePoster(createdEvent.id, posterName);
+            }
         }
     }
 

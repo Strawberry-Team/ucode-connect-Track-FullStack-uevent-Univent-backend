@@ -164,3 +164,52 @@ All users have a password:
 ```text
 Password123!$
 ```
+
+## 🌐 Ngrok
+**ngrok** is app’s front door—a globally distributed reverse proxy that secures, protects and accelerates your applications and network services, no matter where you run them.
+
+Step-by-step instructions for using ngrok with a NestJS project:
+1. Install ngrok:
+    ```bash
+    brew install ngrok
+    ```
+    or
+    ```bash
+    sudo snap install ngrok
+    ```
+2. Register and receive an authorisation token:
+    - Register at [ngrok.com](https://ngrok.com/).
+    - After registering, find your Auth Token in the dashboard.
+    - Configure ngrok with the token:
+        ```bash
+        ngrok config add-authtoken <tocken>
+        ```
+3. Start the NestJS project:
+    ```bash
+    npm run start
+    ```
+4. Start ngrok:
+    ```bash
+    ngrok http http://localhost:<server_port>
+    ```
+More information can be found in the [ngrok documentation](https://dashboard.ngrok.com/).
+
+## 🏞 Unsplash
+**Unsplash** is the internet’s source of freely usable images.
+
+To connect to the Unsplash, follow these steps:
+1. Sign up for an account with Unsplash:
+    Go to (Unsplash Developers)[https://unsplash.com/developers] and sign in to your Unsplash account (or create a new one).
+2. Create an app:
+    In the `Your Applications` section, click `New Application`.
+    Fill in the fields: name of the app (for example, `Event App`), description (for example, `Get images for events`). Accept the terms and conditions.
+3. Get the API key:
+    After creating the app, you will see the Access Key (and Secret Key if you need OAuth). The Access Key is your API key.
+    Copy the key and save it in a safe place, for example, in your `.env` or `.env.development` file:
+    ```text
+    UNSPLASH_ACCESS_KEY=<access_key>
+    ```
+4. In Development Mode, you have **50 requests per hour**. To increase the limit (up to 5000 requests/hour), apply for production access via the Unsplash dashboard, providing use cases with attribution.
+
+More information can be found in the [Unsplash documentation](https://unsplash.com/documentation).
+
