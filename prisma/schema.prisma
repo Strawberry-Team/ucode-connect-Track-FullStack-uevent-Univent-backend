@@ -132,7 +132,7 @@ model EventAttendee {
   id        Int      @id @default(autoincrement())
   eventId   Int      @map("event_id")
   userId    Int      @map("user_id")
-  isVisible Boolean  @default(false) @map("is_visible")
+  isVisible Boolean  @default(true) @map("is_visible") 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 

@@ -5,9 +5,10 @@ import { EventAttendeesController } from './event-attendees.controller';
 import { UsersModule } from 'src/models/users/users.module';
 import { EventsModule } from '../events.module';
 import { EventAttendeesRepository } from './event-attendees.repository';
+import { EventAttendeesListener } from './event-attendees.listener';
 
 @Module({
-  providers: [EventAttendeesService, EventAttendeesRepository],
+  providers: [EventAttendeesService, EventAttendeesRepository, EventAttendeesListener],
   controllers: [EventAttendeesController],
   exports: [EventAttendeesService, EventAttendeesRepository],
   imports: [
