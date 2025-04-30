@@ -178,6 +178,11 @@ class Seeder {
 
                 let posterName: string = await getUnsplashImage('poster', createdEvent.id, query);
                 await this.eventsService.updatePoster(createdEvent.id, posterName);
+            } else {
+                await this.eventsService.updatePoster(
+                    createdEvent.id,
+                    SEEDS.EVENTS.POSTER_MASK.replace('*', createdEvent.id.toString())
+                );
             }
         }
     }

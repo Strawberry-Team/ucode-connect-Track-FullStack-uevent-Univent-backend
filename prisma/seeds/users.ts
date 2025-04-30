@@ -42,9 +42,9 @@ export const createInitialUsers = async () => {
             password: SEEDS.USERS.PASSWORD,
             role: UserRole.ADMIN,
             isEmailVerified: true,
-            // profilePictureName: SEEDS.USERS.GENERATE_AVATARS ? await getRandomAvatar(1, true) : SEEDS.USERS.AVATAR_MASK.replace('*', '1'),
-            // profilePictureName: SEEDS.USERS.DEFAULT_AVATAR_PICTURE,
-            profilePictureName: SEEDS.USERS.PROFILE_PICTURE_MASK.replace('_', 'female').replace('*', '1'),
+            profilePictureName: SEEDS.PRODUCT.THEME_ID === 2 
+                ? SEEDS.USERS.PROFILE_PICTURE_MASK.replace('_', 'female').replace('*', '1')
+                : SEEDS.USERS.GENERATE_AVATARS ? await getRandomAvatar(1, true) : SEEDS.USERS.AVATAR_MASK.replace('*', '1'),
         },
         {
             gender: false,
@@ -54,16 +54,16 @@ export const createInitialUsers = async () => {
             password: SEEDS.USERS.PASSWORD,
             role: UserRole.USER,
             isEmailVerified: true,
-            // profilePictureName: SEEDS.USERS.GENERATE_AVATARS ? await getRandomAvatar(2, false) : SEEDS.USERS.AVATAR_MASK.replace('*', '2'),
-            // profilePictureName: SEEDS.USERS.DEFAULT_AVATAR_PICTURE,
-            profilePictureName: SEEDS.USERS.PROFILE_PICTURE_MASK.replace('_', 'male').replace('*', '3'),
+            profilePictureName: SEEDS.PRODUCT.THEME_ID === 2 
+                ? SEEDS.USERS.PROFILE_PICTURE_MASK.replace('_', 'male').replace('*', '3')
+                : SEEDS.USERS.GENERATE_AVATARS ? await getRandomAvatar(2, false) : SEEDS.USERS.AVATAR_MASK.replace('*', '2'),
         },
         ...Array.from({ length: SEEDS.USERS.TOTAL - 2 }, (_, index) => {
             const gender: boolean = faker.datatype.boolean({ probability: SEEDS.USERS.GENDER_PROBABILITY });
             const firstName = faker.person.firstName(gender ? 'male' : 'female');
             const lastName = faker.person.lastName(gender ? 'male' : 'female');
             const id = index + 3;
-
+            
             return {
                 gender,
                 firstName,
@@ -78,14 +78,14 @@ export const createInitialUsers = async () => {
                 password: SEEDS.USERS.PASSWORD,
                 role: UserRole.USER,
                 isEmailVerified: true,
-                // profilePictureName: SEEDS.USERS.GENERATE_AVATARS ? await getRandomAvatar(id, gender) : SEEDS.USERS.AVATAR_MASK.replace('*', id.toString()),
-                // profilePictureName: SEEDS.USERS.DEFAULT_AVATAR_PICTURE,
-                profilePictureName: SEEDS.USERS.PROFILE_PICTURE_MASK
-                    .replace('_', gender ? 'male' : 'female')
-                    .replace('*', (gender
-                        ? faker.number.int({ min: 3, max: 5 })
-                        : faker.number.int({ min: 1, max: 2 })
-                    ).toString()),
+                profilePictureName: SEEDS.PRODUCT.THEME_ID === 2 
+                    ? SEEDS.USERS.PROFILE_PICTURE_MASK
+                        .replace('_', gender ? 'male' : 'female')
+                        .replace('*', (gender
+                            ? faker.number.int({ min: 3, max: 5 })
+                            : faker.number.int({ min: 1, max: 2 })
+                        ).toString())
+                    : SEEDS.USERS.DEFAULT_AVATAR_PICTURE,
             };
         }),
     ];

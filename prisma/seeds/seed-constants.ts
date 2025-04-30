@@ -2,7 +2,7 @@
 export const SEEDS = {
     PRODUCT: {
         DOMAIN: 'uevent.com',
-        THEME_ID: 2,
+        THEME_ID: 2, // 2 or null
     },
     USERS: {
         TOTAL: 30,
