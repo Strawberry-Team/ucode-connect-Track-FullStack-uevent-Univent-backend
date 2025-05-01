@@ -23,5 +23,6 @@ export interface EmailTemplateInterface {
         ticketLinks: { itemId: number; ticketTitle: string; link: string }[],
         projectName: string,
         fullName: string,
+        frontendUrl: string,
     ) => string;
 }

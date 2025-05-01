@@ -99,11 +99,11 @@ export class EmailService {
             });
         } else if (themeId === 1) {
             return nodemailer.createTransport({
-                host: this.configService.get<string>('ETHEREAL_HOST'),
-                port: this.configService.get<number>('ETHEREAL_PORT'),
+                host: this.configService.get<string>('ethereal.host'),
+                port: this.configService.get<number>('ethereal.port'),
                 auth: {
-                    user: this.configService.get<string>('ETHEREAL_USER'),
-                    pass: this.configService.get<string>('ETHEREAL_PASS'),
+                    user: this.configService.get<string>('ethereal.user'),
+                    pass: this.configService.get<string>('ethereal.password'),
                 },
             });
         }
@@ -191,6 +191,7 @@ export class EmailService {
             ticketLinks,
             this.appName,
             fullName,
+            String(this.configService.get<string>('app.frontendLink')),
         );
         await this.sendEmail(
             to,

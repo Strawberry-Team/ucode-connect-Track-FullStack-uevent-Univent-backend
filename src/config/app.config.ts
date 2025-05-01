@@ -40,7 +40,6 @@ export default () => {
                     sameSite: 'strict',
                 },
                 ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],
-
             },
             theme:{
                 id: Number(validateEnv('APP_THEME_ID')),
