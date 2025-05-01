@@ -6,7 +6,7 @@ export function IsDescription(
     isOptional: boolean,
     allowNull: boolean = false,
     minLength: number = 1,
-    maxLength: number = 1000,
+    maxLength: number = 10000,
 ) {
     const baseDecorators = [IsString(), Length(minLength, maxLength)];
 
