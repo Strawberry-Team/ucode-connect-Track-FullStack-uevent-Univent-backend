@@ -162,7 +162,7 @@ export default {
             <td style="border:1px solid ${colors.border}; padding:12px; text-align:left">$${item.finalPrice.toFixed(2)}</td>
             <td style="border:1px solid ${colors.border}; padding:12px; text-align:center">
                 ${ticketLinks.find(l => l.itemId === item.id)
-            ? `<a href="${frontendUrl}/orders/${order.id}/item/${item.id}/ticket" target="_blank"
+            ? `<a href="${frontendUrl}/orders/${order.id}/items/${item.id}/ticket" target="_blank"
                       style="background-color:${colors.primary}; color:${colors.buttonText}; padding:8px 15px;
                       text-decoration:none; border-radius:4px; font-size:13px; display:inline-block">
                       View Ticket</a>`
