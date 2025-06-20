@@ -1,8 +1,8 @@
 // prisma/seeds/seed-constants.ts
 export const SEEDS = {
     PRODUCT: {
-        DOMAIN: 'uevent.com',
-        THEME_ID: 2, // 2 or null
+        DOMAIN: 'univent.com',
+        THEME_ID: null, // 2 or null
     },
     USERS: {
         TOTAL: 30,
@@ -41,7 +41,7 @@ export const SEEDS = {
         POSTER_QUERY_POSTFIX: 'abstract event poster creative',
         POSTER_ORIENTATION: 'portrait', // 'landscape' | 'portrait' | 'squarish'
         GENERATE_POSTERS: false,
-        GENERATED_POSTERS_COUNT: 25,
+        GENERATED_POSTERS_COUNT: 30,
         MIN_THEMES_PER_EVENT: 1,
         MAX_THEMES_PER_EVENT: 3,
         DESCRIPTION_PHRASES: 20,
@@ -121,12 +121,12 @@ export const SEEDS = {
         },
     },
     PROMO_CODES: {
-        CODES: ['WELCOME10', 'SUMMER20', 'VIP30'],
+        CODES: ['SPRING10', 'UNIVENT20', 'BIRTHDAY30'],
         DISCOUNT: {
             MIN: 0.1,
             MAX: 0.5,
         },
-        TITLE_PREFIX: 'Exclusive Promo for Event',
+        TITLE_PREFIX: 'Univent Promo for Event',
     },
     EVENT_ATTENDEES: {
         MIN_PER_EVENT: 3,
