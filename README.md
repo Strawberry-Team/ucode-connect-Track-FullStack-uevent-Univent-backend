@@ -466,3 +466,6 @@ In Development Mode, you have **50 requests per hour**. To increase the limit (u
 
 More information can be found in the [Unsplash documentation](https://unsplash.com/documentation).
 
+
+
+© Inessa Repeshko. 2025
