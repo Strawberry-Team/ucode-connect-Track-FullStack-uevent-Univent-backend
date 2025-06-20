@@ -8,20 +8,6 @@
    <img src="./public/project/1-logo.png" width="200" />
    <h1 align="center">Univent</h1>
 
-   <h3>
-      <p align="center">
-         <sub><i>
-            ucode connect uevent "Univent" is the project of ucode connect the Track FullStack programming bootcamp<br />
-            lasting 5 weeks (March 31, 2025 - May 2, 2025),<br />where the NestJS with TypeScript and React with Next.js were used to develop the event ticketing service.<br /><br />
-            The purpose: create an event ticketing service to unite people with the same interests<br />using the whole cycle of Challenge Based Learning framework with a team.
-         </i></sub>
-      </p>
-   </h3>
-</div>
-
-
-
-## 🛠 Technologies
 <p align="center">
    <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
    <img src="https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white" alt="Node.js" />
@@ -34,8 +20,8 @@
    <img src="https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=white" alt="Jest" />
    <img src="https://img.shields.io/badge/Faker.js-1565C0?logo=faker&logoColor=white" alt="Faker.js" />
    <img src="https://img.shields.io/badge/Stripe-008CDD?logo=stripe&logoColor=white" alt="Stripe" />
-	<img src="https://img.shields.io/badge/Google_Maps-4285F4?logo=google-maps&logoColor=white" alt="Google Maps" />
-	<img src="https://img.shields.io/badge/Unsplash-000000?logo=unsplash&logoColor=white" alt="Unsplash" />
+   <img src="https://img.shields.io/badge/Google_Maps-4285F4?logo=google-maps&logoColor=white" alt="Google Maps" />
+   <img src="https://img.shields.io/badge/Unsplash-000000?logo=unsplash&logoColor=white" alt="Unsplash" />
    <img src="https://img.shields.io/badge/JWT-000000?logo=json-web-token&logoColor=white" alt="JSON Web Token" />
    <img src="https://img.shields.io/badge/Bcrypt-003087?logo=bcrypt&logoColor=white" alt="Bcrypt" />
    <img src="https://img.shields.io/badge/Passport-34E27A?logo=passport&logoColor=white" alt="Passport" />
@@ -50,6 +36,17 @@
    <img src="https://img.shields.io/badge/Prettier-F7B93E?logo=prettier&logoColor=black" alt="Prettier" />
    <img src="https://img.shields.io/badge/Axios-5A29E4?logo=axios&logoColor=white" alt="Axios" />
 </p>
+
+   <h3>
+      <p align="center">
+         <sub><i>
+            ucode connect uevent "Univent" is the project of ucode connect the Track FullStack programming bootcamp<br />
+            lasting 5 weeks (March 31, 2025 - May 2, 2025),<br />where the NestJS with TypeScript and React with Next.js were used to develop the event ticketing service.<br /><br />
+            The purpose: create an event ticketing service to unite people with the same interests<br />using the whole cycle of Challenge Based Learning framework with a team.
+         </i></sub>
+      </p>
+   </h3>
+</div>
 
 
 
