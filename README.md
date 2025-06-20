@@ -50,7 +50,7 @@
 
 
 
-## 🗓️ Overview
+# 🗓️ Overview
 <b>Univent</b> is a platform for creating, attending and managing events! 
 
 Organise events with interactive maps, buy tickets, use promo codes and receive notifications. 
@@ -59,7 +59,7 @@ A user-friendly profile for everyone - from organisers to guests.
 
 
 
-## 🧑‍💻 Team
+# 🧑‍💻 Team
 <div>
     <table width="100%" border="0" cellpadding="1" align="center">  
         <tr>
@@ -272,7 +272,7 @@ Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9
 
 
 
-## ⚙️ Requirements and Dependencies
+# ⚙️ Requirements and Dependencies
 
 Before starting, ensure the required technologies are installed.
 
@@ -280,7 +280,7 @@ Before starting, ensure the required technologies are installed.
 - **NPM** >= v10
 - **MySQL** >= 8.0
 
-## 🚀 How to Run the Solution
+# 🚀 How to Run the Solution
 
 In the examples of all commands in the text `<env>` is the name of the environment to perform the migration, e.g. `dev`,
 `test` or `prod`.
@@ -340,7 +340,7 @@ In the examples of all commands in the text `<env>` is the name of the environme
     ```
 10. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
 
-## 🐋 Docker
+# 🐋 Docker
 Environment variables are taken from `.env.development` file. You can start containers with the command:
 ```
 docker-compose --env-file .env.development up -d
@@ -358,7 +358,7 @@ To stop and delete containers, networks, and associated resources (with volumes)
 docker-compose down -v
 ```
 
-## 📫 Mailing Service
+# 📫 Mailing Service
 
 [Ethereal](https://ethereal.email/) is a fake SMTP service, mostly aimed at Nodemailer and EmailEngine users (but not
 limited to). It's a completely free anti-transactional email service where messages never get delivered.
@@ -374,12 +374,13 @@ Default credentials you can find in `.env.development.example` file or:
     4e1zbM2nxsMu2d823E
     ```
 
-## 🔁 REST API documentation
+# 🔁 REST API documentation
 
 The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api).
 The [Swagger](https://swagger.io/) library is used.
 
-## Migrations
+
+# 📦 Migrations
 
 1. To create new migration run command:
     ```bash
@@ -390,7 +391,7 @@ The [Swagger](https://swagger.io/) library is used.
     npm run migrate:refresh
     ```
 
-## 🪲 Testing
+# 🪲 Testing
 
 For all commands in the text below, the environment is a `test` that uses the variables of the `.env.test.example` file.
 
@@ -418,7 +419,7 @@ For all commands in the text below, the environment is a `test` that uses the va
    npm run test
    ```
 
-## 👤 Fake Data
+# 👤 Fake Data
 To fill the database with demo data of users, companies, events and tickets, run the following command:
 ```bash
 npm run migarte:seed
@@ -439,7 +440,7 @@ All users have a password:
 Password123!$
 ```
 
-## 🏞 Unsplash
+# 🏞 Unsplash
 **Unsplash** is the internet’s source of freely usable images.
 
 To connect to the Unsplash, follow these steps:
