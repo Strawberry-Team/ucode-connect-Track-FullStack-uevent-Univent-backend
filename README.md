@@ -1,7 +1,7 @@
 <div align="center">
    <p align="center">
       <a href="https://ucode.world/en/" target="_blank">
-         <img src="https://github.com/Strawberry-Team/ucode-connect-Track-C-uchat/blob/develop/screens/ucode_it_academy_logo.svg" height="100px" alt="ucode_logo">
+         <img src="https://github.com/Strawberry-Team/ucode-connect-Track-FullStack-uevent-Univent-backend/blob/main/public/project/ucode_it_academy_logo.svg" height="100px" alt="ucode_logo">
       </a>
    </p>
 
