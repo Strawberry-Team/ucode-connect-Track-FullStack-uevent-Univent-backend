@@ -2,7 +2,10 @@
 import * as dotenv from 'dotenv';
 import { validateEnv } from '../common/utils/env.utils';
 
-dotenv.config({ path: '.env.development' });
+// Dynamically load the configuration based on NODE_ENV
+const nodeEnv = process.env.NODE_ENV || 'development';
+const envFile = nodeEnv === 'production' ? '.env.production' : '.env.development';
+dotenv.config({ path: envFile });
 
 export default () => {
     const frontendProtocol = String(validateEnv('APP_FRONTEND_PROTOCOL'));
@@ -22,7 +25,9 @@ export default () => {
             frontendProtocol,
             frontendHost,
             frontendPort,
-            frontendLink: `${frontendProtocol}://${frontendHost}:${frontendPort}/`,
+            frontendLink: frontendPort && nodeEnv === 'development' 
+                ? `${frontendProtocol}://${frontendHost}:${frontendPort}/`
+                : `${frontendProtocol}://${frontendHost}/`,
             nodeEnv: String(validateEnv('APP_NODE_ENV')),
             logo: {
                 path: './public/project',
@@ -36,7 +41,8 @@ export default () => {
             csrf: {
                 cookie: {
                     key: 'X-CSRF-TOKEN',
-                    httpOnly: false,
+                    httpOnly: true,
+                    secure: nodeEnv === 'production',
                     sameSite: 'strict',
                 },
                 ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],

@@ -19,6 +19,7 @@ export class EmailService {
     private appName: string;
     private logo: any;
     private templates: EmailTemplateInterface;
+    private frontendLink: string;
 
     constructor(
         private readonly configService: ConfigService,
@@ -33,6 +34,7 @@ export class EmailService {
                 this.configService.get<string>('google.gmailApi.refreshToken'),
             ),
         );
+        this.frontendLink = String(this.configService.get<string>('app.frontendLink'));
 
         this.init();
     }
@@ -76,37 +78,23 @@ export class EmailService {
     }
 
     private async createTransport() {
-        const themeId = Number(this.configService.get<string>('app.theme.id'));
-        console.log(
-            `Using transport: ${themeId === 2 ? 'Gmail' : 'Ethereal'}`,
-        );
+        console.log(`Using transport: Gmail`);
 
-        if (themeId === 2) { // TODO: for presentation
-            const accessToken = await this.googleOAuthService.getAccessToken();
-            const oauthDetails = this.googleOAuthService.getOAuthCredentials();
+        const accessToken = await this.googleOAuthService.getAccessToken();
+        const oauthDetails = this.googleOAuthService.getOAuthCredentials();
 
-            return nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    type: 'OAuth2',
-                    user: this.gmailUser,
-                    clientId: oauthDetails.clientId,
-                    clientSecret: oauthDetails.clientSecret,
-                    refreshToken: oauthDetails.refreshToken,
-                    redirectUri: oauthDetails.redirectUri,
-                    accessToken,
-                },
-            });
-        } else if (themeId === 1) {
-            return nodemailer.createTransport({
-                host: this.configService.get<string>('ethereal.host'),
-                port: this.configService.get<number>('ethereal.port'),
-                auth: {
-                    user: this.configService.get<string>('ethereal.user'),
-                    pass: this.configService.get<string>('ethereal.password'),
-                },
-            });
-        }
+        return nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                type: 'OAuth2',
+                user: this.gmailUser,
+                clientId: oauthDetails.clientId,
+                clientSecret: oauthDetails.clientSecret,
+                refreshToken: oauthDetails.refreshToken,
+                redirectUri: oauthDetails.redirectUri,
+                accessToken,
+            },
+        });
     }
 
     async sendEmail(to: string, subject: string, html: string): Promise<void> {
@@ -143,7 +131,8 @@ export class EmailService {
         const html = this.templates.getConfirmationEmailTemplate(
             confirmationLink,
             this.appName,
-            fullName
+            fullName,
+            this.frontendLink,
         );
         await this.sendEmail(
             to,
@@ -153,7 +142,12 @@ export class EmailService {
     }
 
     async sendResetPasswordEmail(to: string, resetLink: string, fullName: string): Promise<void> {
-        const html = this.templates.getResetPasswordEmailTemplate(resetLink, this.appName, fullName);
+        const html = this.templates.getResetPasswordEmailTemplate(
+            resetLink,
+            this.appName,
+            fullName,
+            this.frontendLink,
+        );
         await this.sendEmail(
             to,
             `[Action Required] Password Reset | ${this.appName}`,
@@ -172,6 +166,7 @@ export class EmailService {
             companyTitle,
             redirectLink,
             this.appName,
+            this.frontendLink,
         );
         await this.sendEmail(
             to,
@@ -191,7 +186,7 @@ export class EmailService {
             ticketLinks,
             this.appName,
             fullName,
-            String(this.configService.get<string>('app.frontendLink')),
+            this.frontendLink,
         );
         await this.sendEmail(
             to,

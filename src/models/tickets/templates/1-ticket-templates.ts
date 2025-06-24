@@ -227,7 +227,7 @@ class CustomTicketTemplate implements TicketTemplateInterface {
                 <div class="ticket-info">
                   <div class="info-card">
                     <h3>Attendee</h3>
-                    <p>${user.firstName} ${user.lastName || ''}</p>
+                    <p>${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}</p>
                     <p style="font-size: 14px; color: #6b7280;">${user.email}</p>
                   </div>
 

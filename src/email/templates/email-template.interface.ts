@@ -3,12 +3,14 @@ export interface EmailTemplateInterface {
         confirmationLink: string,
         projectName: string,
         fullName: string,
+        link: string,
     ) => string;
 
     getResetPasswordEmailTemplate: (
         resetLink: string,
         projectName: string,
         fullName: string,
+        link: string,
     ) => string;
 
     getWelcomeCompanyEmailTemplate: (
@@ -16,13 +18,14 @@ export interface EmailTemplateInterface {
         companyTitle: string,
         redirectLink: string,
         serviceName: string,
+        link: string,
     ) => string;
 
     getTicketConfirmationEmailTemplate: (
-        order: any, // заменить на OrderWithDetails
+        order: any,
         ticketLinks: { itemId: number; ticketTitle: string; link: string }[],
         projectName: string,
         fullName: string,
-        frontendUrl: string,
+        link: string,
     ) => string;
 }

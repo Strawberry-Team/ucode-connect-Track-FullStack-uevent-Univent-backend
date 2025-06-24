@@ -249,7 +249,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
               <div class="ticket-info">
                 <div class="info-group">
                   <h3>Attendee</h3>
-                  <p>${user.firstName} ${user.lastName || ''}</p>
+                  <p>${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}</p>
                   <p style="font-size: 14px; color: #757575;">${user.email}</p>
                 </div>
 
