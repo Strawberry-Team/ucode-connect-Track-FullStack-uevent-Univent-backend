@@ -130,7 +130,7 @@ export class TicketGenerationService {
                 // Create PDF document with metadata
                 const doc = new PDFDocument({
                     size: 'A4',
-                    margin: 50,
+                    margin: 0,
                     info: {
                         Title: `Ticket for ${eventTitle}`,
                         Author: appName,
@@ -300,10 +300,11 @@ export class TicketGenerationService {
                 }
             }
 
+            const appName = this.configService.get<string>('app.name') || 'UEvent';
             // Footer
             doc.fontSize(8)
                .fillColor('#999999')
-               .text(`© ${new Date().getFullYear()} UEvent`, 50, 750, { align: 'left' })
+               .text(`© ${new Date().getFullYear()} ${appName}`, 50, 750, { align: 'left' })
                .text('Contact: support@uevent.com', 400, 750, { align: 'right' });
 
         } catch (error) {

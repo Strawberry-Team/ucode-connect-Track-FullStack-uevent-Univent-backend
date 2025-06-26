@@ -42,22 +42,22 @@ async function main(): Promise<void> {
           title: 'AI Summit 2025',
           startedAt: new Date('2025-05-01T10:00:00Z'),
           endedAt: new Date('2025-05-02T18:00:00Z'),
-          venue: 'Dnipro, Ukraine',
+          venue: 'NTU "KhPI", Kharkiv, Ukraine',
         },
       },
       user: {
-        firstName: 'Andrew',
-        lastName: 'Laskevych',
-        email: 'andrew@laskevych.com',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test.user@example.com',
       },
     },
   };
 
   try {
     const { ticketFileKey, filePath } = await service.generateTicket(data);
-    console.log(`✅ PDF згенеровано: ${filePath} (ключ: ${ticketFileKey})`);
+    console.log(`✅ PDF generated: ${filePath} (key: ${ticketFileKey})`);
   } catch (error) {
-    console.error('❌ Помилка при генерації PDF:', error);
+    console.error('❌ Error generating PDF:', error);
     process.exit(1);
   }
 }
