@@ -5,13 +5,13 @@ import {
     Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as htmlPdf from 'html-pdf-node';
 import * as QRCode from 'qrcode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { TicketGenerationData } from './interfaces/ticket-generation-data.interface';
 import { TicketTemplateInterface } from './templates/ticket-template.interface';
-import * as htmlPdf from 'html-pdf-node';
 
 const themeModules = {
     1: () => import('./templates/1-ticket-templates'),
@@ -81,6 +81,7 @@ export class TicketGenerationService {
         );
 
         try {
+            // Переконуємось, що директорія існує
             await fs.mkdir(directoryPath, { recursive: true });
 
             const verificationUrl = `${this.frontendUrl}/tickets/verify?ticketNumber=${ticket.number}`;
@@ -95,23 +96,28 @@ export class TicketGenerationService {
                 this.supportEmail
             );
 
-            // Використовуємо html-pdf-node для конвертації HTML в PDF
+            // Налаштування для html-pdf-node
             const options = { 
                 format: 'A4',
+                printBackground: true,
                 margin: {
-                    top: '20mm',
-                    right: '20mm',
-                    bottom: '20mm',
-                    left: '20mm',
+                    top: '5mm',
+                    right: '5mm',
+                    bottom: '5mm',
+                    left: '5mm',
                 },
-                printBackground: true
             };
             
+            // Створюємо файл з HTML контентом
             const file = { content: htmlContent };
-            const pdfBuffer = await htmlPdf.generatePdf(file, options);
             
+            // Генеруємо PDF
+            const pdfBuffer = await htmlPdf.generatePdf(file, options);
+            this.logger.debug(`PDF buffer generated successfully.`);
+
+            // Записуємо PDF файл
             await fs.writeFile(fullPath, pdfBuffer);
-            this.logger.debug(`PDF file generated successfully and saved to ${fullPath}`);
+            this.logger.debug(`PDF file saved to ${fullPath}`);
 
             return { ticketFileKey, filePath: fullPath };
         } catch (error) {
