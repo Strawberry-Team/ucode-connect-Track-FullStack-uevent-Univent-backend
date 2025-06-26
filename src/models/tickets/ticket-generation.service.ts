@@ -5,13 +5,13 @@ import {
     Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as puppeteer from 'puppeteer';
 import * as QRCode from 'qrcode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { TicketGenerationData } from './interfaces/ticket-generation-data.interface';
 import { TicketTemplateInterface } from './templates/ticket-template.interface';
+import * as htmlPdf from 'html-pdf-node';
 
 const themeModules = {
     1: () => import('./templates/1-ticket-templates'),
@@ -95,26 +95,23 @@ export class TicketGenerationService {
                 this.supportEmail
             );
 
-            const browser = await puppeteer.launch({
-                args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                headless: true,
-            });
-            const page = await browser.newPage();
-            await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-            const pdfBuffer = await page.pdf({
+            // Використовуємо html-pdf-node для конвертації HTML в PDF
+            const options = { 
                 format: 'A4',
-                printBackground: true,
                 margin: {
                     top: '20mm',
                     right: '20mm',
                     bottom: '20mm',
                     left: '20mm',
                 },
-            });
-            await browser.close();
-            this.logger.debug(`PDF buffer generated successfully.`);
-
+                printBackground: true
+            };
+            
+            const file = { content: htmlContent };
+            const pdfBuffer = await htmlPdf.generatePdf(file, options);
+            
             await fs.writeFile(fullPath, pdfBuffer);
+            this.logger.debug(`PDF file generated successfully and saved to ${fullPath}`);
 
             return { ticketFileKey, filePath: fullPath };
         } catch (error) {

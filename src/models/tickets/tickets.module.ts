@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import storageConfig from '../../config/storage.config';
 import { OrderItemsModule } from '../orders/order-items/order-items.module';
 import { TicketGenerationService } from './ticket-generation.service';
+import appConfig from '../../config/app.config';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { TicketGenerationService } from './ticket-generation.service';
         forwardRef(() => EventsModule),
         forwardRef(() => OrderItemsModule),
         ConfigModule.forFeature(storageConfig),
+        ConfigModule.forFeature(appConfig),
     ],
     controllers: [TicketsController],
     providers: [TicketsService, TicketsRepository, TicketsController, TicketGenerationService],

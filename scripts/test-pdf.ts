@@ -9,10 +9,15 @@ import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import { TicketGenerationService } from '../src/models/tickets/ticket-generation.service';
 import { TicketGenerationData } from '../src/models/tickets/interfaces/ticket-generation-data.interface';
+import storageConfig from '../src/config/storage.config';
+import appConfig from '../src/config/app.config';
 
 async function main(): Promise<void> {
   // Ініціалізуємо конфігурацію з .env
-  const configService = new ConfigService();
+  const configService = new ConfigService({
+    ...storageConfig(),
+    ...appConfig(),
+  });
 
   // Створюємо сервіс і чекаємо завантаження шаблонів
   const service = new TicketGenerationService(configService);
