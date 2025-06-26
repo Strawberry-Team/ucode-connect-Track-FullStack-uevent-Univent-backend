@@ -39,8 +39,8 @@ class CustomTicketTemplate implements TicketTemplateInterface {
             }
 
             .ticket-container {
-              max-width: 1100px;
-              margin: 0 auto;
+              max-width: 100%;
+              margin: 0;
               background: white;
               border-radius: 12px;
               box-shadow: none;
