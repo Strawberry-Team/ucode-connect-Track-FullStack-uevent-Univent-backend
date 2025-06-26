@@ -316,6 +316,233 @@ ${
         </html>
         `;
     }
+
+    /**
+     * Спеціальний метод для рендерингу PDF через PDFKit з кращим контролем
+     */
+    renderTicketToPdf(
+        doc: PDFKit.PDFDocument,
+        data: TicketGenerationData,
+        qrCodeDataUrl: string,
+        configService: ConfigService,
+        supportEmail: string,
+    ): void {
+        const { orderItem } = data;
+        const event = orderItem.ticket.event;
+        const ticket = orderItem.ticket;
+        const user = orderItem.user;
+        const appName = configService.get<string>('app.name') || 'UEvent';
+
+        try {
+            // Заголовок з чорним градієнтом (як у HTML: linear-gradient(90deg, #000000, #333333))
+            doc.rect(0, 0, 612, 120).fill('#000000');
+            
+            // Заголовок події
+            doc.fillColor('#FFFFFF')
+               .fontSize(28)
+               .font('Helvetica-Bold')
+               .text(event.title, 50, 35, { 
+                   align: 'center', 
+                   width: 512 
+               });
+
+            // Дата події з напівпрозорим фоном (як у HTML: rgba(255,255,255,0.42))
+            const eventDateText = event.startedAt.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+            });
+            
+            // Імітація напівпрозорого фону
+            doc.rect(206, 75, 200, 30).fill('#666666'); // Сірий фон замість напівпрозорого
+            doc.fillColor('#FFFFFF')
+               .fontSize(14)
+               .font('Helvetica')
+               .text(eventDateText, 50, 85, { 
+                   align: 'center', 
+                   width: 512 
+               });
+
+            // Контейнер з сірим фоном як у HTML (#f9fafb)
+            doc.rect(40, 140, 532, 480).fill('#f9fafb');
+
+            // Картки інформації у форматі 2x2 грід
+            let yPos = 170;
+            const cardData = [
+                {
+                    title: 'ATTENDEE',
+                    content: `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`,
+                    subcontent: user.email,
+                    x: 60,
+                    y: yPos
+                },
+                {
+                    title: 'TICKET DETAILS',
+                    content: ticket.title,
+                    subcontent: `$${Number(orderItem.finalPrice).toFixed(2)}`,
+                    x: 316,
+                    y: yPos
+                },
+                {
+                    title: 'DATE & TIME',
+                    content: event.startedAt.toDateString() === event.endedAt.toDateString()
+                        ? event.startedAt.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric',
+                            timeZone: 'UTC'
+                        })
+                        : `${event.startedAt.toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${event.endedAt.toLocaleDateString('en-US', { timeZone: 'UTC' })}`,
+                    subcontent: event.startedAt.toDateString() === event.endedAt.toDateString()
+                        ? `${event.startedAt.toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            hour12: false,
+                            timeZone: 'UTC'
+                        })} - ${event.endedAt.toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            hour12: false,
+                            timeZone: 'UTC'
+                        })}`
+                        : '',
+                    x: 60,
+                    y: yPos + 110
+                },
+                {
+                    title: 'VENUE',
+                    content: event.venue,
+                    subcontent: '',
+                    x: 316,
+                    y: yPos + 110
+                }
+            ];
+
+            // Малюємо картки з білим фоном та чорною лівою межею
+            cardData.forEach((card) => {
+                // Біла картка (як у HTML: background: white)
+                doc.rect(card.x, card.y, 236, 90)
+                   .fill('#ffffff');
+
+                // Чорна ліва межа (як у HTML: border-left: 4px solid #000000)
+                doc.rect(card.x, card.y, 4, 90)
+                   .fill('#000000');
+
+                // Заголовок картки (як у HTML: color: #6b7280, uppercase)
+                doc.fillColor('#6b7280')
+                   .fontSize(12)
+                   .font('Helvetica')
+                   .text(card.title, card.x + 15, card.y + 15);
+
+                // Основний текст (як у HTML: color: #2d3748)
+                doc.fillColor('#2d3748')
+                   .fontSize(15)
+                   .font('Helvetica')
+                   .text(card.content, card.x + 15, card.y + 35, { width: 210 });
+
+                // Додатковий текст
+                if (card.subcontent) {
+                    if (card.title === 'TICKET DETAILS') {
+                        // Ціна (як у HTML: color: #000000, font-weight: 700)
+                        doc.fillColor('#000000')
+                           .fontSize(16)
+                           .font('Helvetica-Bold')
+                           .text(card.subcontent, card.x + 15, card.y + 60);
+                    } else {
+                        // Email або час (як у HTML: color: #6b7280)
+                        doc.fillColor('#6b7280')
+                           .fontSize(card.title === 'ATTENDEE' ? 14 : 13)
+                           .font('Helvetica')
+                           .text(card.subcontent, card.x + 15, card.y + 55, { width: 210 });
+                    }
+                }
+            });
+
+            // QR секція (як у HTML: background: #f1f1f1, центрована)
+            const qrSectionY = 420;
+            const qrSectionX = 156; // Центрування: (612 - 300) / 2
+            
+            // Фон QR секції
+            doc.rect(qrSectionX, qrSectionY, 300, 180).fill('#f1f1f1');
+            
+            // Чорна ліва межа
+            doc.rect(qrSectionX, qrSectionY, 4, 180).fill('#000000');
+
+            if (qrCodeDataUrl) {
+                try {
+                    const base64Data = qrCodeDataUrl.split(',')[1];
+                    const qrBuffer = Buffer.from(base64Data, 'base64');
+                    
+                    // QR код (як у HTML: 280x280, але адаптований для PDF)
+                    doc.image(qrBuffer, qrSectionX + 110, qrSectionY + 15, {
+                        width: 80,
+                        height: 80
+                    });
+
+                    // Текст під QR кодом
+                    doc.fillColor('#000000')
+                       .fontSize(14)
+                       .font('Helvetica-Bold')
+                       .text('ENTRY QR CODE', qrSectionX, qrSectionY + 105, { 
+                           align: 'center', 
+                           width: 300 
+                       });
+
+                    doc.fillColor('#6b7280')
+                       .fontSize(12)
+                       .font('Helvetica')
+                       .text('Present this at the venue for entry', qrSectionX, qrSectionY + 125, { 
+                           align: 'center', 
+                           width: 300 
+                       });
+
+                    // Номер квитка (як у HTML: #e5e5e5 фон, monospace)
+                    const ticketNumWidth = 120;
+                    const ticketNumX = qrSectionX + (300 - ticketNumWidth) / 2;
+                    
+                    doc.rect(ticketNumX, qrSectionY + 145, ticketNumWidth, 20).fill('#e5e5e5');
+                    doc.fillColor('#000000')
+                       .fontSize(14)
+                       .font('Courier')
+                       .text(ticket.number, ticketNumX, qrSectionY + 150, { 
+                           align: 'center', 
+                           width: ticketNumWidth 
+                       });
+
+                } catch (qrError) {
+                    doc.fillColor('#000000')
+                       .fontSize(12)
+                       .text('QR Code unavailable', qrSectionX, qrSectionY + 90, { 
+                           align: 'center', 
+                           width: 300 
+                       });
+                }
+            }
+
+            // Футер (як у HTML: #f9fafb фон, #6b7280 текст)
+            doc.rect(0, 630, 612, 40).fill('#f9fafb');
+            // Верхня межа футера
+            doc.rect(0, 630, 612, 1).fill('#e5e7eb');
+            
+            doc.fillColor('#6b7280')
+               .fontSize(8)
+               .font('Helvetica')
+               .text(`© ${new Date().getFullYear()} ${appName}`, 50, 645, { align: 'left' })
+               .text(`Contact: ${supportEmail}`, 400, 645, { align: 'right' });
+
+        } catch (error) {
+            console.error('Error in renderTicketToPdf:', error);
+            // Fallback
+            doc.fillColor('#000000')
+               .fontSize(16)
+               .font('Helvetica')
+               .text('Event Ticket', 50, 100, { align: 'center', width: 500 })
+               .fontSize(12)
+               .text('This is your event ticket. Please present at the venue.', 50, 150, { align: 'center', width: 500 });
+        }
+    }
 }
 
 export default new CustomTicketTemplate();

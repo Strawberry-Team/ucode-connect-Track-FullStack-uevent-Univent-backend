@@ -2,6 +2,7 @@
 import { ConfigService } from '@nestjs/config';
 import { TicketGenerationData } from '../interfaces/ticket-generation-data.interface';
 import { TicketTemplateInterface } from './ticket-template.interface';
+import PDFKit from 'pdfkit';
 
 class Theme2TicketTemplates implements TicketTemplateInterface {
     getTicketTemplate(
@@ -316,6 +317,264 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
         </body>
         </html>
         `;
+    }
+
+    /**
+     * Спеціальний метод для рендерингу PDF через PDFKit з зеленою темою
+     */
+    renderTicketToPdf(
+        doc: PDFKit.PDFDocument,
+        data: TicketGenerationData,
+        qrCodeDataUrl: string,
+        configService: ConfigService,
+        supportEmail: string,
+    ): void {
+        const { orderItem } = data;
+        const event = orderItem.ticket.event;
+        const ticket = orderItem.ticket;
+        const user = orderItem.user;
+        const appName = configService.get<string>('app.name') || 'UEvent';
+
+        try {
+            // Заголовок з зеленим градієнтом (як у HTML: linear-gradient(135deg, #2e7d32, #81c784))
+            doc.rect(0, 0, 612, 120).fill('#2e7d32');
+            
+            // Назва застосунку (як у HTML: uppercase, letter-spacing)
+            doc.fillColor('#ffffff')
+               .fontSize(12)
+               .font('Helvetica')
+               .text(appName.toUpperCase(), 50, 25, { 
+                   align: 'center', 
+                   width: 512,
+                   characterSpacing: 2
+               });
+
+            // Заголовок події
+            doc.fillColor('#ffffff')
+               .fontSize(24)
+               .font('Helvetica-Bold')
+               .text(event.title, 50, 45, { 
+                   align: 'center', 
+                   width: 512 
+               });
+
+            // Дата події з зеленим фоном (як у HTML: #00c853)
+            const eventDateText = event.startedAt.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            doc.rect(250, 85, 112, 25).fill('#00c853');
+            doc.fillColor('#ffffff')
+               .fontSize(13)
+               .font('Helvetica')
+               .text(eventDateText, 250, 92, { 
+                   align: 'center', 
+                   width: 112 
+               });
+
+            // Основний контейнер (як у HTML: 2 колонки + padding)
+            const mainY = 140;
+            const leftColumnX = 50;
+            const rightColumnX = 356;
+            const columnWidth = 256;
+
+            // Ліва колонка - інформація про подію
+            let currentY = mainY;
+
+            // 1. Attendee секція
+            doc.fillColor('#757575')
+               .fontSize(12)
+               .font('Helvetica-Bold')
+               .text('ATTENDEE', leftColumnX, currentY);
+
+            currentY += 20;
+            doc.fillColor('#212121')
+               .fontSize(15)
+               .font('Helvetica')
+               .text(`${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`, leftColumnX, currentY);
+
+            currentY += 20;
+            doc.fillColor('#757575')
+               .fontSize(14)
+               .font('Helvetica')
+               .text(user.email, leftColumnX, currentY);
+
+            currentY += 40;
+
+            // 2. Event Details секція
+            doc.fillColor('#757575')
+               .fontSize(12)
+               .font('Helvetica-Bold')
+               .text('EVENT DETAILS', leftColumnX, currentY);
+
+            currentY += 25;
+
+            // Дата та час з емодзі (як у HTML)
+            doc.fillColor('#2e7d32')
+               .fontSize(16)
+               .text('🗓️', leftColumnX, currentY);
+
+            const eventDateTime = event.startedAt.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+                timeZone: 'UTC'
+            });
+
+            doc.fillColor('#212121')
+               .fontSize(15)
+               .font('Helvetica')
+               .text(eventDateTime, leftColumnX + 25, currentY, { width: columnWidth - 25 });
+
+            currentY += 20;
+
+            const timeRange = `${event.startedAt.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'UTC'
+            })} - ${event.endedAt.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'UTC'
+            })}`;
+
+            doc.fillColor('#757575')
+               .fontSize(13)
+               .font('Helvetica')
+               .text(timeRange, leftColumnX + 25, currentY, { width: columnWidth - 25 });
+
+            currentY += 30;
+
+            // Місце проведення з емодзі
+            doc.fillColor('#2e7d32')
+               .fontSize(16)
+               .text('📍', leftColumnX, currentY);
+
+            doc.fillColor('#212121')
+               .fontSize(15)
+               .font('Helvetica')
+               .text(event.venue, leftColumnX + 25, currentY, { width: columnWidth - 25 });
+
+            currentY += 50;
+
+            // 3. Ticket Type секція
+            doc.fillColor('#757575')
+               .fontSize(12)
+               .font('Helvetica-Bold')
+               .text('TICKET TYPE', leftColumnX, currentY);
+
+            currentY += 20;
+            doc.fillColor('#212121')
+               .fontSize(15)
+               .font('Helvetica')
+               .text(ticket.title, leftColumnX, currentY);
+
+            currentY += 25;
+            doc.fillColor('#2e7d32')
+               .fontSize(16)
+               .font('Helvetica-Bold')
+               .text(`$${Number(orderItem.finalPrice).toFixed(2)}`, leftColumnX, currentY);
+
+            // Права колонка - QR код (як у HTML: background: #e8f5e9)
+            const qrSectionY = mainY;
+            doc.rect(rightColumnX, qrSectionY, columnWidth, 360).fill('#e8f5e9');
+            doc.rect(rightColumnX, qrSectionY, 256, 8).fill('#2e7d32'); // Верхня зелена межа
+
+            // QR секція контент
+            doc.fillColor('#2e7d32')
+               .fontSize(14)
+               .font('Helvetica-Bold')
+               .text('SCAN FOR ENTRY', rightColumnX, qrSectionY + 30, { 
+                   align: 'center', 
+                   width: columnWidth 
+               });
+
+            if (qrCodeDataUrl) {
+                try {
+                    const base64Data = qrCodeDataUrl.split(',')[1];
+                    const qrBuffer = Buffer.from(base64Data, 'base64');
+                    
+                    // QR код з білою рамкою (як у HTML: border: 6px solid white)
+                    const qrSize = 160;
+                    const qrX = rightColumnX + (columnWidth - qrSize) / 2;
+                    const qrY = qrSectionY + 60;
+                    
+                    // Біла рамка
+                    doc.rect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12).fill('#ffffff');
+                    
+                    doc.image(qrBuffer, qrX, qrY, {
+                        width: qrSize,
+                        height: qrSize
+                    });
+
+                    // Текст під QR кодом
+                    doc.fillColor('#757575')
+                       .fontSize(12)
+                       .font('Helvetica')
+                       .text('Present this ticket at the entrance', rightColumnX, qrSectionY + 240, { 
+                           align: 'center', 
+                           width: columnWidth 
+                       });
+
+                    // Номер квитка (як у HTML: background: #e8f5e9, зелений текст)
+                    const ticketNumY = qrSectionY + 265;
+                    const ticketNumWidth = 140;
+                    const ticketNumX = rightColumnX + (columnWidth - ticketNumWidth) / 2;
+                    
+                    doc.rect(ticketNumX, ticketNumY, ticketNumWidth, 25).fill('#e8f5e9');
+                    doc.fillColor('#2e7d32')
+                       .fontSize(14)
+                       .font('Courier-Bold')
+                       .text(ticket.number, ticketNumX, ticketNumY + 7, { 
+                           align: 'center', 
+                           width: ticketNumWidth,
+                           characterSpacing: 1
+                       });
+
+                } catch (qrError) {
+                    doc.fillColor('#2e7d32')
+                       .fontSize(12)
+                       .text('QR Code unavailable', rightColumnX, qrSectionY + 150, { 
+                           align: 'center', 
+                           width: columnWidth 
+                       });
+                }
+            }
+
+            // Пунктирна лінія роздільник (як у HTML: border-bottom: 1px dashed #81c784)
+            doc.strokeColor('#81c784')
+               .lineWidth(1)
+               .dash(5, { space: 5 })
+               .moveTo(50, 520)
+               .lineTo(562, 520)
+               .stroke()
+               .undash();
+
+            // Футер з зеленим фоном (як у HTML: background: #e8f5e9)
+            doc.rect(0, 540, 612, 40).fill('#e8f5e9');
+            
+            doc.fillColor('#757575')
+               .fontSize(8)
+               .font('Helvetica')
+               .text(`© ${new Date().getFullYear()} ${appName}`, 50, 555, { align: 'left' })
+               .text(`Need help? Contact ${supportEmail}`, 400, 555, { align: 'right' });
+
+        } catch (error) {
+            console.error('Error in Theme2 renderTicketToPdf:', error);
+            // Fallback
+            doc.fillColor('#2e7d32')
+               .fontSize(16)
+               .font('Helvetica')
+               .text('Green Theme Event Ticket', 50, 100, { align: 'center', width: 500 })
+               .fontSize(12)
+               .text('This is your event ticket. Please present at the venue.', 50, 150, { align: 'center', width: 500 });
+        }
     }
 }
 

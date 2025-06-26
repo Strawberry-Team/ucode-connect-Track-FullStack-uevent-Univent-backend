@@ -14,7 +14,7 @@ export default () => {
         storage: {
             basePath: baseStoragePath,
             paths: {
-                tickets: process.env.STORAGE_TICKETS_PATH || path.join(baseStoragePath, 'tickets'),
+                tickets: path.join(baseStoragePath, 'tickets'),
             }
         },
     };

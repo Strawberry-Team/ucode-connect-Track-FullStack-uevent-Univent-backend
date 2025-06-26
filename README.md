@@ -96,7 +96,7 @@ A user-friendly profile for everyone - from organisers to guests.
 # 🗓 About "Univent" platform
 Univent is a dynamic ticketing platform designed to simplify event management and ticketing. 
 
-The Univent backend built on Node.js, NestJS, Express, and Prisma with MySQL, provides secure event, ticket, and payment management via Stripe, integration with Google API and Unsplash, authentication with JWT, Bcrypt, and Passport, as well as automation with Puppeteer, QRCode, scheduling with @nestjs/schedule, documentation with Swagger, containerisation with Docker, and testing with Jest, Faker.js, ESLint, and Prettier.
+The Univent backend built on Node.js, NestJS, Express, and Prisma with MySQL, provides secure event, ticket, and payment management via Stripe, integration with Google API and Unsplash, authentication with JWT, Bcrypt, and Passport, as well as automation with PDFKit, QRCode, scheduling with @nestjs/schedule, documentation with Swagger, containerisation with Docker, and testing with Jest, Faker.js, ESLint, and Prettier.
 
 Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9XUWx4i6cH/edit?usp=sharing&ouid=109902939512595211399&rtpof=true&sd=true) to the presentation file.</p>
 
