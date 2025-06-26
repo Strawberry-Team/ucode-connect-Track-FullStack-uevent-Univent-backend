@@ -579,4 +579,3 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
 }
 
 export default new Theme2TicketTemplates();
-

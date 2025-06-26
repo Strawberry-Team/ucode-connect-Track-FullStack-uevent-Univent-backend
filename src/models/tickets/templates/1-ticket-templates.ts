@@ -334,16 +334,31 @@ ${
     const appName = configService.get<string>("app.name") || "UEvent"
 
     try {
-      // Header with black gradient (as in HTML: linear-gradient(90deg, #000000, #333333))
-      doc.rect(0, 0, 612, 120).fill("#000000")
+      // Устанавливаем размер страницы как в HTML (max-width: 1100px)
+      const pageWidth = 612 // A4 width in points
+      const pageHeight = 792 // A4 height in points
+      const contentWidth = Math.min(pageWidth - 40, 520) // Максимальная ширина контента
+      const startX = (pageWidth - contentWidth) / 2 // Центрирование
 
-      // Event title
-      doc.fillColor("#FFFFFF").fontSize(28).font("Helvetica-Bold").text(event.title, 50, 35, {
-        align: "center",
-        width: 512,
-      })
+      // 1. HEADER - точно как в HTML (.ticket-header)
+      // Черный градиент фон (linear-gradient(90deg, #000000, #333333))
+      const headerHeight = 120
+      doc.rect(startX, 0, contentWidth, headerHeight).fill("#000000")
 
-      // Event date with semi-transparent background (as in HTML: rgba(255,255,255,0.42))
+      // Добавляем градиент эффект (имитация)
+      doc.rect(startX + contentWidth * 0.7, 0, contentWidth * 0.3, headerHeight).fill("#333333")
+
+      // Заголовок события (.event-title: font-size: 28px, font-weight: 700)
+      doc.fillColor("#FFFFFF")
+        .fontSize(28)
+        .font("Helvetica-Bold")
+        .text(event.title, startX + 20, 25, {
+          align: "center",
+          width: contentWidth - 40,
+          lineGap: 2
+        })
+
+      // Дата события (.event-date: background: rgba(255,255,255,0.42))
       const eventDateText = event.startedAt.toLocaleDateString("en-US", {
         weekday: "long",
         month: "long",
@@ -351,193 +366,214 @@ ${
         year: "numeric",
       })
 
-      // Semi-transparent background simulation
-      doc.rect(206, 75, 200, 30).fill("#666666") // Gray background instead of semi-transparent
-      doc.fillColor("#FFFFFF").fontSize(14).font("Helvetica").text(eventDateText, 50, 85, {
-        align: "center",
-        width: 512,
-      })
+      // Имитация полупрозрачного фона
+      const dateWidth = 200
+      const dateX = startX + (contentWidth - dateWidth) / 2
+      doc.rect(dateX, 75, dateWidth, 30)
+        .fill("#666666") // Серый вместо полупрозрачного белого
 
-      // Container with gray background (as in HTML: #f9fafb)
-      doc.rect(40, 140, 532, 480).fill("#f9fafb")
+      doc.fillColor("#FFFFFF")
+        .fontSize(14)
+        .font("Helvetica")
+        .text(eventDateText, dateX, 85, {
+          align: "center",
+          width: dateWidth
+        })
 
-      // Information cards in 2x2 grid format
-      const yPos = 170
+      // 2. BODY - контейнер с серым фоном (.content-wrapper: background: #f9fafb)
+      const bodyY = headerHeight + 10
+      const bodyHeight = 400
+      doc.rect(startX, bodyY, contentWidth, bodyHeight).fill("#f9fafb")
+
+      // 3. INFO CARDS - сетка 2x2 (.ticket-info: grid-template-columns: 1fr 1fr)
+      const cardWidth = (contentWidth - 60) / 2 // Ширина карточки
+      const cardHeight = 90
+      const cardGap = 12
+      const cardsStartX = startX + 20
+      const cardsStartY = bodyY + 25
+
       const cardData = [
         {
-          title: "ATTENDEE",
+          title: "ATTENDEE", // .info-card h3: uppercase, color: #6b7280
           content: `${user.firstName}${user.lastName ? " " + user.lastName : ""}`,
           subcontent: user.email,
-          x: 60,
-          y: yPos,
+          x: cardsStartX,
+          y: cardsStartY
         },
         {
           title: "TICKET DETAILS",
           content: ticket.title,
           subcontent: `$${Number(orderItem.finalPrice).toFixed(2)}`,
-          x: 316,
-          y: yPos,
+          x: cardsStartX + cardWidth + cardGap,
+          y: cardsStartY
         },
         {
           title: "DATE & TIME",
-          content:
-            event.startedAt.toDateString() === event.endedAt.toDateString()
-              ? event.startedAt.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-                timeZone: "UTC",
-              })
-              : `${event.startedAt.toLocaleDateString("en-US", { timeZone: "UTC" })} - ${event.endedAt.toLocaleDateString("en-US", { timeZone: "UTC" })}`,
-          subcontent:
-            event.startedAt.toDateString() === event.endedAt.toDateString()
-              ? `${event.startedAt.toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-                timeZone: "UTC",
-              })} - ${event.endedAt.toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-                timeZone: "UTC",
-              })}`
-              : "",
-          x: 60,
-          y: yPos + 110,
+          content: event.startedAt.toDateString() === event.endedAt.toDateString()
+            ? event.startedAt.toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+              timeZone: "UTC"
+            })
+            : `${event.startedAt.toLocaleDateString("en-US", { timeZone: "UTC" })} - ${event.endedAt.toLocaleDateString("en-US", { timeZone: "UTC" })}`,
+          subcontent: event.startedAt.toDateString() === event.endedAt.toDateString()
+            ? `${event.startedAt.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+              timeZone: "UTC"
+            })} - ${event.endedAt.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+              timeZone: "UTC"
+            })}`
+            : "",
+          x: cardsStartX,
+          y: cardsStartY + cardHeight + cardGap
         },
         {
           title: "VENUE",
           content: event.venue,
           subcontent: "",
-          x: 316,
-          y: yPos + 110,
-        },
+          x: cardsStartX + cardWidth + cardGap,
+          y: cardsStartY + cardHeight + cardGap
+        }
       ]
 
-      // Draw cards with white background and black left border
+      // Рисуем карточки точно как в HTML (.info-card)
       cardData.forEach((card) => {
-        // White card (as in HTML: background: white)
-        doc.rect(card.x, card.y, 236, 90).fill("#ffffff")
+        // Белый фон карточки (background: white)
+        doc.rect(card.x, card.y, cardWidth, cardHeight).fill("#ffffff")
 
-        // Black left border (as in HTML: border-left: 4px solid #000000)
-        doc.rect(card.x, card.y, 4, 90).fill("#000000")
+        // Черная левая граница (border-left: 4px solid #000000)
+        doc.rect(card.x, card.y, 4, cardHeight).fill("#000000")
 
-        // Card title (as in HTML: color: #6b7280, uppercase)
-        doc
-          .fillColor("#6b7280")
+        // Заголовок карточки (h3: font-size: 12px, color: #6b7280, uppercase)
+        doc.fillColor("#6b7280")
           .fontSize(12)
           .font("Helvetica")
-          .text(card.title, card.x + 15, card.y + 15)
+          .text(card.title, card.x + 15, card.y + 12)
 
-        // Main text (as in HTML: color: #2d3748)
-        doc
-          .fillColor("#2d3748")
+        // Основной текст (p: font-size: 15px, color: #2d3748, font-weight: 500)
+        doc.fillColor("#2d3748")
           .fontSize(15)
           .font("Helvetica")
-          .text(card.content, card.x + 15, card.y + 35, { width: 210 })
+          .text(card.content, card.x + 15, card.y + 32, { width: cardWidth - 25 })
 
-        // Additional text
+        // Дополнительный текст
         if (card.subcontent) {
           if (card.title === "TICKET DETAILS") {
-            // Price (as in HTML: color: #000000, font-weight: 700)
-            doc
-              .fillColor("#000000")
+            // Цена (.price-tag: font-size: 16px, font-weight: 700, color: #000000)
+            doc.fillColor("#000000")
               .fontSize(16)
               .font("Helvetica-Bold")
-              .text(card.subcontent, card.x + 15, card.y + 60)
+              .text(card.subcontent, card.x + 15, card.y + 55)
           } else {
-            // Email or time (as in HTML: color: #6b7280)
-            doc
-              .fillColor("#6b7280")
+            // Email или время (color: #6b7280)
+            doc.fillColor("#6b7280")
               .fontSize(card.title === "ATTENDEE" ? 14 : 13)
               .font("Helvetica")
-              .text(card.subcontent, card.x + 15, card.y + 55, { width: 210 })
+              .text(card.subcontent, card.x + 15, card.y + 52, { width: cardWidth - 25 })
           }
         }
       })
 
-      // QR section (as in HTML: background: #f1f1f1, centered)
-      const qrSectionY = 420
-      const qrSectionX = 156 // Centering: (612 - 300) / 2
+      // 4. QR SECTION - точно как в HTML (.qr-section)
+      const qrSectionY = cardsStartY + (cardHeight + cardGap) * 2 + 20
+      const qrSectionWidth = Math.min(400, contentWidth - 40)
+      const qrSectionX = startX + (contentWidth - qrSectionWidth) / 2
+      const qrSectionHeight = 160
 
-      // QR section background
-      doc.rect(qrSectionX, qrSectionY, 300, 180).fill("#f1f1f1")
+      // Фон QR секции (background: #f1f1f1)
+      doc.rect(qrSectionX, qrSectionY, qrSectionWidth, qrSectionHeight).fill("#f1f1f1")
 
-      // Black left border
-      doc.rect(qrSectionX, qrSectionY, 4, 180).fill("#000000")
+      // Черная левая граница (border-left: 4px solid #000000)
+      doc.rect(qrSectionX, qrSectionY, 4, qrSectionHeight).fill("#000000")
 
       if (qrCodeDataUrl) {
         try {
           const base64Data = qrCodeDataUrl.split(",")[1]
           const qrBuffer = Buffer.from(base64Data, "base64")
 
-          // QR code (as in HTML: 280x280, but adapted for PDF)
-          doc.image(qrBuffer, qrSectionX + 110, qrSectionY + 15, {
-            width: 80,
-            height: 80,
+          // QR код с белой рамкой (.qr-code: border: 6px solid white)
+          const qrSize = 100
+          const qrX = qrSectionX + (qrSectionWidth - qrSize) / 2
+          const qrY = qrSectionY + 15
+
+          // Белая рамка (border: 6px solid white)
+          doc.rect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12).fill("#ffffff")
+
+          doc.image(qrBuffer, qrX, qrY, {
+            width: qrSize,
+            height: qrSize
           })
 
-          // Text under QR code
-          doc
-            .fillColor("#000000")
+          // Заголовок QR (.qr-title: font-size: 14px, font-weight: 600, color: #000000, uppercase)
+          doc.fillColor("#000000")
             .fontSize(14)
             .font("Helvetica-Bold")
-            .text("ENTRY QR CODE", qrSectionX, qrSectionY + 105, {
+            .text("ENTRY QR CODE", qrSectionX, qrSectionY + 125, {
               align: "center",
-              width: 300,
+              width: qrSectionWidth
             })
 
-          doc
-            .fillColor("#6b7280")
+          // Подзаголовок (.qr-subtitle: font-size: 12px, color: #6b7280)
+          doc.fillColor("#6b7280")
             .fontSize(12)
             .font("Helvetica")
-            .text("Present this at the venue for entry", qrSectionX, qrSectionY + 125, {
+            .text("Present this at the venue for entry", qrSectionX, qrSectionY + 142, {
               align: "center",
-              width: 300,
+              width: qrSectionWidth
             })
 
-          // Ticket number (as in HTML: #e5e5e5 background, monospace)
-          const ticketNumWidth = 120
-          const ticketNumX = qrSectionX + (300 - ticketNumWidth) / 2
-
-          doc.rect(ticketNumX, qrSectionY + 145, ticketNumWidth, 20).fill("#e5e5e5")
-          doc
-            .fillColor("#000000")
-            .fontSize(14)
-            .font("Courier")
-            .text(ticket.number, ticketNumX, qrSectionY + 150, {
-              align: "center",
-              width: ticketNumWidth,
-            })
         } catch (qrError) {
-          doc
-            .fillColor("#000000")
+          doc.fillColor("#000000")
             .fontSize(12)
-            .text("QR Code unavailable", qrSectionX, qrSectionY + 90, {
+            .text("QR Code unavailable", qrSectionX, qrSectionY + 80, {
               align: "center",
-              width: 300,
+              width: qrSectionWidth
             })
         }
       }
 
-      // Footer (as in HTML: #f9fafb background, #6b7280 text)
-      doc.rect(0, 630, 612, 40).fill("#f9fafb")
-      // Top border of footer
-      doc.rect(0, 630, 612, 1).fill("#e5e7eb")
+      // Номер билета (.ticket-number: background: #e5e5e5, monospace)
+      const ticketNumY = qrSectionY + qrSectionHeight + 10
+      const ticketNumWidth = 140
+      const ticketNumX = startX + (contentWidth - ticketNumWidth) / 2
 
-      doc
-        .fillColor("#6b7280")
+      doc.rect(ticketNumX, ticketNumY, ticketNumWidth, 25).fill("#e5e5e5")
+      doc.fillColor("#000000")
+        .fontSize(14)
+        .font("Courier")
+        .text(ticket.number, ticketNumX, ticketNumY + 7, {
+          align: "center",
+          width: ticketNumWidth
+        })
+
+      // 5. FOOTER - точно как в HTML (.ticket-footer)
+      const footerY = ticketNumY + 40
+      const footerHeight = 30
+
+      // Фон футера (background: #f9fafb)
+      doc.rect(startX, footerY, contentWidth, footerHeight).fill("#f9fafb")
+
+      // Верхняя граница (border-top: 1px solid #e5e7eb)
+      doc.rect(startX, footerY, contentWidth, 1).fill("#e5e7eb")
+
+      // Текст футера (font-size: 12px, color: #6b7280)
+      doc.fillColor("#6b7280")
         .fontSize(8)
         .font("Helvetica")
-        .text(`© ${new Date().getFullYear()} ${appName}`, 50, 645, { align: "left" })
-        .text(`Contact: ${supportEmail}`, 400, 645, { align: "right" })
+        .text(`© ${new Date().getFullYear()} ${appName}`, startX + 15, footerY + 12, { align: "left" })
+        .text(`Contact: ${supportEmail}`, startX + contentWidth - 15, footerY + 12, { align: "right" })
+
     } catch (error) {
-      console.error("Error in renderTicketToPdf:", error)
-      // Fallback
-      doc
-        .fillColor("#000000")
+      console.error("Error in improved renderTicketToPdf:", error)
+      // Fallback с базовым дизайном
+      doc.fillColor("#000000")
         .fontSize(16)
         .font("Helvetica")
         .text("Event Ticket", 50, 100, { align: "center", width: 500 })
@@ -546,5 +582,4 @@ ${
     }
   }
 }
-
 export default new CustomTicketTemplate();
