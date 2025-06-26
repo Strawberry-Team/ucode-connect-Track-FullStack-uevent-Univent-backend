@@ -320,7 +320,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
     }
 
     /**
-     * Спеціальний метод для рендерингу PDF через PDFKit з зеленою темою
+     * Special method for PDF rendering through PDFKit with green theme
      */
     renderTicketToPdf(
         doc: PDFKit.PDFDocument,
@@ -336,10 +336,10 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
         const appName = configService.get<string>('app.name') || 'UEvent';
 
         try {
-            // Заголовок з зеленим градієнтом (як у HTML: linear-gradient(135deg, #2e7d32, #81c784))
+            // Header with green gradient (as in HTML: linear-gradient(135deg, #2e7d32, #81c784))
             doc.rect(0, 0, 612, 120).fill('#2e7d32');
             
-            // Назва застосунку (як у HTML: uppercase, letter-spacing)
+            // Application name (as in HTML: uppercase, letter-spacing)
             doc.fillColor('#ffffff')
                .fontSize(12)
                .font('Helvetica')
@@ -349,7 +349,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                    characterSpacing: 2
                });
 
-            // Заголовок події
+            // Event title
             doc.fillColor('#ffffff')
                .fontSize(24)
                .font('Helvetica-Bold')
@@ -358,7 +358,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                    width: 512 
                });
 
-            // Дата події з зеленим фоном (як у HTML: #00c853)
+            // Event date with green background (as in HTML: #00c853)
             const eventDateText = event.startedAt.toLocaleDateString('en-US', {
                 weekday: 'short',
                 month: 'short',
@@ -375,16 +375,16 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                    width: 112 
                });
 
-            // Основний контейнер (як у HTML: 2 колонки + padding)
+            // Main container (as in HTML: 2 columns + padding)
             const mainY = 140;
             const leftColumnX = 50;
             const rightColumnX = 356;
             const columnWidth = 256;
 
-            // Ліва колонка - інформація про подію
+            // Left column - event information
             let currentY = mainY;
 
-            // 1. Attendee секція
+            // 1. Attendee section
             doc.fillColor('#757575')
                .fontSize(12)
                .font('Helvetica-Bold')
@@ -404,7 +404,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
 
             currentY += 40;
 
-            // 2. Event Details секція
+            // 2. Event Details section
             doc.fillColor('#757575')
                .fontSize(12)
                .font('Helvetica-Bold')
@@ -412,7 +412,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
 
             currentY += 25;
 
-            // Дата та час з емодзі (як у HTML)
+            // Date and time with emojis (as in HTML)
             doc.fillColor('#2e7d32')
                .fontSize(16)
                .text('🗓️', leftColumnX, currentY);
@@ -451,7 +451,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
 
             currentY += 30;
 
-            // Місце проведення з емодзі
+            // Venue with emojis
             doc.fillColor('#2e7d32')
                .fontSize(16)
                .text('📍', leftColumnX, currentY);
@@ -463,7 +463,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
 
             currentY += 50;
 
-            // 3. Ticket Type секція
+            // 3. Ticket Type section
             doc.fillColor('#757575')
                .fontSize(12)
                .font('Helvetica-Bold')
@@ -481,12 +481,12 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                .font('Helvetica-Bold')
                .text(`$${Number(orderItem.finalPrice).toFixed(2)}`, leftColumnX, currentY);
 
-            // Права колонка - QR код (як у HTML: background: #e8f5e9)
+            // Right column - QR code (as in HTML: background: #e8f5e9)
             const qrSectionY = mainY;
             doc.rect(rightColumnX, qrSectionY, columnWidth, 360).fill('#e8f5e9');
-            doc.rect(rightColumnX, qrSectionY, 256, 8).fill('#2e7d32'); // Верхня зелена межа
+            doc.rect(rightColumnX, qrSectionY, 256, 8).fill('#2e7d32'); // Top green border
 
-            // QR секція контент
+            // QR section content
             doc.fillColor('#2e7d32')
                .fontSize(14)
                .font('Helvetica-Bold')
@@ -500,12 +500,12 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                     const base64Data = qrCodeDataUrl.split(',')[1];
                     const qrBuffer = Buffer.from(base64Data, 'base64');
                     
-                    // QR код з білою рамкою (як у HTML: border: 6px solid white)
+                    // QR code with white border (as in HTML: border: 6px solid white)
                     const qrSize = 160;
                     const qrX = rightColumnX + (columnWidth - qrSize) / 2;
                     const qrY = qrSectionY + 60;
                     
-                    // Біла рамка
+                    // White border
                     doc.rect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12).fill('#ffffff');
                     
                     doc.image(qrBuffer, qrX, qrY, {
@@ -513,7 +513,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                         height: qrSize
                     });
 
-                    // Текст під QR кодом
+                    // Text under QR code
                     doc.fillColor('#757575')
                        .fontSize(12)
                        .font('Helvetica')
@@ -522,7 +522,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                            width: columnWidth 
                        });
 
-                    // Номер квитка (як у HTML: background: #e8f5e9, зелений текст)
+                    // Ticket number (as in HTML: background: #e8f5e9, green text)
                     const ticketNumY = qrSectionY + 265;
                     const ticketNumWidth = 140;
                     const ticketNumX = rightColumnX + (columnWidth - ticketNumWidth) / 2;
@@ -547,7 +547,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                 }
             }
 
-            // Пунктирна лінія роздільник (як у HTML: border-bottom: 1px dashed #81c784)
+            // Dotted separator line (as in HTML: border-bottom: 1px dashed #81c784)
             doc.strokeColor('#81c784')
                .lineWidth(1)
                .dash(5, { space: 5 })
@@ -556,7 +556,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                .stroke()
                .undash();
 
-            // Футер з зеленим фоном (як у HTML: background: #e8f5e9)
+            // Footer with green background (as in HTML: background: #e8f5e9)
             doc.rect(0, 540, 612, 40).fill('#e8f5e9');
             
             doc.fillColor('#757575')

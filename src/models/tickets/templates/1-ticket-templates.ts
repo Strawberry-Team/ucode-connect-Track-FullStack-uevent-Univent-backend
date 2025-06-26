@@ -318,7 +318,7 @@ ${
     }
 
     /**
-     * Спеціальний метод для рендерингу PDF через PDFKit з кращим контролем
+     * Special method for PDF rendering through PDFKit with better control
      */
     renderTicketToPdf(
         doc: PDFKit.PDFDocument,
@@ -334,10 +334,10 @@ ${
         const appName = configService.get<string>('app.name') || 'UEvent';
 
         try {
-            // Заголовок з чорним градієнтом (як у HTML: linear-gradient(90deg, #000000, #333333))
+            // Header with black gradient (as in HTML: linear-gradient(90deg, #000000, #333333))
             doc.rect(0, 0, 612, 120).fill('#000000');
             
-            // Заголовок події
+            // Event title
             doc.fillColor('#FFFFFF')
                .fontSize(28)
                .font('Helvetica-Bold')
@@ -346,7 +346,7 @@ ${
                    width: 512 
                });
 
-            // Дата події з напівпрозорим фоном (як у HTML: rgba(255,255,255,0.42))
+            // Event date with semi-transparent background (as in HTML: rgba(255,255,255,0.42))
             const eventDateText = event.startedAt.toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
@@ -354,8 +354,8 @@ ${
                 year: 'numeric',
             });
             
-            // Імітація напівпрозорого фону
-            doc.rect(206, 75, 200, 30).fill('#666666'); // Сірий фон замість напівпрозорого
+            // Semi-transparent background simulation
+            doc.rect(206, 75, 200, 30).fill('#666666'); // Gray background instead of semi-transparent
             doc.fillColor('#FFFFFF')
                .fontSize(14)
                .font('Helvetica')
@@ -364,10 +364,10 @@ ${
                    width: 512 
                });
 
-            // Контейнер з сірим фоном як у HTML (#f9fafb)
+            // Container with gray background (as in HTML: #f9fafb)
             doc.rect(40, 140, 532, 480).fill('#f9fafb');
 
-            // Картки інформації у форматі 2x2 грід
+            // Information cards in 2x2 grid format
             let yPos = 170;
             const cardData = [
                 {
@@ -420,38 +420,38 @@ ${
                 }
             ];
 
-            // Малюємо картки з білим фоном та чорною лівою межею
+            // Draw cards with white background and black left border
             cardData.forEach((card) => {
-                // Біла картка (як у HTML: background: white)
+                // White card (as in HTML: background: white)
                 doc.rect(card.x, card.y, 236, 90)
                    .fill('#ffffff');
 
-                // Чорна ліва межа (як у HTML: border-left: 4px solid #000000)
+                // Black left border (as in HTML: border-left: 4px solid #000000)
                 doc.rect(card.x, card.y, 4, 90)
                    .fill('#000000');
 
-                // Заголовок картки (як у HTML: color: #6b7280, uppercase)
+                // Card title (as in HTML: color: #6b7280, uppercase)
                 doc.fillColor('#6b7280')
                    .fontSize(12)
                    .font('Helvetica')
                    .text(card.title, card.x + 15, card.y + 15);
 
-                // Основний текст (як у HTML: color: #2d3748)
+                // Main text (as in HTML: color: #2d3748)
                 doc.fillColor('#2d3748')
                    .fontSize(15)
                    .font('Helvetica')
                    .text(card.content, card.x + 15, card.y + 35, { width: 210 });
 
-                // Додатковий текст
+                // Additional text
                 if (card.subcontent) {
                     if (card.title === 'TICKET DETAILS') {
-                        // Ціна (як у HTML: color: #000000, font-weight: 700)
+                        // Price
                         doc.fillColor('#000000')
                            .fontSize(16)
                            .font('Helvetica-Bold')
                            .text(card.subcontent, card.x + 15, card.y + 60);
                     } else {
-                        // Email або час (як у HTML: color: #6b7280)
+                        // Email or time (as in HTML: color: #6b7280)
                         doc.fillColor('#6b7280')
                            .fontSize(card.title === 'ATTENDEE' ? 14 : 13)
                            .font('Helvetica')
@@ -460,14 +460,14 @@ ${
                 }
             });
 
-            // QR секція (як у HTML: background: #f1f1f1, центрована)
+            // QR section (as in HTML: background: #f1f1f1, centered)
             const qrSectionY = 420;
-            const qrSectionX = 156; // Центрування: (612 - 300) / 2
+            const qrSectionX = 156; // Centering: (612 - 300) / 2
             
-            // Фон QR секції
+            // QR section background
             doc.rect(qrSectionX, qrSectionY, 300, 180).fill('#f1f1f1');
             
-            // Чорна ліва межа
+            // Black left border
             doc.rect(qrSectionX, qrSectionY, 4, 180).fill('#000000');
 
             if (qrCodeDataUrl) {
@@ -475,13 +475,13 @@ ${
                     const base64Data = qrCodeDataUrl.split(',')[1];
                     const qrBuffer = Buffer.from(base64Data, 'base64');
                     
-                    // QR код (як у HTML: 280x280, але адаптований для PDF)
+                    // QR code (as in HTML: 280x280, but adapted for PDF)
                     doc.image(qrBuffer, qrSectionX + 110, qrSectionY + 15, {
                         width: 80,
                         height: 80
                     });
 
-                    // Текст під QR кодом
+                    // Text under QR code
                     doc.fillColor('#000000')
                        .fontSize(14)
                        .font('Helvetica-Bold')
@@ -498,7 +498,7 @@ ${
                            width: 300 
                        });
 
-                    // Номер квитка (як у HTML: #e5e5e5 фон, monospace)
+                    // Ticket number (as in HTML: #e5e5e5 background, monospace)
                     const ticketNumWidth = 120;
                     const ticketNumX = qrSectionX + (300 - ticketNumWidth) / 2;
                     
@@ -521,9 +521,9 @@ ${
                 }
             }
 
-            // Футер (як у HTML: #f9fafb фон, #6b7280 текст)
+            // Footer (as in HTML: #f9fafb background, #6b7280 text)
             doc.rect(0, 630, 612, 40).fill('#f9fafb');
-            // Верхня межа футера
+            // Top border of footer
             doc.rect(0, 630, 612, 1).fill('#e5e7eb');
             
             doc.fillColor('#6b7280')

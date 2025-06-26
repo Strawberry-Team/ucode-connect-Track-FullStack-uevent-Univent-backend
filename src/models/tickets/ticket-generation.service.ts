@@ -89,7 +89,7 @@ export class TicketGenerationService {
                 errorCorrectionLevel: 'H',
             });
 
-            // Зберігаємо контекст для використання в PDF генерації
+            // Save context for PDF generation
             this.currentGenerationData = data;
 
             const htmlContent = this.templates.getTicketTemplate(
@@ -99,12 +99,12 @@ export class TicketGenerationService {
                 this.supportEmail
             );
 
-            // Генерація PDF за допомогою PDFKit
+            // PDF generation using PDFKit
             const pdfBuffer = await this.generatePdfFromHtml(htmlContent, qrCodeDataUrl);
 
             await fs.writeFile(fullPath, pdfBuffer);
 
-            // Очищуємо контекст після використання
+            // Clear context after usage
             this.currentGenerationData = null;
 
             return { ticketFileKey, filePath: fullPath };
@@ -122,10 +122,21 @@ export class TicketGenerationService {
     private async generatePdfFromHtml(htmlContent: string, qrCodeDataUrl: string): Promise<Buffer> {
         return new Promise((resolve, reject) => {
             try {
-                // Створюємо PDF документ
+                // Get event data for title
+                const data = this.extractDataFromCurrentContext();
+                const eventTitle = data.orderItem.ticket.event.title;
+                const appName = this.configService.get<string>('app.name');
+
+                // Create PDF document with metadata
                 const doc = new PDFDocument({
                     size: 'A4',
                     margin: 50,
+                    info: {
+                        Title: `Ticket for ${eventTitle}`,
+                        Author: appName,
+                        Subject: `Ticket for ${eventTitle}`,
+                        Creator: appName
+                    }
                 });
 
                 const chunks: Buffer[] = [];
@@ -143,9 +154,9 @@ export class TicketGenerationService {
                     reject(error);
                 });
 
-                // Перевіряємо чи є спеціальний метод для PDF рендерингу
+                // Check if there is a special method for PDF rendering
                 if (this.templates.renderTicketToPdf) {
-                    // Витягуємо дані з існуючого контексту
+                    // Get data from existing context
                     const data = this.extractDataFromCurrentContext();
                     this.templates.renderTicketToPdf(
                         doc, 
@@ -155,7 +166,7 @@ export class TicketGenerationService {
                         this.supportEmail
                     );
                 } else {
-                    // Використовуємо загальний HTML парсинг
+                    // Use general HTML parsing
                     this.renderTicketToPdf(doc, htmlContent, qrCodeDataUrl);
                 }
 
@@ -174,7 +185,7 @@ export class TicketGenerationService {
             return this.currentGenerationData;
         }
         
-        // Fallback дані якщо контекст недоступний
+        // Fallback data if context is not available
         return {
             orderItem: {
                 id: 0,
@@ -210,29 +221,29 @@ export class TicketGenerationService {
             const dom = new JSDOM(htmlContent);
             const document = dom.window.document;
 
-            // Встановлюємо шрифт
+            // Set font
             doc.font('Helvetica');
 
-            // Заголовок події
+            // Event title
             const eventTitle = document.querySelector('.event-title')?.textContent || 'Event Title';
             doc.fontSize(24)
                .fillColor('#000000')
                .text(eventTitle, 50, 100, { align: 'center', width: 500 });
 
-            // Дата події
+            // Event date
             const eventDate = document.querySelector('.event-date')?.textContent || 'Event Date';
             doc.fontSize(14)
                .fillColor('#666666')
                .text(eventDate, 50, 140, { align: 'center', width: 500 });
 
-            // Лінія-роздільник
+            // Separator line
             doc.strokeColor('#000000')
                .lineWidth(2)
                .moveTo(50, 180)
                .lineTo(550, 180)
                .stroke();
 
-            // Інформаційні картки
+            // Information cards
             let yPosition = 220;
             const infoCards = document.querySelectorAll('.info-card');
             let cardIndex = 0;
@@ -246,12 +257,12 @@ export class TicketGenerationService {
                     yPosition += 80;
                 }
 
-                // Заголовок картки
+                // Card title
                 doc.fontSize(10)
                    .fillColor('#666666')
                    .text(title.toUpperCase(), xPosition, yPosition);
 
-                // Вміст картки
+                // Card content
                 doc.fontSize(12)
                    .fillColor('#000000')
                    .text(content, xPosition, yPosition + 15, { width: 200 });
@@ -259,7 +270,7 @@ export class TicketGenerationService {
                 cardIndex++;
             });
 
-            // QR код
+            // QR code
             if (qrCodeDataUrl) {
                 try {
                     const base64Data = qrCodeDataUrl.split(',')[1];
@@ -270,12 +281,12 @@ export class TicketGenerationService {
                         height: 150
                     });
 
-                    // Текст під QR кодом
+                    // Text under QR code
                     doc.fontSize(12)
                        .fillColor('#000000')
                        .text('Scan for Entry', 225, yPosition + 270, { align: 'center', width: 150 });
 
-                    // Номер квитка
+                    // Ticket number
                     const ticketNumber = document.querySelector('.ticket-number')?.textContent || 'N/A';
                     doc.fontSize(10)
                        .fillColor('#666666')
@@ -289,7 +300,7 @@ export class TicketGenerationService {
                 }
             }
 
-            // Футер
+            // Footer
             doc.fontSize(8)
                .fillColor('#999999')
                .text(`© ${new Date().getFullYear()} UEvent`, 50, 750, { align: 'left' })
@@ -297,7 +308,7 @@ export class TicketGenerationService {
 
         } catch (error) {
             this.logger.error('Error rendering ticket to PDF:', error);
-            // Fallback - простий текстовий квиток
+            // Fallback - simple text ticket
             doc.fontSize(16)
                .fillColor('#000000')
                .text('Event Ticket', 50, 100, { align: 'center', width: 500 })
