@@ -86,13 +86,13 @@ export default {
     </div>
     <div style="font-family: Arial, sans-serif; font-size:14px; color:#333;">
       <p>
-        We’re thrilled to welcome you to [YourServiceName], your trusted platform for seamless ticket sales and event management! 🎟️
+        We’re thrilled to welcome you to ${serviceName}, your trusted platform for seamless ticket sales and event management! 🎟️
       </p>
       <p>
         Thank you for choosing us as your partner in growing your event business. Your account is now fully set up, and you’re ready to start selling tickets and managing your events with ease. Here’s what you can do next to kick things off:
       </p>
       <ol>
-        Get Started in a Few Simple Steps:
+        <b>Get Started in a Few Simple Steps:</b>
         <li><b>Create Your First Event</b>: Log in to your dashboard and set up your first event. Add details like the event name, date, location, and ticket types to attract your audience.</li>
         <li><b>Customize Your Listings</b>: Use our tools to design eye-catching event pages with images, descriptions, and pricing that reflect your brand.</li>
         <li><b>Start Selling</b>: Share your event links with your audience through social media, email campaigns, or your website, and watch the ticket sales roll in!</li>
@@ -105,11 +105,11 @@ export default {
         </a>
       </div>
       <ul>
-          Why ${serviceName}?
+          <b>Why ${serviceName}?</b>
           <li><b>User-Friendly Platform</b>: Easily manage events and ticket sales in one place.</li>
           <li><b>Secure Payments</b>: Offer your customers a safe and reliable payment experience.</li>
-          <li><b>Dedicated Support</b>: Our team is here to help you every step of the way—reach out to us anytime at
-          <a>support@${serviceName.replace(' ', '.').toLowerCase()}.com</a>.</li>
+          <li><b>Dedicated Support</b>: Our team is here to help you every step of the way - reach out to us anytime at
+          <a href="mailto:support@${serviceName.replace(' ', '.').toLowerCase()}.com">support@${serviceName.replace(' ', '.').toLowerCase()}.com</a>.</li>
       </ul>
       <p>We’re excited to see your events come to life on ${serviceName}! If you have any questions or need assistance, don’t hesitate to contact us. Let’s make your events a success together!</p>
       <p><b>Welcome aboard, and happy selling!</b></p>

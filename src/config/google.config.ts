@@ -32,7 +32,7 @@ export default () => {
                 refreshToken: String(validateEnv('GOOGLE_GMAIL_API_REFRESH_TOKEN')),
             },
             redirectUri: appConfiguration.app.frontendLink,
-            playgroundRedirectUri: 'http://localhost:8080/api/auth/google/playground',
+            playgroundRedirectUri: `${appConfiguration.app.frontendLink}/api/auth/google/playground`,
         },
         ethereal: {
             host: 'smtp.ethereal.email',
