@@ -87,8 +87,8 @@ async function bootstrap() {
     );
 
     const configAPIDoc = new DocumentBuilder()
-        .setTitle('uevent API')
-        .setDescription('The uevent API documentation')
+        .setTitle('Univent API')
+        .setDescription('The Univent API documentation')
         .setVersion('1.0')
         .addBearerAuth(
             {

@@ -73,6 +73,7 @@ export default {
         companyTitle: string,
         redirectLink: string,
         serviceName: string,
+        serviceEmail: string,
     ) => `
 <div style="margin:0; padding:0; background-color:#f4f4f4;">
   <div style="max-width:600px; margin:40px auto; background:#fff; padding:20px; border:1px solid #ddd;">
@@ -109,7 +110,7 @@ export default {
           <li><b>User-Friendly Platform</b>: Easily manage events and ticket sales in one place.</li>
           <li><b>Secure Payments</b>: Offer your customers a safe and reliable payment experience.</li>
           <li><b>Dedicated Support</b>: Our team is here to help you every step of the way - reach out to us anytime at
-          <a href="mailto:support@${serviceName.replace(' ', '.').toLowerCase()}.com">support@${serviceName.replace(' ', '.').toLowerCase()}.com</a>.</li>
+          <a href="mailto:${serviceEmail}">${serviceEmail}</a>.</li>
       </ul>
       <p>We’re excited to see your events come to life on ${serviceName}! If you have any questions or need assistance, don’t hesitate to contact us. Let’s make your events a success together!</p>
       <p><b>Welcome aboard, and happy selling!</b></p>

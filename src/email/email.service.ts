@@ -20,6 +20,7 @@ export class EmailService {
     private logo: any;
     private templates: EmailTemplateInterface;
     private frontendLink: string;
+    private serviceEmail: string;
 
     constructor(
         private readonly configService: ConfigService,
@@ -35,7 +36,7 @@ export class EmailService {
             ),
         );
         this.frontendLink = String(this.configService.get<string>('app.frontendLink'));
-
+        this.serviceEmail = String(this.configService.get<string>('app.email'));
         this.init();
     }
 
@@ -166,6 +167,7 @@ export class EmailService {
             companyTitle,
             redirectLink,
             this.appName,
+            this.serviceEmail,
             this.frontendLink,
         );
         await this.sendEmail(

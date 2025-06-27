@@ -305,7 +305,7 @@ export class TicketGenerationService {
             doc.fontSize(8)
                .fillColor('#999999')
                .text(`© ${new Date().getFullYear()} ${appName}`, 50, 750, { align: 'left' })
-               .text('Contact: support@uevent.com', 400, 750, { align: 'right' });
+               .text('Contact: support@univent.com', 400, 750, { align: 'right' });
 
         } catch (error) {
             this.logger.error('Error rendering ticket to PDF:', error);

@@ -18,6 +18,7 @@ export interface EmailTemplateInterface {
         companyTitle: string,
         redirectLink: string,
         serviceName: string,
+        serviceEmail: string,
         link: string,
     ) => string;
 

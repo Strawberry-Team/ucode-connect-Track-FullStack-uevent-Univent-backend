@@ -302,15 +302,14 @@ In the examples of all commands in the text `<env>` is the name of the environme
     DB_ROOT_USER=root
     DB_ROOT_PASSWORD=root
     ```
-   Also, new DB user `uevent_sql` will be created after executing the next command. Credentials of `uevent_sql` user can
-   be changed:
+   Also, new DB user `uevent_sql` will be created after executing the next command. Credentials of `uevent_sql` user can be changed:
     ```
     # Database App Configuration
     DB_APP_HOST=localhost
     DB_APP_PORT=3306
-    DB_APP_USER=uevent_sql
+    DB_APP_USER=univent_sql
     DB_APP_PASSWORD=securepass
-    DB_APP_DATABASE=uevent
+    DB_APP_DATABASE=univent
     ```
    For test purposes use `test` environment: create `.env.test` file by copying the `.env.test.example` file.
 4. Run script for create databases and user:
@@ -333,6 +332,10 @@ In the examples of all commands in the text `<env>` is the name of the environme
 8. Seeds help you fill your database with initial data for a presentation or project launch. To start creating test data, run the command:
     ```bash
     npm run migrate:seed
+    ```
+    or run following command to rewrite data:
+    ```bash
+    npm run migrate:refresh
     ```
 9. Start the server:
     ```bash

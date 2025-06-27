@@ -519,7 +519,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"email\": \"test.user@uevent.com\",\r\n  \"password\": \"Password123!$\"\r\n}",
+							"raw": "{\r\n  \"email\": \"test.user@univent.com\",\r\n  \"password\": \"Password123!$\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -551,7 +551,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"email\": \"test.user@uevent.com\",\r\n  \"password\": \"Password123!$\"\r\n}",
+									"raw": "{\r\n  \"email\": \"test.user@univent.com\",\r\n  \"password\": \"Password123!$\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -615,7 +615,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"user\": {\n        \"id\": 2,\n        \"firstName\": \"Test\",\n        \"lastName\": \"User\",\n        \"email\": \"test.user@uevent.com\",\n        \"profilePictureName\": \"default-avatar.png\",\n        \"role\": \"USER\",\n        \"createdAt\": \"2025-04-17T15:56:53.000Z\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlzcyI6Ii9hcGkvYXV0aCIsImF1ZCI6Ii9hcGkiLCJpYXQiOjE3NDQ5OTE3MTQsImV4cCI6MTc0NDk5MjYxNH0.Y2U7IGUJhaoGBdbIJ2lIpgSqm2AYcZTrXNnXhkOePWA\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsIm5vbmNlIjoiZDgxMGU4N2JjYTE2N2ZjZWFhNjM5YTk3MTY5NjhhMDAiLCJpc3MiOiIvYXBpL2F1dGgiLCJhdWQiOiIvYXBpIiwiaWF0IjoxNzQ0OTkxNzE0LCJleHAiOjE3NDU1OTY1MTR9.qujNfMFkbjOW-qHQoOuiU1ZZdBrlz7QBs9aLnhAm-7o\"\n}"
+							"body": "{\n    \"user\": {\n        \"id\": 2,\n        \"firstName\": \"Test\",\n        \"lastName\": \"User\",\n        \"email\": \"test.user@univent.com\",\n        \"profilePictureName\": \"default-avatar.png\",\n        \"role\": \"USER\",\n        \"createdAt\": \"2025-04-17T15:56:53.000Z\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlzcyI6Ii9hcGkvYXV0aCIsImF1ZCI6Ii9hcGkiLCJpYXQiOjE3NDQ5OTE3MTQsImV4cCI6MTc0NDk5MjYxNH0.Y2U7IGUJhaoGBdbIJ2lIpgSqm2AYcZTrXNnXhkOePWA\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsIm5vbmNlIjoiZDgxMGU4N2JjYTE2N2ZjZWFhNjM5YTk3MTY5NjhhMDAiLCJpc3MiOiIvYXBpL2F1dGgiLCJhdWQiOiIvYXBpIiwiaWF0IjoxNzQ0OTkxNzE0LCJleHAiOjE3NDU1OTY1MTR9.qujNfMFkbjOW-qHQoOuiU1ZZdBrlz7QBs9aLnhAm-7o\"\n}"
 						}
 					]
 				},
