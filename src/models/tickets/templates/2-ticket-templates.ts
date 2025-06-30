@@ -2,21 +2,22 @@
 import { ConfigService } from '@nestjs/config';
 import { TicketGenerationData } from '../interfaces/ticket-generation-data.interface';
 import { TicketTemplateInterface } from './ticket-template.interface';
+import PDFKit from 'pdfkit';
 
 class Theme2TicketTemplates implements TicketTemplateInterface {
-    getTicketTemplate(
-        data: TicketGenerationData,
-        qrCodeDataUrl: string,
-        configService: ConfigService,
-        supportEmail: string
-    ): string {
-        const { orderItem } = data;
-        const event = orderItem.ticket.event;
-        const ticket = orderItem.ticket;
-        const user = orderItem.user;
-        const appName = configService.get<string>('app.name');
+  getTicketTemplate(
+    data: TicketGenerationData,
+    qrCodeDataUrl: string,
+    configService: ConfigService,
+    supportEmail: string
+  ): string {
+    const { orderItem } = data;
+    const event = orderItem.ticket.event;
+    const ticket = orderItem.ticket;
+    const user = orderItem.user;
+    const appName = configService.get<string>('app.name');
 
-        return `
+    return `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -235,11 +236,11 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                 <div class="event-title">${event.title}</div>
                 <div class="event-date">
                   ${event.startedAt.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        })}
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })}
                 </div>
               </div>
             </div>
@@ -249,7 +250,7 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
               <div class="ticket-info">
                 <div class="info-group">
                   <h3>Attendee</h3>
-                  <p>${user.firstName} ${user.lastName || ''}</p>
+                  <p>${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}</p>
                   <p style="font-size: 14px; color: #757575;">${user.email}</p>
                 </div>
 
@@ -259,25 +260,25 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
                     <i>🗓️</i>
                     <div>
                       <p>${event.startedAt.toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-            timeZone: 'UTC'
-        })}</p>
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC'
+    })}</p>
                       <p style="font-size: 13px; color: #757575;">
                         ${event.startedAt.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-            timeZone: 'UTC'
-        })} -
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC'
+    })} -
                         ${event.endedAt.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-            timeZone: 'UTC'
-        })}
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC'
+    })}
                       </p>
                     </div>
                   </div>
@@ -316,8 +317,258 @@ class Theme2TicketTemplates implements TicketTemplateInterface {
         </body>
         </html>
         `;
+  }
+
+  /**
+   * Special method for PDF rendering through PDFKit with green theme
+   */
+  renderTicketToPdf(
+    doc: PDFKit.PDFDocument,
+    data: TicketGenerationData,
+    qrCodeDataUrl: string,
+    configService: ConfigService,
+    supportEmail: string,
+  ): void {
+    const { orderItem } = data;
+    const event = orderItem.ticket.event;
+    const ticket = orderItem.ticket;
+    const user = orderItem.user;
+    const appName = configService.get<string>('app.name') || 'UEvent';
+
+    try {
+      // Header with green gradient
+      doc.rect(0, 0, 612, 120).fill('#2e7d32');
+
+      // Application name
+      doc.fillColor('#ffffff')
+        .fontSize(12)
+        .font('Helvetica')
+        .text(appName.toUpperCase(), 50, 25, {
+          align: 'center',
+          width: 512,
+          characterSpacing: 2
+        });
+
+      // Event title
+      doc.fillColor('#ffffff')
+        .fontSize(24)
+        .font('Helvetica-Bold')
+        .text(event.title, 50, 45, {
+          align: 'center',
+          width: 512
+        });
+
+      // Event date with green background
+      const eventDateText = event.startedAt.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      doc.rect(250, 85, 112, 25).fill('#00c853');
+      doc.fillColor('#ffffff')
+        .fontSize(13)
+        .font('Helvetica')
+        .text(eventDateText, 250, 92, {
+          align: 'center',
+          width: 112
+        });
+
+      // Main container
+      const mainY = 140;
+      const leftColumnX = 50;
+      const rightColumnX = 356;
+      const columnWidth = 256;
+
+      // Left column - event information
+      let currentY = mainY;
+
+      // 1. Attendee section
+      doc.fillColor('#757575')
+        .fontSize(12)
+        .font('Helvetica-Bold')
+        .text('ATTENDEE', leftColumnX, currentY);
+
+      currentY += 20;
+      doc.fillColor('#212121')
+        .fontSize(15)
+        .font('Helvetica')
+        .text(`${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`, leftColumnX, currentY);
+
+      currentY += 20;
+      doc.fillColor('#757575')
+        .fontSize(14)
+        .font('Helvetica')
+        .text(user.email, leftColumnX, currentY);
+
+      currentY += 40;
+
+      // 2. Event Details section
+      doc.fillColor('#757575')
+        .fontSize(12)
+        .font('Helvetica-Bold')
+        .text('EVENT DETAILS', leftColumnX, currentY);
+
+      currentY += 25;
+
+      // Date and time with emojis
+      doc.fillColor('#2e7d32')
+        .fontSize(16)
+        .text('🗓️', leftColumnX, currentY);
+
+      const eventDateTime = event.startedAt.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC'
+      });
+
+      doc.fillColor('#212121')
+        .fontSize(15)
+        .font('Helvetica')
+        .text(eventDateTime, leftColumnX + 25, currentY, { width: columnWidth - 25 });
+
+      currentY += 20;
+
+      const timeRange = `${event.startedAt.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'UTC'
+      })} - ${event.endedAt.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'UTC'
+      })}`;
+
+      doc.fillColor('#757575')
+        .fontSize(13)
+        .font('Helvetica')
+        .text(timeRange, leftColumnX + 25, currentY, { width: columnWidth - 25 });
+
+      currentY += 30;
+
+      // Venue with emojis
+      doc.fillColor('#2e7d32')
+        .fontSize(16)
+        .text('📍', leftColumnX, currentY);
+
+      doc.fillColor('#212121')
+        .fontSize(15)
+        .font('Helvetica')
+        .text(event.venue, leftColumnX + 25, currentY, { width: columnWidth - 25 });
+
+      currentY += 50;
+
+      // 3. Ticket Type section
+      doc.fillColor('#757575')
+        .fontSize(12)
+        .font('Helvetica-Bold')
+        .text('TICKET TYPE', leftColumnX, currentY);
+
+      currentY += 20;
+      doc.fillColor('#212121')
+        .fontSize(15)
+        .font('Helvetica')
+        .text(ticket.title, leftColumnX, currentY);
+
+      currentY += 25;
+      doc.fillColor('#2e7d32')
+        .fontSize(16)
+        .font('Helvetica-Bold')
+        .text(`$${Number(orderItem.finalPrice).toFixed(2)}`, leftColumnX, currentY);
+
+      // Right column - QR code
+      const qrSectionY = mainY;
+      doc.rect(rightColumnX, qrSectionY, columnWidth, 360).fill('#e8f5e9');
+      doc.rect(rightColumnX, qrSectionY, 256, 8).fill('#2e7d32'); // Top green border
+
+      // QR section content
+      doc.fillColor('#2e7d32')
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text('SCAN FOR ENTRY', rightColumnX, qrSectionY + 30, {
+          align: 'center',
+          width: columnWidth
+        });
+
+      if (qrCodeDataUrl) {
+        try {
+          const base64Data = qrCodeDataUrl.split(',')[1];
+          const qrBuffer = Buffer.from(base64Data, 'base64');
+
+          // QR code with white border
+          const qrSize = 160;
+          const qrX = rightColumnX + (columnWidth - qrSize) / 2;
+          const qrY = qrSectionY + 60;
+
+          // White border
+          doc.rect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12).fill('#ffffff');
+
+          doc.image(qrBuffer, qrX, qrY, {
+            width: qrSize,
+            height: qrSize
+          });
+
+          // Text under QR code
+          doc.fillColor('#757575')
+            .fontSize(12)
+            .font('Helvetica')
+            .text('Present this ticket at the entrance', rightColumnX, qrSectionY + 240, {
+              align: 'center',
+              width: columnWidth
+            });
+
+          // Ticket number
+          const ticketNumY = qrSectionY + 265;
+          const ticketNumWidth = 140;
+          const ticketNumX = rightColumnX + (columnWidth - ticketNumWidth) / 2;
+
+          doc.rect(ticketNumX, ticketNumY, ticketNumWidth, 25).fill('#e8f5e9');
+          doc.fillColor('#2e7d32')
+            .fontSize(14)
+            .font('Courier-Bold')
+            .text(ticket.number, ticketNumX, ticketNumY + 7, {
+              align: 'center',
+              width: ticketNumWidth,
+              characterSpacing: 1
+            });
+
+        } catch (qrError) {
+          doc.fillColor('#2e7d32')
+            .fontSize(12)
+            .text('QR Code unavailable', rightColumnX, qrSectionY + 150, {
+              align: 'center',
+              width: columnWidth
+            });
+        }
+      }
+
+      // Dotted separator line
+      doc.strokeColor('#81c784')
+        .lineWidth(1)
+        .dash(5, { space: 5 })
+        .moveTo(50, 520)
+        .lineTo(562, 520)
+        .stroke()
+        .undash();
+
+      // Footer with green background
+      doc.rect(0, 540, 612, 40).fill('#e8f5e9');
+
+      doc.fillColor('#757575')
+        .fontSize(8)
+        .font('Helvetica')
+        .text(`© ${new Date().getFullYear()} ${appName}`, 50, 555, { align: 'left' })
+        .text(`Need help? Contact ${supportEmail}`, 400, 555, { align: 'right' });
+
+    } catch (error) {
+      console.error('Error in Theme2 renderTicketToPdf:', error);
     }
+  }
 }
 
 export default new Theme2TicketTemplates();
-

@@ -3,19 +3,19 @@ import type { TicketGenerationData } from '../interfaces/ticket-generation-data.
 import type { TicketTemplateInterface } from './ticket-template.interface';
 
 class CustomTicketTemplate implements TicketTemplateInterface {
-    getTicketTemplate(
-        data: TicketGenerationData,
-        qrCodeDataUrl: string,
-        configService: ConfigService,
-        supportEmail: string,
-    ): string {
-        const { orderItem } = data;
-        const event = orderItem.ticket.event;
-        const ticket = orderItem.ticket;
-        const user = orderItem.user;
-        const appName = configService.get<string>('app.name');
+  getTicketTemplate(
+    data: TicketGenerationData,
+    qrCodeDataUrl: string,
+    configService: ConfigService,
+    supportEmail: string,
+  ): string {
+    const { orderItem } = data;
+    const event = orderItem.ticket.event;
+    const ticket = orderItem.ticket;
+    const user = orderItem.user;
+    const appName = configService.get<string>('app.name');
 
-        return `
+    return `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -39,11 +39,11 @@ class CustomTicketTemplate implements TicketTemplateInterface {
             }
 
             .ticket-container {
-              max-width: 1100px;
-              margin: 0 auto;
+              max-width: 100%;
+              margin: 0;
               background: white;
               border-radius: 12px;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+              box-shadow: none;
               overflow: hidden;
               position: relative;
             }
@@ -213,11 +213,11 @@ class CustomTicketTemplate implements TicketTemplateInterface {
                 <div class="event-title">${event.title}</div>
                 <div class="event-date">
                   ${event.startedAt.toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-        })}
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })}
                 </div>
               </div>
             </div>
@@ -227,7 +227,7 @@ class CustomTicketTemplate implements TicketTemplateInterface {
                 <div class="ticket-info">
                   <div class="info-card">
                     <h3>Attendee</h3>
-                    <p>${user.firstName} ${user.lastName || ''}</p>
+                    <p>${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}</p>
                     <p style="font-size: 14px; color: #6b7280;">${user.email}</p>
                   </div>
 
@@ -240,54 +240,54 @@ class CustomTicketTemplate implements TicketTemplateInterface {
                   <div class="info-card">
                   <h3>Date & Time</h3>
 ${
-            // Check if start and end dates are the same
-            event.startedAt.toDateString() === event.endedAt.toDateString()
-                ? `<p>${event.startedAt.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                    timeZone: "UTC",
-                })}</p>
+      // Check if start and end dates are the same
+      event.startedAt.toDateString() === event.endedAt.toDateString()
+        ? `<p>${event.startedAt.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          timeZone: "UTC",
+        })}</p>
               <p style="font-size: 13px; color: #6b7280;">
                   ${event.startedAt.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                    timeZone: "UTC",
-                })} -
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "UTC",
+        })} -
                   ${event.endedAt.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                    timeZone: "UTC",
-                })}
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "UTC",
+        })}
               </p>`
-                : `<p>${event.startedAt.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                    timeZone: "UTC",
-                })} ${event.startedAt.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                    timeZone: "UTC",
-                })} - </p>
+        : `<p>${event.startedAt.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          timeZone: "UTC",
+        })} ${event.startedAt.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "UTC",
+        })} - </p>
               <p> ${event.endedAt.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                    timeZone: "UTC",
-                })} ${event.endedAt.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                    timeZone: "UTC",
-                })}</p>`
-        }
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          timeZone: "UTC",
+        })} ${event.endedAt.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "UTC",
+        })}</p>`
+      }
 </div>
 
                   <div class="info-card">
@@ -315,7 +315,248 @@ ${
         </body>
         </html>
         `;
+  }
+
+  /**
+   * Special method for PDF rendering through PDFKit with better control
+   */
+  renderTicketToPdf(
+    doc: PDFKit.PDFDocument,
+    data: TicketGenerationData,
+    qrCodeDataUrl: string,
+    configService: ConfigService,
+    supportEmail: string,
+  ): void {
+    const { orderItem } = data
+    const event = orderItem.ticket.event
+    const ticket = orderItem.ticket
+    const user = orderItem.user
+    const appName = configService.get<string>("app.name") || "UEvent"
+    const pageWidth = doc.page.width
+    const pageHeight = doc.page.height
+    console.log(pageWidth, "x", pageHeight);
+
+    try {
+      const headerWidth = 512
+      const headerHeight = 120
+      let yPos = 0
+      // Header with black gradient
+      doc.rect(0, yPos, pageWidth, headerHeight).fill("#000000")
+
+      yPos += headerHeight
+
+      // Event title
+      doc.fillColor("#FFFFFF").fontSize(28).font("Helvetica-Bold").text(event.title, 50, 35, {
+        align: "center",
+        width: headerWidth,
+      })
+
+      // Event date
+      const eventDateText = event.startedAt.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+
+      doc.fillColor("#FFFFFF").fontSize(18).font("Helvetica-Bold").text(eventDateText, 50, 85, {
+        align: "center",
+        width: headerWidth,
+      })
+
+      // Container with gray background
+      const containerWidth = pageWidth
+      doc
+        .rect(
+          (pageWidth - containerWidth) / 2,
+          yPos,
+          containerWidth,
+          pageHeight - headerHeight)
+        .fill("#f9fafb")
+
+      // Information cards in 2x2 grid format
+      const cardSpacing = 15
+      yPos += cardSpacing
+      const cardGridWidth = containerWidth - (cardSpacing * 2)
+      const cardWidth = (cardGridWidth / 2) - (cardSpacing / 2)
+      const cardHeight = 90
+      const cardData = [
+        {
+          title: "ATTENDEE",
+          content: `${user.firstName}${user.lastName ? " " + user.lastName : ""}`,
+          subcontent: user.email,
+          x: (pageWidth - cardGridWidth) / 2,
+          y: yPos,
+        },
+        {
+          title: "TICKET DETAILS",
+          content: ticket.title,
+          subcontent: `$${Number(orderItem.finalPrice).toFixed(2)}`,
+          x: (pageWidth - cardGridWidth) / 2 + cardWidth + cardSpacing,
+          y: yPos,
+        },
+        {
+          title: "DATE & TIME",
+          content:
+            event.startedAt.toDateString() === event.endedAt.toDateString()
+              ? event.startedAt.toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+                timeZone: "UTC",
+              })
+              : `${event.startedAt.toLocaleDateString("en-US", { timeZone: "UTC" })} - ${event.endedAt.toLocaleDateString("en-US", { timeZone: "UTC" })}`,
+          subcontent:
+            event.startedAt.toDateString() === event.endedAt.toDateString()
+              ? `${event.startedAt.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+                timeZone: "UTC",
+              })} - ${event.endedAt.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+                timeZone: "UTC",
+              })}`
+              : "",
+          x: (pageWidth - cardGridWidth) / 2,
+          y: yPos + cardHeight + cardSpacing,
+        },
+        {
+          title: "VENUE",
+          content: event.venue,
+          subcontent: "",
+          x: (pageWidth - cardGridWidth) / 2 + cardWidth + cardSpacing,
+          y: yPos + cardHeight + cardSpacing,
+        },
+      ]
+
+      yPos += (cardHeight + cardSpacing) * 2
+
+      // Draw cards with white background and black left border
+      cardData.forEach((card) => {
+        const cardLineHeight = 20
+        const cardPadding = 15
+        // White card
+        doc.rect(card.x, card.y, cardWidth, cardHeight).fill("#ffffff")
+
+        // Black left border
+        doc.rect(card.x, card.y, 4, cardHeight).fill("#000000")
+
+        // Card title
+        doc
+          .fillColor("#6b7280")
+          .fontSize(12)
+          .font("Helvetica")
+          .text(card.title, card.x + cardPadding, card.y + cardPadding)
+
+        // Main text
+        doc
+          .fillColor("#2d3748")
+          .fontSize(15)
+          .font("Helvetica")
+          .text(card.content, card.x + cardPadding, card.y + cardPadding * 1.5 + cardLineHeight, { width: cardWidth - cardPadding * 2 })
+
+        // Additional text
+        if (card.subcontent) {
+          // Price, Email or time
+          doc
+            .fillColor("#000000")
+            .fontSize(16)
+            .font("Helvetica")
+            .text(card.subcontent, card.x + cardPadding, card.y + cardPadding * 1.5 + cardLineHeight * 2, { width: cardWidth - cardPadding * 2 })
+        }
+      })
+
+      // QR section
+      const qrSectionWidth = 400
+      const qrSectionHeight = 425
+      let qrSectionY = 360
+      const qrSectionX = (pageWidth - qrSectionWidth) / 2 // Centering
+
+      // QR section background
+      doc.rect(qrSectionX, qrSectionY, qrSectionWidth, qrSectionHeight).fill("#f1f1f1")
+
+      // Black left border
+      doc.rect(qrSectionX, qrSectionY, 4, qrSectionHeight).fill("#000000")
+
+      if (qrCodeDataUrl) {
+        try {
+          // Text before QR code
+          qrSectionY += 10
+
+          doc
+            .fillColor("#000000")
+            .fontSize(12)
+            .font("Helvetica-Bold")
+            .text("ENTRY QR CODE", qrSectionX, qrSectionY, {
+              align: "center",
+              width: qrSectionWidth,
+            })
+
+          qrSectionY += 15
+          doc
+            .fillColor("#6b7280")
+            .fontSize(12)
+            .font("Helvetica")
+            .text("Show it at the venue for entry", qrSectionX, qrSectionY, {
+              align: "center",
+              width: qrSectionWidth,
+            })
+
+          // Ticket number
+          const ticketNumWidth = qrSectionWidth - 50
+          const ticketNumX = qrSectionX + 25
+          qrSectionY += 15
+
+          doc.rect(ticketNumX, qrSectionY, ticketNumWidth, 20).fill("#e5e5e5")
+          doc
+            .fillColor("#000000")
+            .fontSize(14)
+            .font("Courier-Bold")
+            .text(ticket.number, ticketNumX, qrSectionY + 5, {
+              align: "center",
+              width: ticketNumWidth,
+            })
+
+          // QR code
+          const base64Data = qrCodeDataUrl.split(",")[1]
+          const qrBuffer = Buffer.from(base64Data, "base64")
+
+          qrSectionY += 25
+
+          doc.image(qrBuffer, qrSectionX + 25, qrSectionY, {
+            width: qrSectionWidth - 50,
+            height: qrSectionWidth - 50,
+          })
+        } catch (qrError) {
+          doc
+            .fillColor("#000000")
+            .fontSize(12)
+            .text("QR Code unavailable", qrSectionX, qrSectionY + 90, {
+              align: "center",
+              width: qrSectionWidth,
+            })
+        }
+      }
+
+      // Footer with black border
+      yPos = 800
+
+      doc.rect(0, yPos, pageWidth, 1).fill("#e5e7eb")
+
+      doc
+        .fillColor("#6b7280")
+        .fontSize(10)
+        .font("Helvetica")
+        .text(`Need help? Contact ${supportEmail}`, 0, yPos + 10, { align: "center" })
+        .text(`All rights reserved © ${new Date().getFullYear()} ${appName}`, 0, yPos + 25, { align: "center" })
+    } catch (error) {
+      console.error("Error in renderTicketToPdf:", error)
     }
+  }
 }
 
 export default new CustomTicketTemplate();

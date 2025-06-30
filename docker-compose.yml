@@ -3,10 +3,10 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: uevent
+    container_name: univent
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: uevent
+      MYSQL_DATABASE: univent
     ports:
       - "${DB_APP_PORT}:3306"
     networks:

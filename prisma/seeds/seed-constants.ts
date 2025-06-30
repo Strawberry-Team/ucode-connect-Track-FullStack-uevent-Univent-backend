@@ -142,10 +142,10 @@ export const SEEDS = {
             MAX_DAYS: 30,
         },
         STATUS_WEIGHTS: {
-            PENDING: 100,
-            PAID: 0,
-            FAILED: 0,
-            REFUNDED: 0,
+            PENDING: 20,
+            PAID: 50,
+            FAILED: 20,
+            REFUNDED: 10,
         },
         PAYMENT_METHOD_WEIGHTS: {
             STRIPE: 70

@@ -166,7 +166,7 @@ describe('AuthService', () => {
             expect(emailService.sendConfirmationEmail).toHaveBeenCalledWith(
                 user.email,
                 expectedLink,
-                `${user.firstName}${!user.lastName ? '' : user.lastName}`
+                `${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}`
             );
         });
     });
@@ -415,7 +415,7 @@ describe('AuthService', () => {
             expect(emailService.sendResetPasswordEmail).toHaveBeenCalledWith(
                 user.email,
                 expectedLink,
-                `${user.firstName}${!user.lastName ? '' : user.lastName}`
+                `${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}`
             );
         });
     });

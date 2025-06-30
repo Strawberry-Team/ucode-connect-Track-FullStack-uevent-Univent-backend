@@ -53,7 +53,7 @@ export class AuthService {
         this.emailService.sendConfirmationEmail(
             user.email,
             link,
-            `${user.firstName}${!user.lastName ? '' : user.lastName}`,
+            `${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}`,
         );
     }
 
@@ -172,7 +172,7 @@ export class AuthService {
         this.emailService.sendResetPasswordEmail(
             user.email,
             link,
-            `${user.firstName}${!user.lastName ? '' : user.lastName}`,
+            `${user.firstName}${!user.lastName ? '' : ' ' + user.lastName}`,
         );
 
         return { message: 'Password recovery email sent' };
