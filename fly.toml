@@ -6,8 +6,8 @@ kill_signal = "SIGTERM"
 kill_timeout = 120
 
 [build]
-  builder = "paketobuildpacks/builder:base"
-  buildpacks = ["gcr.io/paketo-buildpacks/nodejs"]
+  builder = "heroku/builder:22"
+  buildpacks = ["heroku/nodejs"]
   [build.args]
     NODE_ENV = "production"
 
