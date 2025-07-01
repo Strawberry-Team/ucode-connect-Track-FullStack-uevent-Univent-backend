@@ -1,4 +1,4 @@
-app = "univent"
+app = "ucode-connect-track-fullstack-uevent-univent-backend"
 
 primary_region = "fra"
 
@@ -16,7 +16,7 @@ kill_timeout = 120
   APP_FRONTEND_HOST = "univent-platform.vercel.app"
   APP_FRONTEND_PORT = "443"
   APP_FRONTEND_PROTOCOL = "https"
-  APP_HOST = "univent-platform.koyeb.app"
+  APP_HOST = "ucode-connect-track-fullstack-uevent-univent-backend.fly.dev"
   APP_NAME = "Univent"
   APP_NODE_ENV = "production"
   APP_PORT = "8080"
@@ -51,7 +51,7 @@ kill_timeout = 120
     hard_limit = 75
   [http_service.http_options]
     idle_timeout = 600
-  [http_service.checks]
+  [[http_service.checks]]
     type = "tcp"
     grace_period = "10s"
     interval = "30s"
