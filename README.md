@@ -467,7 +467,7 @@ Email types supported:
 
 # 🔁 REST API documentation
 
-The comprehensive API documentation is available at [https://univent-platform.koyeb.app/api](https://univent-platform.koyeb.app/api) or [http://localhost:8080/api](http://localhost:8080/api) and provides:
+The comprehensive API documentation is available at [https://univent-platform.onrender.com/api](https://univent-platform.onrender.com/api) or [http://localhost:8080/api](http://localhost:8080/api) and provides:
 
 - **Interactive API Explorer**: Built with Swagger UI, allowing you to test endpoints directly in the browser
 - **Complete Endpoint Coverage**: Documentation for all available REST endpoints including authentication, users, companies, events, tickets, orders, promo codes, notifications, and payments
