@@ -493,16 +493,17 @@ Password123!$
 
 To connect to the Unsplash, follow these steps:
 1. Sign up for an account with Unsplash:
-    Go to (Unsplash Developers)[https://unsplash.com/developers] and sign in to your Unsplash account (or create a new one).
+    * Go to (Unsplash Developers)[https://unsplash.com/developers] and sign in to your Unsplash account (or create a new one).
 2. Create an app:
-    In the `Your Applications` section, click `New Application`.
-    Fill in the fields: name of the app (for example, `Event App`), description (for example, `Get images for events`). Accept the terms and conditions.
+    * In the `Your Applications` section, click `New Application`.
+    * Fill in the fields: name of the app (for example, `Event App`), description (for example, `Get images for events`). 
+    * Accept the terms and conditions.
 3. Get the API key:
-    After creating the app, you will see the Access Key (and Secret Key if you need OAuth). The Access Key is your API key.
-    Copy the key and save it in a safe place, for example, in your `.env` or `.env.development` file:
-    ```text
-    UNSPLASH_ACCESS_KEY=<access_key>
-    ```
+    * After creating the app, you will see the Access Key (and Secret Key if you need OAuth). The Access Key is your API key.
+    * Copy the key and save it in a safe place, for example, in your `.env` or `.env.development` file:
+        ```text
+        UNSPLASH_ACCESS_KEY=<access_key>
+        ```
 4. After put your access key to the `.env.development` file:
     ```bash
     # Upsplash Configuration
