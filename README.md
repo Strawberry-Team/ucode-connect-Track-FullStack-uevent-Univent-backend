@@ -267,7 +267,7 @@ Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9
 
 
 
-# 🤓 Database Diagram
+# 📦 Database Diagram
 ![Database Diagram](https://github.com/user-attachments/assets/aa1a79cf-f73b-4d00-b0cd-6c9e6d17829f)
 
 
@@ -316,7 +316,6 @@ In the examples of all commands in the text `<env>` is the name of the environme
    ```bash
    npm run setup:db
    ```
-//TODO: подумать, как сделать так, чтобы наименьше надо было выполнять команд
 5. Run command to apply necessary migrations.
    ```bash
    npm run migrate
