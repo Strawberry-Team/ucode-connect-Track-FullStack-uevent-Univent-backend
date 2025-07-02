@@ -276,9 +276,11 @@ Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9
 
 Before starting, ensure the required technologies are installed.
 
-- **Node.JS** >= v22
+- **Node.JS** >= v22.10
 - **NPM** >= v10
 - **MySQL** >= 8.0
+
+
 
 # 🚀 How to Run the Solution
 
@@ -342,6 +344,8 @@ In the examples of all commands in the text `<env>` is the name of the environme
     ```
 10. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
 
+
+
 # 🐋 Docker
 Environment variables are taken from `.env.development` file. You can start containers with the command:
 ```
@@ -360,41 +364,145 @@ To stop and delete containers, networks, and associated resources (with volumes)
 docker-compose down -v
 ```
 
+
+
 # 📫 Mailing Service
 
-[Ethereal](https://ethereal.email/) is a fake SMTP service, mostly aimed at Nodemailer and EmailEngine users (but not
-limited to). It's a completely free anti-transactional email service where messages never get delivered.
-To view the letter that the user will receive, you need to log in to this service using a test login and password.
-Default credentials you can find in `.env.development.example` file or:
+The application uses **Gmail API** for production email delivery with OAuth2 authentication, providing reliable and secure email sending capabilities.
 
-* login:
-    ```text
-    ricky43@ethereal.email
-    ```
-* password:
-    ```text
-    4e1zbM2nxsMu2d823E
-    ```
+### Gmail API Configuration
+
+The application is configured to use Gmail API for sending emails in production. To set up Gmail integration:
+
+1. Google Cloud Console Setup:
+   - Create a project in [Google Cloud Console](https://console.cloud.google.com/)
+   - Enable Gmail API for your project
+   - Create OAuth 2.0 credentials (Client ID and Client Secret)
+   - Add your redirect URI for OAuth flow
+2. Environment Configuration:
+   Configure the following variables in your `.env.development` file:
+   ```env
+   GOOGLE_GMAIL_USER=your-gmail@gmail.com
+   GOOGLE_GMAIL_API_REFRESH_TOKEN=your_refresh_token
+   GOOGLE_OAUTH_CLIENT_ID=your_client_id
+   GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret
+   GOOGLE_OAUTH_REDIRECT_URI=your_redirect_uri
+   ```
+3. OAuth2 Flow:
+   - Use Google OAuth2 flow to obtain refresh token
+   - The application automatically refreshes access tokens as needed
+
+### Development Testing with Ethereal
+For development and testing purposes, you can use [Ethereal Email](https://ethereal.email/) - a fake SMTP service where messages are captured but never delivered.
+
+Default test credentials:
+* login: ```ricky43@ethereal.email```
+* password: ```4e1zbM2nxsMu2d823E```
+
+### Email Templates
+Email types supported:
+- Account email confirmation
+- Password reset notifications  
+- Welcome emails for new companies
+- Ticket confirmation with PDF attachments
+
+
 
 # 🔁 REST API documentation
 
-The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api).
-The [Swagger](https://swagger.io/) library is used.
+The comprehensive API documentation is available at [https://univent-platform.koyeb.app/api](https://univent-platform.koyeb.app/api) or [http://localhost:8080/api](http://localhost:8080/api) and provides:
+
+- **Interactive API Explorer**: Built with Swagger UI, allowing you to test endpoints directly in the browser
+- **Complete Endpoint Coverage**: Documentation for all available REST endpoints including authentication, users, companies, events, tickets, orders, promo codes, notifications, and payments
+- **Security Documentation**: Clear indication of which endpoints require JWT authentication and CSRF tokens
+- **Request/Response Schemas**: Detailed schema definitions with examples for all data structures
+- **Error Response Documentation**: Comprehensive error codes and response formats
+- **Automated Security Annotations**: The system automatically applies appropriate security requirements (JWT Bearer auth, CSRF tokens) based on route guards and decorators
+
+### API Features:
+- **JWT Authentication**: Bearer token authentication for protected endpoints
+- **CSRF Protection**: Cross-Site Request Forgery protection for state-changing operations
+- **Role-based Access Control**: Different access levels for users, companies, and system operations
+- **Pagination Support**: Cursor and offset-based pagination for large datasets
+- **File Upload Support**: Endpoints for avatar, logo, and poster uploads
+- **Real-time Validation**: Request validation with detailed error messages
+
+The documentation is generated automatically from code annotations using [@nestjs/swagger](https://www.npmjs.com/package/@nestjs/swagger) and includes operation sorting, filtering, and persistent authorization for easier testing.
 
 
-## 📬 Postman
+
+# 📬 Postman
 The [univent.postman_collection.json](/docs/postman/univent.postman_collection.json) file is a preconfigured Postman collection designed to simplify testing and interaction with the Univent API. This collection includes a comprehensive set of API requests organized into logical folders, covering authentication, user management, event handling, subscriptions, payments, notifications, promo codes, orders, and more. By importing this collection into Postman you can quickly set up and execute API calls to explore the Univent API's functionality.
 
-#### Structure of the Collection
-The [univent.postman_collection.json](/docs/postman/univent.postman_collection.json) file is organized into several folders, each corresponding to a specific category of API endpoints. Below is an overview of the main folders and their test cases, as shown in the screenshots provided.
+### Structure of the Collection
+The [univent.postman_collection.json](/docs/postman/univent.postman_collection.json) file contains comprehensive API endpoint definitions organized into the following main categories:
 
-![postman_auth](/docs/postman/auth.png)
-![postman_users](/docs/postman/users.png)
-![postman_companies](/docs/postman/companies.png)
-![postman_events](/docs/postman/events.png)
-![postman_others](/docs/postman/others.png)
+#### 📁 Auth
+- Get CSRF token
+- Register (user registration)
+- Confirm email (email verification)
+- Login / Login With Test User
+- Refresh access token
+- Logout
+- Request password recovery
+- Confirm password recovery
 
-#### Importing the Collection into Postman
+#### 👥 Users
+- **Subscriptions**: Get event/company subscriptions
+- **Notifications**: Get user notifications (all, filtered, paginated)
+- Get all users / Get user by ID / Get current user
+- Get user companies and orders
+- Update user profile and password
+- Upload avatar
+
+#### 🏢 Companies
+- **News**: Create/get company news
+- **Events**: Get company events
+- **Subscriptions**: Company subscription management
+- Register company
+- Get all companies (with query params, pagination)
+- Get company by ID
+- Update company / Upload logo
+- Delete company
+
+#### 🎪 Events
+- **Formats**: Get all formats / Get format by ID / Sync formats
+- **Themes**: Get all themes / Get theme by ID / Sync themes  
+- **Attendees**: Update attendee visibility
+- **News**: Create/get event news
+- **Promo codes**: Create/validate event promo codes
+- **Tickets**: Create/get event tickets
+- Create event / Get events
+- Update event / Upload poster
+- Get event attendees / Get event subscriptions
+
+#### 🎫 Tickets
+- Get all tickets
+- Get ticket by ID
+- Update ticket
+
+#### 📰 News
+- Get news by ID
+- Update news
+- Delete news
+
+#### 🔔 Notifications
+- Update notification status (mark as read/hidden)
+
+#### 🛒 Orders
+- Create order
+- Get order by ID
+
+#### 💳 Payments
+- Create Stripe payment intent
+- Handle Stripe webhooks
+
+#### 🎟️ Promo Codes
+- Get promo code by ID
+- Update promo code
+- Validate promo code
+
+### Importing the Collection into Postman
 Follow these steps to import and set up the Univent Postman collection:
 
 1. Open Postman:
@@ -428,19 +536,44 @@ Follow these steps to import and set up the Univent Postman collection:
     * Each request includes example responses in the collection, showing expected status codes (e.g., 200 OK, 201 Created, 422 Unprocessable Entity) and response bodies.
 
 
+
 # 📦 Migrations
 
-1. To create new migration run command:
+### Migration Commands
+1. Create new migration:
     ```bash
     npm run migrate:create --name <migration_name>
     ```
-2. To refresh all data at the database run command:
+2. Apply migrations:
+    ```bash
+    npm run migrate
+    ```
+3. Generate Prisma client:
+    ```bash
+    npm run migrate:generate
+    ```
+4. Seed database with demo data:
+    ```bash
+    npm run migrate:seed
+    ```
+5. Reset and refresh database:
     ```bash
     npm run migrate:refresh
     ```
 
-# 🪲 Testing
+### Seeding 
+The seeding system creates comprehensive demo data including:
+- Users with various roles
+- Companies with events and news
+- Event formats and themes  
+- Tickets with different statuses
+- Promotional codes and orders
+- Subscriptions and notifications
+- Event attendees with different visibility settings
 
+
+
+# 🪲 Testing
 For all commands in the text below, the environment is a `test` that uses the variables of the `.env.test.example` file.
 
 1. Unit tests
@@ -467,6 +600,8 @@ For all commands in the text below, the environment is a `test` that uses the va
    npm run test
    ```
 
+
+
 # 👤 Fake Data
 To fill the database with demo data of users, companies, events and tickets, run the following command:
 ```bash
@@ -483,10 +618,12 @@ User data for testing:
   ```text
   test.user@univent.com
   ```
-All users have a password:
+All test users have a password:
 ```text
 Password123!$
 ```
+
+
 
 # 🏞 Unsplash
 **Unsplash** is the internet’s source of freely usable images.
@@ -511,7 +648,7 @@ To connect to the Unsplash, follow these steps:
     ```
 In Development Mode, you have **50 requests per hour**. To increase the limit (up to 5000 requests/hour), apply for production access via the Unsplash dashboard, providing use cases with attribution.
 
-More information can be found in the [Unsplash documentation](https://unsplash.com/documentation).
+More information can be found in the [Unsplash API Documentation](https://unsplash.com/documentation).
 
 
 
