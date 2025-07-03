@@ -1,7 +1,7 @@
 <div align="center">
    <p align="center">
       <a href="https://ucode.world/en/" target="_blank">
-         <img src="https://github.com/Strawberry-Team/ucode-connect-Track-FullStack-uevent-Univent-backend/blob/main/public/project/ucode_it_academy_logo.svg" height="100px" alt="ucode_logo">
+         <img src="./public/project/ucode_it_academy_logo.svg" height="100px" alt="ucode_logo">
       </a>
    </p>
 
@@ -49,9 +49,9 @@
 </div>
 
 # 📑 Table of Contents
-- [🗓️ Overview](#️-overview)
+- [🗓️ About "Univent" Platform](#-about-univent-platform)
 - [🧑‍💻 Team](#-team)
-- [🗓 About "Univent" platform](#-about-univent-platform)
+- [🗓 About "Univent" Backend](#-about-univent-backend)
 - [🎯 Features and Functionality](#-features-and-functionality)
   - [🔐 Authentication & Authorization](#-authentication--authorization)
   - [👥 User Management](#-user-management)
@@ -107,12 +107,19 @@
 
 
 
-# 🗓️ Overview
+# 🗓️ About "Univent" Platform
 <b>Univent</b> is a platform for creating, attending and managing events! 
 
 Organise events with interactive maps, buy tickets, use promo codes and receive notifications. 
 
 A user-friendly profile for everyone - from organisers to guests.
+
+Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9XUWx4i6cH/edit?usp=sharing&ouid=109902939512595211399&rtpof=true&sd=true) to the presentation file.</p>
+
+![Description](https://github.com/user-attachments/assets/bbef933a-aff0-4612-a0fa-c3734263a027)
+![Desktop View](https://github.com/user-attachments/assets/8a7ca803-97f9-4dc4-a509-0609296614ac)
+![Tablet View](https://github.com/user-attachments/assets/cd5f8352-8896-4a96-8488-c747902ff0c7)
+![Mobile and Tablet View](https://github.com/user-attachments/assets/cbd9ebe4-e325-4fed-9b36-4b0ec51e1ff6)
 
 
 
@@ -150,17 +157,10 @@ A user-friendly profile for everyone - from organisers to guests.
 
 
 
-# 🗓 About "Univent" platform
+# 🗓 About "Univent" Backend
 Univent is a dynamic ticketing platform designed to simplify event management and ticketing. 
 
 The Univent backend built on Node.js, NestJS, Express, and Prisma with MySQL, provides secure event, ticket, and payment management via Stripe, integration with Google API and Unsplash, authentication with JWT, Bcrypt, and Passport, as well as automation with PDFKit, QRCode, scheduling with @nestjs/schedule, documentation with Swagger, containerisation with Docker, and testing with Jest, Faker.js, ESLint, and Prettier.
-
-Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9XUWx4i6cH/edit?usp=sharing&ouid=109902939512595211399&rtpof=true&sd=true) to the presentation file.</p>
-
-![CleanShot 2025-06-20 at 19 42 38](https://github.com/user-attachments/assets/bbef933a-aff0-4612-a0fa-c3734263a027)
-![CleanShot 2025-06-20 at 19 36 33](https://github.com/user-attachments/assets/8a7ca803-97f9-4dc4-a509-0609296614ac)
-![CleanShot 2025-06-20 at 19 36 37](https://github.com/user-attachments/assets/cd5f8352-8896-4a96-8488-c747902ff0c7)
-![CleanShot 2025-06-20 at 19 36 42](https://github.com/user-attachments/assets/cbd9ebe4-e325-4fed-9b36-4b0ec51e1ff6)
 
 
 
@@ -346,7 +346,8 @@ In the examples of all commands in the text `<env>` is the name of the environme
 
 1. Clone this repository and move to the project directory:
    ```bash
-   git clone <repository-url>
+   git clone <repository-url> univent-backend
+   cd univent-backend
    ```
 2. Install all dependencies:
    ```bash
@@ -399,7 +400,7 @@ In the examples of all commands in the text `<env>` is the name of the environme
     ```bash
     npm run start:dev
     ```
-10. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
+10. Application will be launched on [http://localhost:8080/api](http://localhost:8080/api).
 
 
 
@@ -489,10 +490,10 @@ The documentation is generated automatically from code annotations using [@nestj
 
 
 # 📬 Postman
-The [univent.postman_collection.json](/docs/postman/univent.postman_collection.json) file is a preconfigured Postman collection designed to simplify testing and interaction with the Univent API. This collection includes a comprehensive set of API requests organized into logical folders, covering authentication, user management, event handling, subscriptions, payments, notifications, promo codes, orders, and more. By importing this collection into Postman you can quickly set up and execute API calls to explore the Univent API's functionality.
+The [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file is a preconfigured Postman collection designed to simplify testing and interaction with the Univent API. This collection includes a comprehensive set of API requests organized into logical folders, covering authentication, user management, event handling, subscriptions, payments, notifications, promo codes, orders, and more. By importing this collection into Postman you can quickly set up and execute API calls to explore the Univent API's functionality.
 
 ### Structure of the Collection
-The [univent.postman_collection.json](/docs/postman/univent.postman_collection.json) file contains comprehensive API endpoint definitions organized into the following main categories:
+The [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file contains comprehensive API endpoint definitions organized into the following main categories:
 
 #### 📁 Auth
 - Get CSRF token
@@ -566,15 +567,14 @@ Follow these steps to import and set up the Univent Postman collection:
     * Launch the Postman application on your computer.
 2. Import the Collection:
     * Click the Import button in the top-left corner of Postman.
-    * In the import dialog, select Choose Files and navigate to the `/docs/postman/univent.postman_collection.json` file in your project directory.
-    * Alternatively, drag and drop the univent.postman_collection.json file into the import dialog.
+    * In the import dialog, select Choose Files and navigate to the [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file in your project directory.
+    * Alternatively, drag and drop the [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file into the import dialog.
     * Click Import to load the collection into Postman.
 3. Verify the Collection:
     * Once imported, the "univent" collection will appear in the Collections sidebar on the left.
-    * Expand the collection to view the organized folders (e.g., Auth, Users, Companies, Events, etc.), as shown in the screenshots (auth.png, users.png, companies.png, events.png, others.png).
-4. Set Up Environment Variables:
-![postman_env_variables](/docs/postman/env_variables.png)
+    * Expand the collection to view the organized folders (e.g., Auth, Users, Companies, Events, etc.).
     * The collection uses variables like `{{url}}`, `{{csrfToken}}`, `{{accessToken}}`, and `{{refreshToken}}` to dynamically configure requests.
+    ![postman_env_variables](./docs/postman/env_variables.png)
     * Create a new Postman environment or update an existing one:
         * Click the Environments tab in Postman.
         * Create a new environment (e.g., "Univent") or select an existing one.
@@ -694,19 +694,15 @@ To connect to the Unsplash, follow these steps:
     * Accept the terms and conditions.
 3. Get the API key:
     * After creating the app, you will see the Access Key (and Secret Key if you need OAuth). The Access Key is your API key.
-    * Copy the key and save it in a safe place, for example, in your `.env` or `.env.development` file:
-        ```text
-        UNSPLASH_ACCESS_KEY=<access_key>
-        ```
+    * Copy the key and save it in a safe place.
 4. After put your access key to the `.env.development` file:
     ```bash
-    # Upsplash Configuration
     UNSPLASH_ACCESS_KEY=<API_key>
     ```
-In Development Mode, you have **50 requests per hour**. To increase the limit (up to 5000 requests/hour), apply for production access via the Unsplash dashboard, providing use cases with attribution.
+**Note**: In Development Mode, you have **50 requests per hour**. To increase the limit (up to 5000 requests/hour), apply for production access via the Unsplash dashboard, providing use cases with attribution.
 
 More information can be found in the [Unsplash API Documentation](https://unsplash.com/documentation).
 
-
+---
 
 © Inessa Repeshko. 2025
