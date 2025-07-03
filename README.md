@@ -1,7 +1,7 @@
 <div align="center">
    <p align="center">
       <a href="https://ucode.world/en/" target="_blank">
-         <img src="https://github.com/Strawberry-Team/ucode-connect-Track-FullStack-uevent-Univent-backend/blob/main/public/project/ucode_it_academy_logo.svg" height="100px" alt="ucode_logo">
+         <img src="./public/project/ucode_it_academy_logo.svg" height="100px" alt="ucode_logo">
       </a>
    </p>
 
@@ -48,14 +48,78 @@
    </h3>
 </div>
 
+# 📑 Table of Contents
+- [🗓️ About "Univent" Platform](#-about-univent-platform)
+- [🧑‍💻 Team](#-team)
+- [🗓 About "Univent" Backend](#-about-univent-backend)
+- [🎯 Features and Functionality](#-features-and-functionality)
+  - [🔐 Authentication & Authorization](#-authentication--authorization)
+  - [👥 User Management](#-user-management)
+  - [🏢 Company Management](#-company-management)
+  - [🎪 Event Management](#-event-management)
+  - [🎫 Ticketing System](#-ticketing-system)
+  - [💳 Payment Processing](#-payment-processing)
+  - [🛒 Order Management](#-order-management)
+  - [🎟️ Promo Codes & Discounts](#️-promo-codes--discounts)
+  - [📧 Email System](#-email-system)
+  - [🔔 Notification System](#-notification-system)
+  - [📰 News Management](#-news-management)
+  - [📬 Subscription System](#-subscription-system)
+  - [📊 Event Analytics & Attendees](#-event-analytics--attendees)
+  - [🔍 Search & Filtering](#-search--filtering)
+  - [📱 File Management](#-file-management)
+  - [🏗️ Background Jobs & Scheduling](#️-background-jobs--scheduling)
+  - [🛡️ Security Features](#️-security-features)
+  - [🔧 API Documentation](#-api-documentation)
+  - [🧪 Testing Infrastructure](#-testing-infrastructure)
+- [👤 Use case diagram](#-use-case-diagram)
+- [🧲 Activity diagram](#-activity-diagram)
+- [🚚 Deployment Diagram](#-deployment-diagram)
+- [📦 Database Diagram](#-database-diagram)
+- [⚙️ Requirements and Dependencies](#️-requirements-and-dependencies)
+- [🚀 How to Run the Solution](#-how-to-run-the-solution)
+- [🐋 Docker](#-docker)
+- [📫 Email Service](#-email-service)
+  - [Gmail API Configuration](#gmail-api-configuration)
+  - [Development Testing with Ethereal](#development-testing-with-ethereal)
+  - [Email Templates](#email-templates)
+- [🔁 REST API documentation](#-rest-api-documentation)
+  - [API Features](#api-features)
+- [📬 Postman](#-postman)
+  - [Structure of the Collection](#structure-of-the-collection)
+    - [📁 Auth](#-auth)
+    - [👥 Users](#-users)
+    - [🏢 Companies](#-companies)
+    - [🎪 Events](#-events)
+    - [🎫 Tickets](#-tickets)
+    - [📰 News](#-news)
+    - [🔔 Notifications](#-notifications)
+    - [🛒 Orders](#-orders)
+    - [💳 Payments](#-payments)
+    - [🎟️ Promo Codes](#️-promo-codes)
+  - [Importing the Collection into Postman](#importing-the-collection-into-postman)
+- [📦 Migrations](#-migrations)
+  - [Migration Commands](#migration-commands)
+  - [Seeding](#seeding)
+- [🪲 Testing](#-testing)
+- [👤 Fake Data](#-fake-data)
+- [🏞 Unsplash](#-unsplash)
 
 
-# 🗓️ Overview
+
+# 🗓️ About "Univent" Platform
 <b>Univent</b> is a platform for creating, attending and managing events! 
 
 Organise events with interactive maps, buy tickets, use promo codes and receive notifications. 
 
 A user-friendly profile for everyone - from organisers to guests.
+
+Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9XUWx4i6cH/edit?usp=sharing&ouid=109902939512595211399&rtpof=true&sd=true) to the presentation file.</p>
+
+![Description](https://github.com/user-attachments/assets/bbef933a-aff0-4612-a0fa-c3734263a027)
+![Desktop View](https://github.com/user-attachments/assets/8a7ca803-97f9-4dc4-a509-0609296614ac)
+![Tablet View](https://github.com/user-attachments/assets/cd5f8352-8896-4a96-8488-c747902ff0c7)
+![Mobile and Tablet View](https://github.com/user-attachments/assets/cbd9ebe4-e325-4fed-9b36-4b0ec51e1ff6)
 
 
 
@@ -93,17 +157,15 @@ A user-friendly profile for everyone - from organisers to guests.
 
 
 
-# 🗓 About "Univent" platform
+# 🗓 About "Univent" Backend
+
 Univent is a dynamic ticketing platform designed to simplify event management and ticketing. 
 
 The Univent backend built on Node.js, NestJS, Express, and Prisma with MySQL, provides secure event, ticket, and payment management via Stripe, integration with Google API and Unsplash, authentication with JWT, Bcrypt, and Passport, as well as automation with PDFKit, QRCode, scheduling with @nestjs/schedule, documentation with Swagger, containerisation with Docker, and testing with Jest, Faker.js, ESLint, and Prettier.
 
-Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9XUWx4i6cH/edit?usp=sharing&ouid=109902939512595211399&rtpof=true&sd=true) to the presentation file.</p>
+![The Univent API documentation](https://github.com/user-attachments/assets/d52b35be-4fed-4d5b-b219-c55cc6a90c63)
+![Events API](https://github.com/user-attachments/assets/afd91f2d-c1e8-456f-b66d-139bc5b40967)
 
-![CleanShot 2025-06-20 at 19 42 38](https://github.com/user-attachments/assets/bbef933a-aff0-4612-a0fa-c3734263a027)
-![CleanShot 2025-06-20 at 19 36 33](https://github.com/user-attachments/assets/8a7ca803-97f9-4dc4-a509-0609296614ac)
-![CleanShot 2025-06-20 at 19 36 37](https://github.com/user-attachments/assets/cd5f8352-8896-4a96-8488-c747902ff0c7)
-![CleanShot 2025-06-20 at 19 36 42](https://github.com/user-attachments/assets/cbd9ebe4-e325-4fed-9b36-4b0ec51e1ff6)
 
 
 
@@ -267,7 +329,7 @@ Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9
 
 
 
-# 🤓 Database Diagram
+# 📦 Database Diagram
 ![Database Diagram](https://github.com/user-attachments/assets/aa1a79cf-f73b-4d00-b0cd-6c9e6d17829f)
 
 
@@ -276,9 +338,11 @@ Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9
 
 Before starting, ensure the required technologies are installed.
 
-- **Node.JS** >= v22
+- **Node.JS** >= v22.10
 - **NPM** >= v10
 - **MySQL** >= 8.0
+
+
 
 # 🚀 How to Run the Solution
 
@@ -287,7 +351,8 @@ In the examples of all commands in the text `<env>` is the name of the environme
 
 1. Clone this repository and move to the project directory:
    ```bash
-   git clone <repository-url>
+   git clone <repository-url> univent-backend
+   cd univent-backend
    ```
 2. Install all dependencies:
    ```bash
@@ -316,7 +381,6 @@ In the examples of all commands in the text `<env>` is the name of the environme
    ```bash
    npm run setup:db
    ```
-//TODO: подумать, как сделать так, чтобы наименьше надо было выполнять команд
 5. Run command to apply necessary migrations.
    ```bash
    npm run migrate
@@ -341,7 +405,9 @@ In the examples of all commands in the text `<env>` is the name of the environme
     ```bash
     npm run start:dev
     ```
-10. Application will be launched on [http://localhost:8080/](http://localhost:8080/).
+10. Application will be launched on [http://localhost:8080/api](http://localhost:8080/api).
+
+
 
 # 🐋 Docker
 Environment variables are taken from `.env.development` file. You can start containers with the command:
@@ -361,26 +427,176 @@ To stop and delete containers, networks, and associated resources (with volumes)
 docker-compose down -v
 ```
 
+
+
 # 📫 Mailing Service
 
-[Ethereal](https://ethereal.email/) is a fake SMTP service, mostly aimed at Nodemailer and EmailEngine users (but not
-limited to). It's a completely free anti-transactional email service where messages never get delivered.
-To view the letter that the user will receive, you need to log in to this service using a test login and password.
-Default credentials you can find in `.env.development.example` file or:
+The application uses **Gmail API** for production email delivery with OAuth2 authentication, providing reliable and secure email sending capabilities.
 
-* login:
-    ```text
-    ricky43@ethereal.email
-    ```
-* password:
-    ```text
-    4e1zbM2nxsMu2d823E
-    ```
+### Gmail API Configuration
+
+The application is configured to use Gmail API for sending emails in production. To set up Gmail integration:
+
+1. Google Cloud Console Setup:
+   - Create a project in [Google Cloud Console](https://console.cloud.google.com/)
+   - Enable Gmail API for your project
+   - Create OAuth 2.0 credentials (Client ID and Client Secret)
+   - Add your redirect URI for OAuth flow
+2. Environment Configuration:
+   Configure the following variables in your `.env.development` file:
+   ```env
+   GOOGLE_GMAIL_USER=your-gmail@gmail.com
+   GOOGLE_GMAIL_API_REFRESH_TOKEN=your_refresh_token
+   GOOGLE_OAUTH_CLIENT_ID=your_client_id
+   GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret
+   GOOGLE_OAUTH_REDIRECT_URI=your_redirect_uri
+   ```
+3. OAuth2 Flow:
+   - Use Google OAuth2 flow to obtain refresh token
+   - The application automatically refreshes access tokens as needed
+
+### Development Testing with Ethereal
+For development and testing purposes, you can use [Ethereal Email](https://ethereal.email/) - a fake SMTP service where messages are captured but never delivered.
+
+Default test credentials:
+* login: ```ricky43@ethereal.email```
+* password: ```4e1zbM2nxsMu2d823E```
+
+### Email Templates
+Email types supported:
+- Account email confirmation
+- Password reset notifications  
+- Welcome emails for new companies
+- Ticket confirmation with PDF attachments
+
+
 
 # 🔁 REST API documentation
 
-The documentation of all available endpoints can be found [http://localhost:8080/api](http://localhost:8080/api).
-The [Swagger](https://swagger.io/) library is used.
+The comprehensive API documentation is available at [https://univent-platform.onrender.com/api](https://univent-platform.onrender.com/api) or [http://localhost:8080/api](http://localhost:8080/api) and provides:
+
+- **Interactive API Explorer**: Built with Swagger UI, allowing you to test endpoints directly in the browser
+- **Complete Endpoint Coverage**: Documentation for all available REST endpoints including authentication, users, companies, events, tickets, orders, promo codes, notifications, and payments
+- **Security Documentation**: Clear indication of which endpoints require JWT authentication and CSRF tokens
+- **Request/Response Schemas**: Detailed schema definitions with examples for all data structures
+- **Error Response Documentation**: Comprehensive error codes and response formats
+- **Automated Security Annotations**: The system automatically applies appropriate security requirements (JWT Bearer auth, CSRF tokens) based on route guards and decorators
+
+### API Features:
+- **JWT Authentication**: Bearer token authentication for protected endpoints
+- **CSRF Protection**: Cross-Site Request Forgery protection for state-changing operations
+- **Role-based Access Control**: Different access levels for users, companies, and system operations
+- **Pagination Support**: Cursor and offset-based pagination for large datasets
+- **File Upload Support**: Endpoints for avatar, logo, and poster uploads
+- **Real-time Validation**: Request validation with detailed error messages
+
+The documentation is generated automatically from code annotations using [@nestjs/swagger](https://www.npmjs.com/package/@nestjs/swagger) and includes operation sorting, filtering, and persistent authorization for easier testing.
+
+
+
+# 📬 Postman
+The [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file is a preconfigured Postman collection designed to simplify testing and interaction with the Univent API. This collection includes a comprehensive set of API requests organized into logical folders, covering authentication, user management, event handling, subscriptions, payments, notifications, promo codes, orders, and more. By importing this collection into Postman you can quickly set up and execute API calls to explore the Univent API's functionality.
+
+### Structure of the Collection
+The [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file contains comprehensive API endpoint definitions organized into the following main categories:
+
+#### 📁 Auth
+- Get CSRF token
+- Register (user registration)
+- Confirm email (email verification)
+- Login / Login With Test User
+- Refresh access token
+- Logout
+- Request password recovery
+- Confirm password recovery
+
+#### 👥 Users
+- **Subscriptions**: Get event/company subscriptions
+- **Notifications**: Get user notifications (all, filtered, paginated)
+- Get all users / Get user by ID / Get current user
+- Get user companies and orders
+- Update user profile and password
+- Upload avatar
+
+#### 🏢 Companies
+- **News**: Create/get company news
+- **Events**: Get company events
+- **Subscriptions**: Company subscription management
+- Register company
+- Get all companies (with query params, pagination)
+- Get company by ID
+- Update company / Upload logo
+- Delete company
+
+#### 🎪 Events
+- **Formats**: Get all formats / Get format by ID / Sync formats
+- **Themes**: Get all themes / Get theme by ID / Sync themes  
+- **Attendees**: Update attendee visibility
+- **News**: Create/get event news
+- **Promo codes**: Create/validate event promo codes
+- **Tickets**: Create/get event tickets
+- Create event / Get events
+- Update event / Upload poster
+- Get event attendees / Get event subscriptions
+
+#### 🎫 Tickets
+- Get all tickets
+- Get ticket by ID
+- Update ticket
+
+#### 📰 News
+- Get news by ID
+- Update news
+- Delete news
+
+#### 🔔 Notifications
+- Update notification status (mark as read/hidden)
+
+#### 🛒 Orders
+- Create order
+- Get order by ID
+
+#### 💳 Payments
+- Create Stripe payment intent
+- Handle Stripe webhooks
+
+#### 🎟️ Promo Codes
+- Get promo code by ID
+- Update promo code
+- Validate promo code
+
+### Importing the Collection into Postman
+Follow these steps to import and set up the Univent Postman collection:
+
+1. Open Postman:
+    * Launch the Postman application on your computer.
+2. Import the Collection:
+    * Click the Import button in the top-left corner of Postman.
+    * In the import dialog, select Choose Files and navigate to the [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file in your project directory.
+    * Alternatively, drag and drop the [univent.postman_collection.json](./docs/postman/univent.postman_collection.json) file into the import dialog.
+    * Click Import to load the collection into Postman.
+3. Verify the Collection:
+    * Once imported, the "univent" collection will appear in the Collections sidebar on the left.
+    * Expand the collection to view the organized folders (e.g., Auth, Users, Companies, Events, etc.).
+    * The collection uses variables like `{{url}}`, `{{csrfToken}}`, `{{accessToken}}`, and `{{refreshToken}}` to dynamically configure requests.
+    ![postman_env_variables](./docs/postman/env_variables.png)
+    * Create a new Postman environment or update an existing one:
+        * Click the Environments tab in Postman.
+        * Create a new environment (e.g., "Univent") or select an existing one.
+        * Add the following variables (initial values are provided in the collection's variable section): 
+        * url: Set to http://localhost:8080/api (or your API's base URL).
+            * `csrfToken`: Initially set to a placeholder (e.g., 8gAKNsET-yxO1S-Qny8PrGewCQ_qnn5yc6qE). This will be updated automatically by the "Get CSRF Token" request.
+            * `accessToken`: Placeholder for the JWT access token, updated by the "Login" or "Refresh Access Token" requests.
+            * `refreshToken`: Placeholder for the JWT refresh token, updated by the "Login" request.
+            * `passwordResetLink` and confirmEmailLink: Optional variables for password reset and email confirmation links.
+            * `baseUrl`: Optional variable for additional URL configurations.
+        * Save the environment and select it from the environment dropdown in Postman.
+5. Test the Collection:
+    * Start by running the Get CSRF Token request in the Auth folder. This request retrieves a CSRF token and stores it in the csrfToken variable using a Postman test script.
+    * Proceed to the Register or Login requests to authenticate and obtain accessToken and refreshToken values, which are automatically stored by test scripts.
+    * Use the authenticated tokens to test other endpoints (e.g., retrieving event subscriptions, creating orders, or validating promo codes).
+    * Each request includes example responses in the collection, showing expected status codes (e.g., 200 OK, 201 Created, 422 Unprocessable Entity) and response bodies.
+
 
 
 ## 📬 Postman
@@ -431,17 +647,41 @@ Follow these steps to import and set up the Univent Postman collection:
 
 # 📦 Migrations
 
-1. To create new migration run command:
+### Migration Commands
+1. Create new migration:
     ```bash
     npm run migrate:create --name <migration_name>
     ```
-2. To refresh all data at the database run command:
+2. Apply migrations:
+    ```bash
+    npm run migrate
+    ```
+3. Generate Prisma client:
+    ```bash
+    npm run migrate:generate
+    ```
+4. Seed database with demo data:
+    ```bash
+    npm run migrate:seed
+    ```
+5. Reset and refresh database:
     ```bash
     npm run migrate:refresh
     ```
 
-# 🪲 Testing
+### Seeding 
+The seeding system creates comprehensive demo data including:
+- Users with various roles
+- Companies with events and news
+- Event formats and themes  
+- Tickets with different statuses
+- Promotional codes and orders
+- Subscriptions and notifications
+- Event attendees with different visibility settings
 
+
+
+# 🪲 Testing
 For all commands in the text below, the environment is a `test` that uses the variables of the `.env.test.example` file.
 
 1. Unit tests
@@ -468,6 +708,8 @@ For all commands in the text below, the environment is a `test` that uses the va
    npm run test
    ```
 
+
+
 # 👤 Fake Data
 To fill the database with demo data of users, companies, events and tickets, run the following command:
 ```bash
@@ -484,35 +726,34 @@ User data for testing:
   ```text
   test.user@univent.com
   ```
-All users have a password:
+All test users have a password:
 ```text
 Password123!$
 ```
+
+
 
 # 🏞 Unsplash
 **Unsplash** is the internet’s source of freely usable images.
 
 To connect to the Unsplash, follow these steps:
 1. Sign up for an account with Unsplash:
-    Go to (Unsplash Developers)[https://unsplash.com/developers] and sign in to your Unsplash account (or create a new one).
+    * Go to (Unsplash Developers)[https://unsplash.com/developers] and sign in to your Unsplash account (or create a new one).
 2. Create an app:
-    In the `Your Applications` section, click `New Application`.
-    Fill in the fields: name of the app (for example, `Event App`), description (for example, `Get images for events`). Accept the terms and conditions.
+    * In the `Your Applications` section, click `New Application`.
+    * Fill in the fields: name of the app (for example, `Event App`), description (for example, `Get images for events`). 
+    * Accept the terms and conditions.
 3. Get the API key:
-    After creating the app, you will see the Access Key (and Secret Key if you need OAuth). The Access Key is your API key.
-    Copy the key and save it in a safe place, for example, in your `.env` or `.env.development` file:
-    ```text
-    UNSPLASH_ACCESS_KEY=<access_key>
-    ```
+    * After creating the app, you will see the Access Key (and Secret Key if you need OAuth). The Access Key is your API key.
+    * Copy the key and save it in a safe place.
 4. After put your access key to the `.env.development` file:
     ```bash
-    # Upsplash Configuration
     UNSPLASH_ACCESS_KEY=<API_key>
     ```
-In Development Mode, you have **50 requests per hour**. To increase the limit (up to 5000 requests/hour), apply for production access via the Unsplash dashboard, providing use cases with attribution.
+**Note**: In Development Mode, you have **50 requests per hour**. To increase the limit (up to 5000 requests/hour), apply for production access via the Unsplash dashboard, providing use cases with attribution.
 
-More information can be found in the [Unsplash documentation](https://unsplash.com/documentation).
+More information can be found in the [Unsplash API Documentation](https://unsplash.com/documentation).
 
-
+---
 
 © Inessa Repeshko. 2025
