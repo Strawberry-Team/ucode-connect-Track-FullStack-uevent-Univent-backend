@@ -158,6 +158,7 @@ Here is a [link](https://docs.google.com/presentation/d/1sdtH8O495crk_I2gUyWO1z9
 
 
 # 🗓 About "Univent" Backend
+
 Univent is a dynamic ticketing platform designed to simplify event management and ticketing. 
 
 The Univent backend built on Node.js, NestJS, Express, and Prisma with MySQL, provides secure event, ticket, and payment management via Stripe, integration with Google API and Unsplash, authentication with JWT, Bcrypt, and Passport, as well as automation with PDFKit, QRCode, scheduling with @nestjs/schedule, documentation with Swagger, containerisation with Docker, and testing with Jest, Faker.js, ESLint, and Prettier.
@@ -596,6 +597,52 @@ Follow these steps to import and set up the Univent Postman collection:
     * Use the authenticated tokens to test other endpoints (e.g., retrieving event subscriptions, creating orders, or validating promo codes).
     * Each request includes example responses in the collection, showing expected status codes (e.g., 200 OK, 201 Created, 422 Unprocessable Entity) and response bodies.
 
+
+
+## 📬 Postman
+The [univent.postman_collection.json](/docs/postman/univent.postman_collection.json) file is a preconfigured Postman collection designed to simplify testing and interaction with the Univent API. This collection includes a comprehensive set of API requests organized into logical folders, covering authentication, user management, event handling, subscriptions, payments, notifications, promo codes, orders, and more. By importing this collection into Postman you can quickly set up and execute API calls to explore the Univent API's functionality.
+
+#### Structure of the Collection
+The [univent.postman_collection.json](/docs/postman/univent.postman_collection.json) file is organized into several folders, each corresponding to a specific category of API endpoints. Below is an overview of the main folders and their test cases, as shown in the screenshots provided.
+
+![postman_auth](/docs/postman/auth.png)
+![postman_users](/docs/postman/users.png)
+![postman_companies](/docs/postman/companies.png)
+![postman_events](/docs/postman/events.png)
+![postman_others](/docs/postman/others.png)
+
+#### Importing the Collection into Postman
+Follow these steps to import and set up the Univent Postman collection:
+
+1. Open Postman:
+    * Launch the Postman application on your computer.
+2. Import the Collection:
+    * Click the Import button in the top-left corner of Postman.
+    * In the import dialog, select Choose Files and navigate to the `/docs/postman/univent.postman_collection.json` file in your project directory.
+    * Alternatively, drag and drop the univent.postman_collection.json file into the import dialog.
+    * Click Import to load the collection into Postman.
+3. Verify the Collection:
+    * Once imported, the "univent" collection will appear in the Collections sidebar on the left.
+    * Expand the collection to view the organized folders (e.g., Auth, Users, Companies, Events, etc.), as shown in the screenshots (auth.png, users.png, companies.png, events.png, others.png).
+4. Set Up Environment Variables:
+![postman_env_variables](/docs/postman/env_variables.png)
+    * The collection uses variables like `{{url}}`, `{{csrfToken}}`, `{{accessToken}}`, and `{{refreshToken}}` to dynamically configure requests.
+    * Create a new Postman environment or update an existing one:
+        * Click the Environments tab in Postman.
+        * Create a new environment (e.g., "Univent") or select an existing one.
+        * Add the following variables (initial values are provided in the collection's variable section): 
+        * url: Set to http://localhost:8080/api (or your API's base URL).
+            * `csrfToken`: Initially set to a placeholder (e.g., 8gAKNsET-yxO1S-Qny8PrGewCQ_qnn5yc6qE). This will be updated automatically by the "Get CSRF Token" request.
+            * `accessToken`: Placeholder for the JWT access token, updated by the "Login" or "Refresh Access Token" requests.
+            * `refreshToken`: Placeholder for the JWT refresh token, updated by the "Login" request.
+            * `passwordResetLink` and confirmEmailLink: Optional variables for password reset and email confirmation links.
+            * `baseUrl`: Optional variable for additional URL configurations.
+        * Save the environment and select it from the environment dropdown in Postman.
+5. Test the Collection:
+    * Start by running the Get CSRF Token request in the Auth folder. This request retrieves a CSRF token and stores it in the csrfToken variable using a Postman test script.
+    * Proceed to the Register or Login requests to authenticate and obtain accessToken and refreshToken values, which are automatically stored by test scripts.
+    * Use the authenticated tokens to test other endpoints (e.g., retrieving event subscriptions, creating orders, or validating promo codes).
+    * Each request includes example responses in the collection, showing expected status codes (e.g., 200 OK, 201 Created, 422 Unprocessable Entity) and response bodies.
 
 
 # 📦 Migrations
